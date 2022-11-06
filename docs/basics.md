@@ -10,9 +10,11 @@ A system to author, maintain, organize and perform testing for education.
 
 **Quiz** - a set of questions of a test
 
-**Course** - a group of **Student**s that are supposed to take a specific **Quiz**
+**Exam** - an event of quizzing **Student**s
 
-**Exam** - a session of taking a test 
+**Course** - a group of **Student**s that are supposed to take specified **Exam**
+
+**Trial** - a session of taking an **Exam**
 
 ## Core activities
   
@@ -64,15 +66,26 @@ The same user cannot be of two different roles within a Quiz.
 
  * **Composing** - Curator started the Quiz, Authors and Inspectors are notified about new Quiz
  start, the Quiz is available for changes by Authors
- * **Review** - All Authors report about rediness of the Quiz, Quiz gets read-only, Curator
+ * **Review** - All Authors report about readiness of the Quiz, Quiz gets read-only, Curator
  and Inspectors are notified about *readiness* of the Quiz, Inspectors *review* the Quiz and
  *approve* or *disapprove* the Quiz.  If the Quiz is disapproved, Quiz returns to the Composing
  state, Curator and Authors are notified about disapproval the Quiz.
  * **Released** - All Inspectors approve the Quiz, the Quiz gets read-only forever and is
  available for inclusion into Courses
- * **Deleted** - The Quiz becomes obsolete and doesn't correspond to the learning path anymore, Curator
- deletes the Quiz, Quiz is unavailable for inclusion into Courses
+ * **Deleted** - The Quiz becomes obsolete and doesn't correspond to the learning path anymore,
+ Curator deletes the Quiz, Quiz is unavailable for inclusion into Courses
 
-A Quiz is versioned: a Quiz may be duplicated, the duplicate becomes a next version of the
+A Quiz is versioned: it may be duplicated, the duplicate becomes a next version of the
 Quiz. All active Courses comprising the Quiz should be explicitely updated.
+
+### Course management
+
+One of Staff users creates a Course. This Staff user is the **Host** of the Course. Host schedules
+the Exam: specifies a released Quiz and assigns the **Exam Period** - a period Students are
+eligible to take the Exam within. Quiz and Exam Period are set on Course creation only. Host is
+able to include/exclude Students to/from the Course till start of Exam Period minus configured
+**Preparation Period**.
+
+A Course may be duplicated in order to make another course keeping the Student list.
+
 
