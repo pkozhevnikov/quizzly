@@ -16,7 +16,7 @@ A system to author, maintain, organize and perform testing for education.
 
 **Trial** - a session of taking an **Exam**
 
-## Core activities
+## Main activities
   
 All users are *registered* in the system through the **Registration** process.  **Staff** authors
 **Quiz**zes. **Staff** forms **Course**s and schedules **Exam**s within **Course**s. **Student**s
@@ -28,15 +28,15 @@ take **Exam**s.
 other user specifying **Purpose**(Staff or Student), email and optionally name of a person. The
 invited person receives an email message with Invitation, follows a **Registration Link**,
 specifies name (if required) and **Nickname**, and *confirms* the Registration. The user who
-made the Invitation receives a notification of Registration, checks and *approves* or *declines*
+made the Invitation receives a notification of Registration, checks and *accepts* or *rejects*
 Registration. Invited person receives a notification of resolution.  If the Registration is
-approved, the notification contains a link to the **Set password page**.  The user specifies 
+accepted, the notification contains a link to the **Set password page**.  The user specifies 
 new password and gets access to the system.
 
 Invitation is expired if Registration is not confirmed within configured timespan.
 
 Invitation to the **First Staff user** is sent automatically to configured email during the
-first run of the system.  Registration of the first Staff user is approved automatically.
+first run of the system.  Registration of the First Staff user is accepted automatically.
 
 Every user is able to change her email. A user makes a **Change Email Request**, receives a
 validation message to new email address, then confirms new address. If new address is
@@ -64,28 +64,27 @@ The same user cannot be of two different roles within a Quiz.
 
 *Lifecycle* of a Quiz comprises the following *States*:
 
- * **Composing** - Curator started the Quiz, Authors and Inspectors are notified about new Quiz
+ * **Composing** - Curator started the Quiz, Authors and Inspectors are notified of new Quiz
  start, the Quiz is available for changes by Authors
  * **Review** - All Authors report about readiness of the Quiz, Quiz gets read-only, Curator
- and Inspectors are notified about *readiness* of the Quiz, Inspectors *review* the Quiz and
+ and Inspectors are notified of *readiness* of the Quiz, Inspectors *review* the Quiz and
  *approve* or *disapprove* the Quiz.  If the Quiz is disapproved, Quiz returns to the Composing
- state, Curator and Authors are notified about disapproval the Quiz.
+ state, Curator and Authors are notified of disapproval the Quiz.
  * **Released** - All Inspectors approve the Quiz, the Quiz gets read-only forever and is
  available for inclusion into Courses
- * **Deleted** - The Quiz becomes obsolete and doesn't correspond to the learning path anymore,
+ * **Deleted** - The Quiz becomes obsolete and no longer corresponds to the learning path,
  Curator deletes the Quiz, Quiz is unavailable for inclusion into Courses
 
 A Quiz is versioned: it may be duplicated, the duplicate becomes a next version of the
-Quiz. All active Courses comprising the Quiz should be explicitely updated.
+Quiz. All active Courses referring to the Quiz should be explicitely updated.
 
 ### Course management
 
 One of Staff users creates a Course. This Staff user is the **Host** of the Course. Host schedules
 the Exam: specifies a released Quiz and assigns the **Exam Period** - a period Students are
 eligible to take the Exam within. Quiz and Exam Period are set on Course creation only. Host is
-able to include/exclude Students to/from the Course till start of Exam Period minus configured
-**Preparation Period**.
+able to include/exclude Students in/from the Course till start of Exam Period minus configured
+**Preparation Period**. A Student is notified of her inclusion/exclusion in/from a Course.
 
 A Course may be duplicated in order to make another course keeping the Student list.
-
 
