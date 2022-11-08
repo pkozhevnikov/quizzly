@@ -65,26 +65,45 @@ The same user cannot be of two different roles within a Quiz.
 *Lifecycle* of a Quiz comprises the following *States*:
 
  * **Composing** - Curator started the Quiz, Authors and Inspectors are notified of new Quiz
- start, the Quiz is available for changes by Authors
+ start, the Quiz is available for changes by Authors;
  * **Review** - All Authors report about readiness of the Quiz, Quiz gets read-only, Curator
  and Inspectors are notified of *readiness* of the Quiz, Inspectors *review* the Quiz and
  *approve* or *disapprove* the Quiz.  If the Quiz is disapproved, Quiz returns to the Composing
- state, Curator and Authors are notified of disapproval the Quiz.
+ state, Curator and Authors are notified of disapproval the Quiz;
  * **Released** - All Inspectors approve the Quiz, the Quiz gets read-only forever and is
- available for inclusion into Courses
+ available for inclusion into Courses;
  * **Deleted** - The Quiz becomes obsolete and no longer corresponds to the learning path,
- Curator deletes the Quiz, Quiz is unavailable for inclusion into Courses
+ Curator deletes the Quiz, Quiz is unavailable for inclusion into Courses, but still is available 
+ for duplicating.
 
 A Quiz is versioned: it may be duplicated, the duplicate becomes a next version of the
 Quiz. All active Courses referring to the Quiz should be explicitely updated.
 
 ### Course management
 
-One of Staff users creates a Course. This Staff user is the **Host** of the Course. Host schedules
-the Exam: specifies a released Quiz and assigns the **Exam Period** - a period Students are
-eligible to take the Exam within. Quiz and Exam Period are set on Course creation only. Host is
-able to include/exclude Students in/from the Course till start of Exam Period minus configured
-**Preparation Period**. A Student is notified of her inclusion/exclusion in/from a Course.
+One of Staff users creates a Course. This Staff user is the **Host** of the Course. Host
+schedules the Exam: specifies a released Quiz and assigns the **Exam Period** - a period
+Students are eligible to take the Exam within. Quiz and Exam Period are set on Course creation
+only. 
+
+Lifecycle of a Course comprises the following States:
+
+ * **Initial** - Host created the Course, specifying a Quiz, **Exam Period** - a period
+Students are eligible to take the Exam within, **Trial Length** - time period a Student 
+is allowed to *submit* her Trial;
+ * **Upcoming** - 
+ * **In Progress** -
+ * **Ended** - 
+Host is able to include/exclude Students in/from the Course and change **Time Limit**
+for the Exam till start of Exam Period minus configured **Preparation Period**. A Student is
+notified of her inclusion/exclusion in/from the Course.
 
 A Course may be duplicated in order to make another course keeping the Student list.
 
+### Trial
+
+On the Preparation Period start date, a Course is disabled for any changes and all Students 
+included in the Course receive the **Exam Notification** of upcoming Exam.
+
+Beginning from Exam Period start time, the Exam is available for Trials. A Student follows a
+link provided by Exam Notification and starts her Trial. The Exam is time limited
