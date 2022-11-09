@@ -81,29 +81,32 @@ Quiz. All active Courses referring to the Quiz should be explicitely updated.
 
 ### Course management
 
-One of Staff users creates a Course. This Staff user is the **Host** of the Course. Host
-schedules the Exam: specifies a released Quiz and assigns the **Exam Period** - a period
-Students are eligible to take the Exam within. Quiz and Exam Period are set on Course creation
-only. 
+One of Staff users creates a Course. This Staff user is the **Host** of the Course. Host schedules
+the Exam: specifies a released Quiz and assigns the **Exam Period** - a period Students are
+eligible to take the Exam within. Quiz and Exam Period are set on Course creation only. There
+is a configurable settings **Preparation Interval** - time interval before Exam starts - which is
+applied to to all Cources.
 
-Lifecycle of a Course comprises the following States:
+*Lifecycle* of a Course comprises the following *States*:
 
  * **Initial** - Host created the Course, specifying a Quiz, **Exam Period** - a period
 Students are eligible to take the Exam within, **Trial Length** - time period a Student 
-is allowed to *submit* her Trial;
- * **Upcoming** - 
- * **In Progress** -
- * **Ended** - 
-Host is able to include/exclude Students in/from the Course and change **Time Limit**
-for the Exam till start of Exam Period minus configured **Preparation Period**. A Student is
-notified of her inclusion/exclusion in/from the Course.
+is allowed to *submit* her Trial within. Host is able to change Trial Length and include/exclude
+Students in/from the Course till start of Exam Period minus Preparation Interval;
+ * **Upcoming** - On the Preparation Interval start, the Course is disabled for any changes
+and all Students included in the Course receive the **Exam Notification** of upcoming Exam;
+ * **In Progress** - During Exam Period, every Student of the Course is able to take the Exam once;
+ * **Ended** - On Exam Period end, the Course is done and any Trial submitions are rejected;
+ * **Cancelled** - Host is able to cancel the Course before Exam Period. 
+ 
+Student is notified of her inclusion/exclusion in/from the Course.
 
 A Course may be duplicated in order to make another course keeping the Student list.
 
 ### Trial
 
-On the Preparation Period start date, a Course is disabled for any changes and all Students 
-included in the Course receive the **Exam Notification** of upcoming Exam.
-
 Beginning from Exam Period start time, the Exam is available for Trials. A Student follows a
-link provided by Exam Notification and starts her Trial. The Exam is time limited
+link provided by Exam Notification and starts her Trial. The Student submits every solution
+during the Trial.  When the Student has done with the Quiz, she *finalize*s the Trial. If the
+Student doesn't finalize the Trial during Trial Length, the Trial is finalized automatically
+at Trial start time plus Trial Length.
