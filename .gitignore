@@ -1,1 +1,5 @@
 *.swp
+target
+.bsp
+project
+
