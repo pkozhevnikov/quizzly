@@ -4,9 +4,10 @@ A system to author, maintain, organize and perform testing for education.
 
 ## Basic terms
 
- * **Official**s - **Person**s that organize testing;
- * **Student**s - Persons that are supposed to be tested;
- * **Quiz** - a set of questions of a test;
+ * **Person**s - people that take *place* in the system, places are:
+   * **Official**s - Persons that organize testing;
+   * **Student**s - Persons that are supposed to be tested;
+ * **Quiz** - a set of test questions;
  * **Exam** - a scheduled event of taking a specific Quiz by **Testee**s - Students and Officials
  that are *listed* on the Exam;
  * **Trial** - a session of taking a Quiz within an Exam;
@@ -14,26 +15,26 @@ A system to author, maintain, organize and perform testing for education.
 
 ## Main activities
   
-All Persons are *registered* in the system through the **Registration** process.
+Persons *register* in the system through the **Registration** process.
 
-Official authors Quizzes.
+Officials author Quizzes.
 
-Official schedules Exams.
+Officials schedule Exams.
 
 Testees take Exams.
 
-Quizzes may be published for practicing, all people may take practicing Quizzes.
+Quizzes may be published for practicing, Persons may take practicing Quizzes.
 
 ### Registration
 
 **Registration** is initiated by **Invitation** made by any Official: an Official can invite
-other Person specifying **Purpose**(Official or Student), email and optionally name of a person. The
-invited person receives an email message with Invitation, follows a **Registration Link**,
-specifies name (if required) and **Nickname**, and *confirms* the Registration. The Official who
-made the Invitation receives a notification of Registration, checks and *accepts* or *rejects*
-Registration. Invited person receives a notification of resolution.  If the Registration is
-accepted, the notification contains a link to the **Set password page**.  The Person specifies 
-new password and gets access to the system.
+other Person specifying place, email and optionally name of a person. The invited person receives
+an email message with Invitation, follows a **Registration Link**, specifies name (if required)
+and **Nickname**, and *confirms* the Registration. The Official who made the Invitation receives
+a notification of Registration, checks and *accepts* or *rejects* Registration. Invited person
+receives a notification of resolution.  If the Registration is accepted, the notification
+contains a link to the **Set password page**.  The Person specifies new password and gets access
+to the system.
 
 Invitation expires if Registration is not confirmed within configured timespan.
 
@@ -54,7 +55,7 @@ An Official creates a new **Quiz**, specifying:
 
 The Official that created a new Quiz is the **Curator** of this Quiz.
 
-Roles of users within a Quiz:
+Roles within a Quiz:
 
  * Curator - creates the Quiz, assigns Authors and Inspectors, deletes the Quiz
  * Author - designs and builds the Quiz
@@ -73,7 +74,7 @@ The same Official cannot play two different roles within a Quiz.
  * **Released** - All Inspectors approve the Quiz, the Quiz gets read-only forever.
 
 An Official may duplicate a released Quiz in order to create new Quiz. This Official is a
-Curator of the Quiz, the Quiz is of Composing state.
+Curator of copy Quiz, the copy Quiz is of Composing state.
 
 Curator may mark a Quiz **Obsolete**.
 

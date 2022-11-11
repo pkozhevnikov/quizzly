@@ -1,0 +1,3 @@
+package quizzly
+
+trait CborSerializable

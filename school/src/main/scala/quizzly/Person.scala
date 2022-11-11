@@ -5,8 +5,8 @@ import java.util.UUID
 type PersonID = UUID
 
 sealed trait Person(id: PersonID, name: String):
-  val place: String
+  def place: String
 case class Official(id: PersonID, name: String) extends Person(id, name):
-  override val place = "Official"
+  override def place = "Official"
 case class Student(id: PersonID, name: String) extends Person(id, name):
-  override val place = "Student"
+  override def place = "Student"
