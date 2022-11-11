@@ -4,55 +4,55 @@ A system to author, maintain, organize and perform testing for education.
 
 ## Basic terms
 
- * **Staff** - users that organize testing;
- * **Student**s - users that are supposed to be tested;
+ * **Official**s - **Person**s that organize testing;
+ * **Student**s - Persons that are supposed to be tested;
  * **Quiz** - a set of questions of a test;
- * **Exam** - a scheduled event of taking a specific Quiz by **Testee**s - Students and Staff
- users that are *listed* on the Exam;
+ * **Exam** - a scheduled event of taking a specific Quiz by **Testee**s - Students and Officials
+ that are *listed* on the Exam;
  * **Trial** - a session of taking a Quiz within an Exam;
  * **Practice** - a session of taking a Quiz for practicing.
 
 ## Main activities
   
-All users are *registered* in the system through the **Registration** process.
+All Persons are *registered* in the system through the **Registration** process.
 
-Staff authors Quizzes.
+Official authors Quizzes.
 
-Staff schedules Exams.
+Official schedules Exams.
 
 Testees take Exams.
 
-Quizzes may be published for practicing, all users may take practicing Quizzes.
+Quizzes may be published for practicing, all people may take practicing Quizzes.
 
 ### Registration
 
-**Registration** is initiated by **Invitation** made by any Staff user: a Staff user can invite
-other user specifying **Purpose**(Staff or Student), email and optionally name of a person. The
+**Registration** is initiated by **Invitation** made by any Official: an Official can invite
+other Person specifying **Purpose**(Official or Student), email and optionally name of a person. The
 invited person receives an email message with Invitation, follows a **Registration Link**,
-specifies name (if required) and **Nickname**, and *confirms* the Registration. The user who
+specifies name (if required) and **Nickname**, and *confirms* the Registration. The Official who
 made the Invitation receives a notification of Registration, checks and *accepts* or *rejects*
 Registration. Invited person receives a notification of resolution.  If the Registration is
-accepted, the notification contains a link to the **Set password page**.  The user specifies 
+accepted, the notification contains a link to the **Set password page**.  The Person specifies 
 new password and gets access to the system.
 
 Invitation expires if Registration is not confirmed within configured timespan.
 
-Invitation to the **First Staff user** is sent automatically to configured email during the
-first run of the system.  Registration of the First Staff user is accepted automatically.
+Invitation to the **First Official** is sent automatically to configured email during the
+first run of the system.  Registration of the First Official is accepted automatically.
 
-Every user is able to change her email. A user makes a **Change Email Request**, receives a
+Every Person is able to change her email. A Person makes a **Change Email Request**, receives a
 validation message to new email address, then confirms new address. If new address is
-confirmed successfully, email of the user changes. Change Email Request expires if it is
+confirmed successfully, email of the Person changes. Change Email Request expires if it is
 not confirmed within configured timespan.
 
 ### Quiz authoring
 
-One of Staff users creates a new **Quiz**, specifying:
+An Official creates a new **Quiz**, specifying:
 
- * one or more **Author**s from Staff
- * one or more **Inspector**s from Staff
+ * one or more **Author**s from Officials
+ * one or more **Inspector**s from Officials
 
-The Staff user that started a new Quiz is the **Curator** of this Quiz.
+The Official that created a new Quiz is the **Curator** of this Quiz.
 
 Roles of users within a Quiz:
 
@@ -60,7 +60,7 @@ Roles of users within a Quiz:
  * Author - designs and builds the Quiz
  * Inspector - assesses quality of the Quiz
 
-The same user cannot play two different roles within a Quiz.
+The same Official cannot play two different roles within a Quiz.
 
 *States* of a Quiz:
 
@@ -72,22 +72,22 @@ The same user cannot play two different roles within a Quiz.
  Composing state, Curator and Authors are notified of disapproval the Quiz;
  * **Released** - All Inspectors approve the Quiz, the Quiz gets read-only forever.
 
-Staff user may duplicate a released Quiz in order to create new Quiz. This Staff user is a
+An Official may duplicate a released Quiz in order to create new Quiz. This Official is a
 Curator of the Quiz, the Quiz is of Composing state.
 
 Curator may mark a Quiz **Obsolete**.
 
 ### Exam management
 
-A Staff user creates an Exam. This Staff user is the **Host** of the Exam. Host specifies a
-released not Obsolete Quiz and sets the **Exam Period** - a period Testees are eligible to take
+An Official creates an Exam. This Official is the **Host** of the Exam. Host specifies a
+Released not Obsolete Quiz and sets the **Exam Period** - a period Testees are eligible to take
 the Exam within. Quiz and Exam Period are set on Exam creation only. There is a configurable
 settings **Preparation Interval** - time interval before Exam starts - which is applied to the
 Exam automatically.
 
 *States* of an Exam:
 
- * **Initial** - Host created the Exam, specifying a Quiz, **Exam Period** - a period
+ * **Pending** - Host created the Exam, specifying a Quiz, **Exam Period** - a period
 Testees are eligible to take the Exam within, **Trial Length** - time period a Testee 
 is allowed to *submit* her Trial within. Host is able to change Trial Length and include/exclude
 Testees in/from the Exam till start of Exam Period minus Preparation Interval;
@@ -111,7 +111,7 @@ the Trial is finalized automatically at Trial start time plus Trial Length.
 
 ### Practice
 
-A Staff user adds a released Quiz to **Practicing Quiz** list. 
+An Official adds a released Quiz to **Practicing Quiz** list. 
 
 A Quiz may be added to the Practicing Quiz list if:
 

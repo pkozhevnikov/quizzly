@@ -16,7 +16,7 @@ class ExamManagementSpec extends featurespec.AnyFeatureSpec, GivenWhenThen:
       And("specified Exam Period")
       When("create request is performed")
       Then("new Exam is created")
-      And("its state is Initial")
+      And("its state is Pending")
       And("I am a Host of this Exam")
     }
 
@@ -34,7 +34,7 @@ class ExamManagementSpec extends featurespec.AnyFeatureSpec, GivenWhenThen:
 
     Scenario("Testee added") {
       Given("existing Exam")
-      And("it is in Initial state")
+      And("it is in Pending state")
       And("I am a Host")
       And("specified a user as a new Testee")
       When("'add testee' request is performed")
@@ -43,7 +43,7 @@ class ExamManagementSpec extends featurespec.AnyFeatureSpec, GivenWhenThen:
 
     Scenario("Testee removed") {
       Given("existing Exam")
-      And("it is in Initial state")
+      And("it is in Pending state")
       And("I am a Host")
       And("a specific Testee is on list")
       When("'remove testee' request is performed")
@@ -54,7 +54,7 @@ class ExamManagementSpec extends featurespec.AnyFeatureSpec, GivenWhenThen:
   Feature("Modify Trial Length") {
     Scenario("Trial Length is changed") {
       Given("existing Exam")
-      And("it is in Initial state")
+      And("it is in Pending state")
       And("I am a Host")
       And("specified new Trial Length")
       When("'change trial length' request is performed")
@@ -65,7 +65,7 @@ class ExamManagementSpec extends featurespec.AnyFeatureSpec, GivenWhenThen:
   Feature("Cancel Exam") {
     Scenario("Exam is cancelled") {
       Given("existing Exam")
-      And("it is in Initial or Upcoming state")
+      And("it is in Pending or Upcoming state")
       And("I am a Host")
       When("'cancel exam' request is performed")
       Then("the exam is in Cancelled state")
