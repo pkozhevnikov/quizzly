@@ -41,10 +41,9 @@ Invitation expires if Registration is not confirmed within configured timespan.
 Invitation to the **First Official** is sent automatically to configured email during the
 first run of the system.  Registration of the First Official is accepted automatically.
 
-Every Person is able to change her email. A Person makes a **Change Email Request**, receives a
-validation message to new email address, then confirms new address. If new address is
-confirmed successfully, email of the Person changes. Change Email Request expires if it is
-not confirmed within configured timespan.
+Related links:
+
+ * [Persons](persons.md) - more details on persons
 
 ### Quiz authoring
 
@@ -78,6 +77,10 @@ Curator of copy Quiz, the copy Quiz is of Composing state.
 
 Curator may mark a Quiz **Obsolete**.
 
+Related links:
+
+ * [Availability of Quizzes](quizzes.md) - details of usage Quizzes in Exams and Practicing
+
 ### Exam management
 
 An Official creates an Exam. This Official is the **Host** of the Exam. Host specifies a
@@ -102,6 +105,10 @@ Testee is notified of her inclusion/exclusion in/from the Exam.
 
 An Exam may be duplicated in order to create another exam keeping the Testee list.
 
+Related links:
+
+ * [Availability of Quizzes](quizzes.md) - details of usage Quizzes in Exams and Practicing
+
 ### Trial
 
 Beginning from Exam Period start time till Exam Period end minus Trial Length, the Exam is
@@ -122,3 +129,10 @@ A Quiz may be added to the Practicing Quiz list if:
 During Practice session, a Quiz is not time limited, on every submission, a solution is shown. A
 user may start a Quiz in *exam simulation* mode, in this case, the Quiz is time limited,
 solutions are not shown and the score is shown after the Quiz is finalized.
+
+Related links:
+
+ * [Availability of Quizzes](quizzes.md) - details of usage Quizzes in Exams and Practicing
+
+
+
