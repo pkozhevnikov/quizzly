@@ -80,6 +80,8 @@ Curator may mark a Quiz **Obsolete**.
 Related links:
 
  * [Availability of Quizzes](quizzes.md) - details of usage Quizzes in Exams and Practicing
+ * [Quiz model](quiz-model.md)
+ * [User stories for Quiz authoring](../author/src/test/scala/quizzly/accept/QuizAuthoringSpec.scala)
 
 ### Exam management
 
@@ -108,6 +110,7 @@ An Exam may be duplicated in order to create another exam keeping the Testee lis
 Related links:
 
  * [Availability of Quizzes](quizzes.md) - details of usage Quizzes in Exams and Practicing
+ * [User stories for Exam management](../school/src/test/scala/quizzly/accept/ExamManagementSpec.scala)
 
 ### Trial
 
