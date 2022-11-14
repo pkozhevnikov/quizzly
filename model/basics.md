@@ -111,6 +111,7 @@ Related links:
 
  * [Quiz usage model](quiz-usage-model.md) - details of usage Quizzes in Exams and Practicing
  * [User stories for Exam management](../school/src/test/scala/accept/ExamManagementSpec.scala)
+ * [Exam model](../school/src/main/scala/Exam.scala)
 
 ### Trial
 
@@ -138,4 +139,8 @@ Related links:
  * [Quiz usage model](quiz-usage-model.md) - details of usage Quizzes in Exams and Practicing
 
 
+---
+See also:
+
+ * [Context map](contexts.md)
 
