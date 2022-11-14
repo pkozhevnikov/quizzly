@@ -1,4 +1,4 @@
-package quizzly
+package quizzly.school
 
 import java.time.*
 import akka.actor.typed.*

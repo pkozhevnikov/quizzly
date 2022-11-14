@@ -1,4 +1,4 @@
-package quizzly
+package quizzly.school
 
 import java.util.UUID
 

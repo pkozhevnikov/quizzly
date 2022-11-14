@@ -1,3 +1,3 @@
-package quizzly
+package quizzly.school
 
 trait CborSerializable

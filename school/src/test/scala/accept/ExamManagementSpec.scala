@@ -1,4 +1,4 @@
-package quizzly.accept
+package quizzly.school.accept
 
 import org.scalatest.*
 

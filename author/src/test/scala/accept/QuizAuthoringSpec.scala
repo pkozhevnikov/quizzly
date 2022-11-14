@@ -1,4 +1,4 @@
-package quizzly.accept
+package quizzly.author.accept
 
 import org.scalatest.*
 
