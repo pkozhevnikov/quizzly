@@ -4,13 +4,13 @@ A Quiz is a container for questions. Questions with answers are presented by **I
 grouped by **Section**s. Sections may be reordered within a Quiz, Items may be reordered within
 a Section.
 
-Generally, an Item is a question with a multi-choice answer, consists of:
+An Item is a question with a multi-choice answer which consists of:
 
  * *Intro* - question text
  * *Definition* - a *Statement* with text of question details and optional image 
  * *Hints* - an ordered set of variants of the answer, every variant is a set of alternative
  Statements, that consists of text and optional image
- * *Hints visible* flag - whether hints should be visible to Testees
+ * *Hints visible* flag whether hints should be visible to Testees
  * *Solutions* - list of indexes of correct hints
 
 Hints may be reordered within an Item.
@@ -83,4 +83,25 @@ Solutions: 3, 2, 1, 4
 ```
 
 
+### The workflow
 
+Curator:
+ * creates a Quiz:
+  * specifies general attributes;
+  * specifies Authors and Inspectors;
+ * modifies general attributes;
+ * adds and removes Authors and Inspectors;
+ * sets a Quiz Obsolete.
+
+Author adds a Section. To avoid conflicts of changes from different Authors, Sections are modified
+exclusively by a single Author. Author *takes for work* a Section and is an owner of the Section
+until the Author *releases* the Section. While a Section is taken for work by an Author,
+only this Author is able to add, modify, reorder and delete Items within the Section. If no
+activity is registered within configured timespan, the section is released automatically,
+thus is available to other Authors for modification. Author reorders Sections. Author removes
+a Section if it is not taken for work.
+
+
+Related links:
+
+ * [User stories for Quiz authoring](../author/src/test/scala/accept/QuizAuthoringSpec.scala)

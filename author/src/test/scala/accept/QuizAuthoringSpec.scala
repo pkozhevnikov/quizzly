@@ -29,7 +29,7 @@ class QuizAuthoringSpec extends featurespec.AnyFeatureSpec, GivenWhenThen:
       And("Testees specified")
       When("'create quiz' request is sent")
       Then("Quiz is not created")
-      And("'not unique identifier' message is displayed")
+      And("'quiz already exists' message is displayed")
     }
 
     Scenario("Quiz not created 2") {
@@ -45,9 +45,9 @@ class QuizAuthoringSpec extends featurespec.AnyFeatureSpec, GivenWhenThen:
     Scenario("main Quiz attributes changed") {
       Given("a Quiz in Composing state")
       And("I am a Curator")
-      And("modified title and intro")
+      And("modified title, intro, recommended length")
       When("'save' request is performed")
-      Then("new title and intro saved")
+      Then("new title, recommended length and intro saved")
     }
 
     Scenario("set a Quiz Obsolete") (pending)

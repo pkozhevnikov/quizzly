@@ -39,7 +39,7 @@ Implemented by module **`trial`**.
 
 See
 
- * [TrialEntity](../trial/src/main/scala/TrialEntity.scala)
+ * [Trial entity](../trial/src/main/scala/TrialEntity.scala)
 
 ### Registration and authentication
 
