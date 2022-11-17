@@ -30,7 +30,8 @@ object Quiz:
 
   def quizAlreadyExists: Error = Error(2001, "quiz already exists")
   def tooShortTitle: Error = Error(2002, "too short title")
-  def notEnoughAuthors: Error = Error(2003, "not enough authors or inspectors")
+  def notEnoughAuthors: Error = Error(2003, "not enough authors")
+  def notEnoughInspectors: Error = Error(2007, "not enough inspectors")
   def quizNotFound: Error = Error(2010, "quiz not found")
   def tooShortLength: Error = Error(2011, "too short recommended trial length")
 
@@ -76,7 +77,6 @@ object Quiz:
   final case class AddInspector(inspector: Inspector, replyTo: ActorRef[Resp[Nothing]])
       extends Command
   def alreadyOnList: Error = Error(2015, "already on list")
-  def notOfficial: Error = Error(2016, "not an official")
   final case class InspectorAdded(inspector: Inspector) extends Event
   final case class AddAuthor(inspector: Author, replyTo: ActorRef[Resp[Nothing]]) extends Command
   final case class AuthorAdded(inspector: Author) extends Event

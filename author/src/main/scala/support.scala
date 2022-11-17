@@ -6,6 +6,7 @@ type AuthorID = String
 type InspectorID = String
 
 final case class Person(id: PersonID, name: String)
+
 type Curator = Person
 type Author = Person
 type Inspector = Person
@@ -23,3 +24,10 @@ object Resp:
   case object OK extends RespOK
 final case class Good[+V](v: V) extends Resp[V]
 final case class Bad[+V](e: Error) extends Resp[V]
+
+case class QuizConfig(
+    minAuthors: Int,
+    minInspectors: Int,
+    minTrialLength: Int,
+    minTitleLength: Int
+)

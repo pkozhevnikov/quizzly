@@ -30,7 +30,10 @@ class QuizEntitySpec
 
   private val kit = TestKit[Command, Event, Quiz](
     system,
-    QuizEntity(id)
+    QuizEntity(
+      id,
+      QuizConfig(minAuthors = 2, minInspectors = 2, minTrialLength = 3, minTitleLength = 2)
+    )
   )
 
   override protected def beforeEach(): Unit =
@@ -49,97 +52,71 @@ class QuizEntitySpec
   val inspectors = Set(inspector1, inspector2)
 
   "Quiz entity" must {
-    class E(val result: TestKit.CommandResultWithReply[Command, Event, Quiz, _], val clues: String*)
-    def createRejected(
-        error: Error,
-        eres: E*
-    ) =
-      eres.foreach { r =>
-        r.result.reply shouldBe Bad(error ++ r.clues)
-        r.result.state shouldBe a[Blank]
-        r.result.state.id shouldBe id
-      }
 
     "reject any command if not exists" in {
-      createRejected(Error(2010, "quiz not found"), E(kit.runCommand(Update("", "", 1, _)), id))
+      val result = kit.runCommand(Update("", "", 1, _))
+      result.reply shouldBe Bad(quizNotFound + id)
+      result.state shouldBe Blank(id)
     }
     "be created" in {
       val result =
         kit.runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _))
       result.reply shouldBe Good(CreateDetails(authors, inspectors))
-      val state = result.stateOfType[Composing]
       result.state shouldBe a[Composing]
       result.state shouldBe Composing(id, title, intro, curator, authors, inspectors, lenMins)
     }
-    "drops wrong authors and inspectors" in {
-      val result = kit.runCommand(
-        Create(
-          id,
-          title,
-          intro,
-          curator,
-          authors + Person("abc", "abc name"),
-          inspectors + Person("cde", "cde name"),
-          lenMins,
-          _
-        )
-      )
-      result.reply shouldBe Good(CreateDetails(authors, inspectors))
-      result.state shouldBe (Composing(id, title, intro, curator, authors, inspectors, lenMins))
-    }
-    "drops inspector if is in author list" in {
+    "drop inspector if listed as author" in {
       val result =
         kit.runCommand(Create(id, title, intro, curator, authors, inspectors + author1, lenMins, _))
       result.reply shouldBe Good(CreateDetails(authors, inspectors))
       result.state shouldBe (Composing(id, title, intro, curator, authors, inspectors, lenMins))
     }
 
-    def createDefault =
+    "drop curator from author and inspector lists" in {
       val result = kit.runCommand(
         Create(id, title, intro, curator, authors + curator, inspectors + curator, lenMins, _)
       )
       result.reply shouldBe Good(CreateDetails(authors, inspectors))
-      result
-
-    "drops curator if is listed on authors or inspectors" in {
-      val result = createDefault
       result.state shouldBe (Composing(id, title, intro, curator, authors, inspectors, lenMins))
     }
     "reject creation if already exists" in {
-      createRejected(
-        quizAlreadyExists,
-        E(kit.runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _)), id)
-      )
+      val result =
+        kit.runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _))
+      result.reply shouldBe Bad(quizAlreadyExists + id)
+      result.state shouldBe Blank(id)
     }
-    "reject creation if few authors or inspectors" in {
-      createRejected(
-        notEnoughAuthors,
-        E(kit.runCommand(Create(id, title, intro, curator, Set.empty, Set.empty, lenMins, _))),
-        E(kit.runCommand(Create(id, title, intro, curator, authors, Set.empty, lenMins, _))),
-        E(kit.runCommand(Create(id, title, intro, curator, Set.empty, inspectors, lenMins, _)))
-      )
+    "reject creation if not enough authors" in {
+      val result =
+        kit.runCommand(Create(id, title, intro, curator, authors - author1, inspectors, lenMins, _))
+      result.reply shouldBe Bad(notEnoughAuthors)
+      result.state shouldBe Blank(id)
     }
+    "reject creation if not enough inspectors" in {
+      val result = kit.runCommand(
+        Create(id, title, intro, curator, authors, inspectors - inspector1, lenMins, _)
+      )
+      result.reply shouldBe Bad(notEnoughInspectors)
+      result.state shouldBe Blank(id)
+    }
+
     "reject creation if title short" in {
-      createRejected(
-        tooShortTitle,
-        E(kit.runCommand(Create(id, "x", intro, curator, authors, inspectors, lenMins, _)))
-      )
+      val result = kit.runCommand(Create(id, "x", intro, curator, authors, inspectors, lenMins, _))
+      result.reply shouldBe Bad(tooShortTitle)
+      result.state shouldBe Blank(id)
     }
     "reject creation if length short" in {
-      createRejected(
-        tooShortLength,
-        E(
-          kit.runCommand(Create(id, title, intro, curator, authors, inspectors, 1, _)),
-          "1",
-          "should be more than 3 minutes"
-        ),
-        E(
-          kit.runCommand(Create(id, title, intro, curator, authors, inspectors, -1, _)),
-          "-1",
-          "should be more than 3 minutes"
-        )
-      )
+      val result = kit.runCommand(Create(id, title, intro, curator, authors, inspectors, 1, _))
+      result.reply shouldBe Bad(tooShortLength)
+      result.state shouldBe Blank(id)
     }
+
+    def createDefault = {
+      val result =
+        kit.runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _))
+      result.reply shouldBe Good(CreateDetails(authors, inspectors))
+      result
+    }
+
     "be updated" in {
       createDefault
       val update = kit.runCommand(Update("new title", "new intro", 70, _))
@@ -163,9 +140,10 @@ class QuizEntitySpec
     "reject update if length short" in {
       val defState = createDefault.state
       val update1 = kit.runCommand(Update(title, intro, -1, _))
-      update1.reply shouldBe Bad(tooShortLength + "-1" + "should be more than 3 minutes")
+      update1.reply shouldBe Bad(tooShortLength)
       val update2 = kit.runCommand(Update(title, intro, 1, _))
-      update2.reply shouldBe Bad(tooShortLength + "1" + "should be more than 3 minutes")
+      update2.reply shouldBe Bad(tooShortLength)
+      update2.state shouldBe defState
     }
     "add an author" in {
       val defState = createDefault.stateOfType[Composing]
@@ -184,12 +162,6 @@ class QuizEntitySpec
       check(inspector1)
       check(curator)
     }
-    "reject add author if not official" in {
-      val defState = createDefault.state
-      val insert = kit.runCommand(AddAuthor(Person("not-exists", "the name"), _))
-      insert.reply shouldBe Bad(notOfficial)
-      insert.state shouldBe defState
-    }
     "add an inspector" in {
       val defState = createDefault.stateOfType[Composing]
       val inspector = Person("new-insp", "new inspector name")
@@ -206,12 +178,6 @@ class QuizEntitySpec
       check(author1)
       check(inspector1)
       check(curator)
-    }
-    "reject add inspector if not official" in {
-      val defState = createDefault.state
-      val insert = kit.runCommand(AddInspector(Person("not-exists", "the name"), _))
-      insert.reply shouldBe Bad(notOfficial)
-      insert.state shouldBe defState
     }
     "remove author" in {
       val defState = createDefault.stateOfType[Composing]
