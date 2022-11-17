@@ -2,14 +2,13 @@ package quizzly.author.accept
 
 import org.scalatest.*
 
-
 class QuizAuthoringSpec extends featurespec.AnyFeatureSpec, GivenWhenThen:
 
   info("As an Official")
   info("I want to manage a Quiz")
 
   Feature("Quiz creation") {
-    
+
     Scenario("Quiz created") {
       Given("unique identifier specified")
       And("title and intro specified")
@@ -50,7 +49,7 @@ class QuizAuthoringSpec extends featurespec.AnyFeatureSpec, GivenWhenThen:
       Then("new title, recommended length and intro saved")
     }
 
-    Scenario("set a Quiz Obsolete") (pending)
+    Scenario("set a Quiz Obsolete")(pending)
 
   }
 
@@ -59,12 +58,11 @@ class QuizAuthoringSpec extends featurespec.AnyFeatureSpec, GivenWhenThen:
   info("As an Author")
   info("I want to modify a Quiz")
 
-  Feature("Quiz modification") (pending)
+  Feature("Quiz modification")(pending)
 
   info("")
 
   info("As an Inspector")
   info("I want to assess a Quiz")
-  
-  Feature("Quiz inspection") (pending)
 
+  Feature("Quiz inspection")(pending)

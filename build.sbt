@@ -7,7 +7,9 @@ val commonDependencies = Seq(
   "org.scalatest" %% "scalatest" % "3.2.14" % Test,
   "org.scalatest" %% "scalatest-featurespec" % "3.2.14" % Test,
   "com.typesafe.akka" %% "akka-persistence-typed" % akkaVersion,
-  "com.typesafe.akka" %% "akka-persistence-testkit" % akkaVersion % Test
+  "com.typesafe.akka" %% "akka-persistence-testkit" % akkaVersion % Test,
+  "com.typesafe.akka" %% "akka-serialization-jackson" % akkaVersion,
+  "com.typesafe.akka" %% "akka-cluster-sharding-typed" % akkaVersion
 )
 
 lazy val author = project.settings(

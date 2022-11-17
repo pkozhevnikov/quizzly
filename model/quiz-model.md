@@ -93,13 +93,13 @@ Curator:
  * adds and removes Authors and Inspectors;
  * sets a Quiz Obsolete.
 
-Author adds a Section. To avoid conflicts of changes from different Authors, Sections are modified
-exclusively by a single Author. Author *takes for work* a Section and is an owner of the Section
-until the Author *releases* the Section. While a Section is taken for work by an Author,
+Author adds a Section. To avoid conflicts of changes from different Authors, Sections are
+modified exclusively by a single Author. Author *grab*s a Section thus becomes an owner of the
+Section until the Author *discharge*s the Section. While an Author is an owner of the Section,
 only this Author is able to add, modify, reorder and delete Items within the Section. If no
-activity is registered within configured timespan, the section is released automatically,
+activity is registered within configured timespan, the section is discharged automatically,
 thus is available to other Authors for modification. Author reorders Sections. Author removes
-a Section if it is not taken for work.
+a Section if it is not grabbed.
 
 
 Related links:
