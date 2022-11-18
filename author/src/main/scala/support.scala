@@ -18,6 +18,11 @@ case class Error(code: Int, reason: String, clues: Seq[String] = Seq.empty)
   def +(clue: String): Error = Error(code, reason, clues :+ clue)
   def ++(clues: Seq[String]): Error = Error(code, reason, this.clues ++ clues)
 
+//enum Resp[+R] extends CborSerializable:
+//  case Good(r: R)
+//  case Bad(e: Error)
+//  case OK
+  
 sealed trait Resp[+V] extends CborSerializable
 type RespOK = Resp[Nothing]
 object Resp:

@@ -1,5 +1,6 @@
 package quizzly.author
 
+import akka.actor.typed.ActorRef
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.persistence.testkit.scaladsl.{EventSourcedBehaviorTestKit as TestKit}
 
@@ -54,9 +55,29 @@ class QuizEntitySpec
   "Quiz entity" must {
 
     "reject any command if not exists" in {
-      val result = kit.runCommand(Update("", "", 1, _))
-      result.reply shouldBe Bad(quizNotFound + id)
-      result.state shouldBe Blank(id)
+      def rejected(cmds: (ActorRef[Resp[_]] => Command)*) =
+        cmds.foreach { cmd =>
+          val result = kit.runCommand(cmd(_))
+          result.reply shouldBe Bad(quizNotFound + id)
+          result.state shouldBe Blank(id)
+        }
+
+      rejected(
+        Update("", "", 0, _),
+        AddInspector(inspector1, _),
+        AddAuthor(author1, _),
+        RemoveInspector(inspector1, _),
+        RemoveAuthor(author1, _),
+        AddSection("", author1, _),
+        GrabSection("sc", author1, _),
+        DischargeSection("sc", author1, _),
+        MoveSection("sc", false, _),
+        RemoveSection("sc", _),
+        SetReadySign(author1, _),
+        Resolve(inspector1, false, _),
+
+        SetObsolete(_)
+      )
     }
     "be created" in {
       val result =
@@ -80,10 +101,11 @@ class QuizEntitySpec
       result.state shouldBe (Composing(id, title, intro, curator, authors, inspectors, lenMins))
     }
     "reject creation if already exists" in {
+      val defState = createDefault.state
       val result =
         kit.runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _))
       result.reply shouldBe Bad(quizAlreadyExists + id)
-      result.state shouldBe Blank(id)
+      result.state shouldBe defState
     }
     "reject creation if not enough authors" in {
       val result =

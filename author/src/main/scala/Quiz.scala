@@ -94,20 +94,29 @@ object Quiz:
       replyTo: ActorRef[Resp[SC]] // responds with identifier of new section
   ) extends Command
   final case class SectionAdded(title: String, sc: SC, owner: Author) extends Event
+
   final case class GrabSection(
-      sectionSC: SC,
+      sc: SC,
       owner: Author,
       replyTo: ActorRef[Resp[Nothing]]
   ) extends Command
-  def sectionGrabbed: Error = Error(2006, "section grabbed")
+  def alreadyGrabbed: Error = Error(2006, "section already grabbed")
   def sectionNotFound: Error = Error(2007, "section not found")
   final case class SectionGrabbed(
       sectionSC: SC,
-      owner: Author
+      owner: Author,
+      replyTo: ActorRef[Resp[Nothing]]
   ) extends Event
+
   final case class DischargeSection(
-      section: Section
+    sc: SC,
+    owner: Author,
+    replyTo: ActorRef[Resp[Nothing]]
   ) extends Command
+  def notAnOwner: Error = Error(2008, "not an owner of section")
+  def isNotGrabbed: Error = Error(2009, "section is not grabbed")
+  final case class SectionDischarged( sc: SC) extends Event
+
   final case class RemoveSection(sc: SC, replyTo: ActorRef[Resp[Nothing]]) extends Command
   final case class SectionRemoved(sc: SC) extends Event
 
@@ -115,26 +124,27 @@ object Quiz:
       extends Command
   final case class SectionMoved(sc: SC, newOrder: List[SC]) extends Event
 
-  final case class SetReadySign(author: AuthorID, replyTo: ActorRef[Resp[Nothing]]) extends Command
+  final case class SetReadySign(author: Author, replyTo: ActorRef[Resp[Nothing]]) extends Command
   def notAuthor: Error = Error(2004, "not an author")
-  final case class ReadySignSet(author: AuthorID) extends Event
+  final case class ReadySignSet(author: Author) extends Event
   case object GoneForReview extends Event
   final case class Review(
       composing: Composing,
-      readinessSigns: Set[AuthorID],
-      approvalSigns: Set[InspectorID],
-      disapprovalSigns: Set[InspectorID]
+      readinessSigns: Set[Author],
+      approvalSigns: Set[Inspector],
+      disapprovalSigns: Set[Inspector]
   ) extends Quiz:
     override def id: QuizID = composing.id
 
-  final case class Assess(
-      inspector: InspectorID,
+  final case class Resolve(
+      inspector: Inspector,
       approval: Boolean,
       replyTo: ActorRef[Resp[Nothing]]
   ) extends Command
   def notInspector: Error = Error(2005, "not an inspector")
-  final case class Assessed(inspector: InspectorID, approval: Boolean)
+  final case class Resolved(inspector: Inspector, approval: Boolean)
   case object GoneReleased extends Event
+  case object GoneComposing extends Event
   final case class Released(
       id: QuizID,
       title: String,
@@ -147,5 +157,5 @@ object Quiz:
       obsolete: Boolean
   ) extends Quiz
 
-  final case class SetObsolete(replyTo: ActorRef[Nothing]) extends Command
+  final case class SetObsolete(replyTo: ActorRef[Resp[Nothing]]) extends Command
   case object GotObsolete extends Event
