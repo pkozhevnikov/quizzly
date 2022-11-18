@@ -36,23 +36,10 @@ object Section:
   sealed trait Command extends CborSerializable
   sealed trait Event extends CborSerializable
 
-  final case class Create(
-      sc: SC,
-      title: String,
-      owner: Author,
-      quizID: QuizID
-  ) extends Command
-  final case class Created(
-      sc: SC,
-      title: String,
-      owner: Author,
-      quizID: QuizID
-  ) extends Event
+  final case class Create(sc: SC, title: String, owner: Author, quizID: QuizID) extends Command
+  final case class Created(sc: SC, title: String, owner: Author, quizID: QuizID) extends Event
 
-  final case class Update(
-      title: String,
-      replyTo: ActorRef[Resp[Nothing]]
-  ) extends Command
+  final case class Update(title: String, replyTo: ActorRef[Resp[Nothing]]) extends Command
   final case class Updated(title: String) extends Event
 
   final case class SaveItem(
@@ -61,9 +48,7 @@ object Section:
       replyTo: ActorRef[Resp[SC]]
   ) extends Command
   def itemNotFound: Error = Error(2011, "item not found")
-  final case class ItemSaved(
-      item: Item
-  ) extends Event
+  final case class ItemSaved(item: Item) extends Event
 
   final case class MoveItem(sc: SC, up: Boolean, replyTo: ActorRef[Resp[List[SC]]]) extends Command
   final case class ItemMoved(sc: SC, newOrder: List[SC]) extends Event

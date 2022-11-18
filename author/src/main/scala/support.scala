@@ -22,7 +22,7 @@ case class Error(code: Int, reason: String, clues: Seq[String] = Seq.empty)
 //  case Good(r: R)
 //  case Bad(e: Error)
 //  case OK
-  
+
 sealed trait Resp[+V] extends CborSerializable
 type RespOK = Resp[Nothing]
 object Resp:
@@ -30,9 +30,4 @@ object Resp:
 final case class Good[+V](v: V) extends Resp[V]
 final case class Bad[+V](e: Error) extends Resp[V]
 
-case class QuizConfig(
-    minAuthors: Int,
-    minInspectors: Int,
-    minTrialLength: Int,
-    minTitleLength: Int
-)
+case class QuizConfig(minAuthors: Int, minInspectors: Int, minTrialLength: Int, minTitleLength: Int)

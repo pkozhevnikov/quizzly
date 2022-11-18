@@ -93,13 +93,21 @@ Curator:
  * adds and removes Authors and Inspectors;
  * sets a Quiz Obsolete.
 
+Author and Inspector group size should not be below than configured minimum.
+
+Curator removes Authors and Inspectors. Author or Inspector cannot be removed if respective
+group will be smaller than respecive minimum. When a Quiz is in Composing state, if an Author is
+removed and she has already set her readiness sign, the readiness sign is also removed.  When a
+Quiz is in Review state, if an Inspector is removed and she has already set her resolution,
+the resolution is also removed.
+
 Author adds a Section. To avoid conflicts of changes from different Authors, Sections are
-modified exclusively by a single Author. Author *grab*s a Section thus becomes an owner of the
-Section until the Author *discharge*s the Section. While an Author is an owner of the Section,
+modified exclusively by a single Author. Author *grab*s a Section thus becomes the owner of the
+Section until the Author *discharge*s the Section. While an Author is the owner of the Section,
 only this Author is able to add, modify, reorder and delete Items within the Section. If no
 activity is registered within configured timespan, the section is discharged automatically,
 thus is available to other Authors for modification. Author reorders Sections. Author removes
-a Section if it is not grabbed.
+a Section if it is not owned by any Author at the moment.
 
 
 Related links:
