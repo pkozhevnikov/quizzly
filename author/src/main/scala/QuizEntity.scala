@@ -51,8 +51,6 @@ object QuizEntity:
                     }
             case c: CommandWithReply[_] =>
               Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
-            case _ =>
-              Effect.unhandled
 
         case composing: Composing =>
           cmd match
@@ -91,6 +89,8 @@ object QuizEntity:
             case c: RemoveInspector =>
               if !composing.inspectors(c.inspector) then
                 Effect.reply(c.replyTo)(Bad(notOnList))
+              else if composing.inspectors.size == config.minInspectors then
+                Effect.reply(c.replyTo)(Bad(notEnoughInspectors))
               else
                 Effect.persist(InspectorRemoved(c.inspector)).thenReply(c.replyTo)(_ => Resp.OK)
             case c: SetReadySign =>
@@ -105,15 +105,35 @@ object QuizEntity:
                 Effect.reply(c.replyTo)(Bad(notInspector))
               else
                 Effect.reply(c.replyTo)(Bad(isComposing))
+            case c: CommandWithReply[_] =>
+              Effect.reply(c.replyTo)(Bad(isComposing))
 
         case review: Review =>
           cmd match
             case c: Create =>
               Effect.reply(c.replyTo)(Bad(quizAlreadyExists + c.id))
             case AddAuthor(author, replyTo) =>
-              Effect.persist(AuthorAdded(author)).thenReply(replyTo)(_ => Resp.OK)
+              if review.composing.curator == author || review.composing.authors(author) ||
+                review.composing.inspectors(author) then
+                  Effect.reply(replyTo)(Bad(alreadyOnList))
+              else
+                Effect.persist(AuthorAdded(author)).thenReply(replyTo)(_ => Resp.OK)
             case RemoveAuthor(author, replyTo) =>
-              Effect.persist(AuthorRemoved(author)).thenReply(replyTo)(_ => Resp.OK)
+              if review.composing.authors.size == config.minAuthors then
+                Effect.reply(replyTo)(Bad(notEnoughAuthors))
+              else
+                Effect.persist(AuthorRemoved(author)).thenReply(replyTo)(_ => Resp.OK)
+            case AddInspector(inspector, replyTo) =>
+              if review.composing.curator == inspector || review.composing.authors(inspector) ||
+                review.composing.inspectors(inspector) then
+                  Effect.reply(replyTo)(Bad(alreadyOnList))
+              else
+                Effect.persist(InspectorAdded(inspector)).thenReply(replyTo)(_ => Resp.OK)
+            case RemoveInspector(inspector, replyTo) =>
+              if review.composing.inspectors.size == config.minInspectors then
+                Effect.reply(replyTo)(Bad(notEnoughInspectors))
+              else
+                Effect.persist(InspectorRemoved(inspector)).thenReply(replyTo)(_ => Resp.OK)
             case c: SetReadySign =>
               Effect.reply(c.replyTo)(Bad(onReview))
             case c: Resolve =>
@@ -121,6 +141,9 @@ object QuizEntity:
                 Effect.reply(c.replyTo)(Bad(notInspector))
               else
                 Effect.persist(Resolved(c.inspector, c.approval)).thenReply(c.replyTo)(_ => Resp.OK)
+            case c: CommandWithReply[_] =>
+              Effect.reply(c.replyTo)(Bad(onReview))
+
         case released: Released =>
           cmd match
             case c: Create =>
@@ -130,8 +153,8 @@ object QuizEntity:
                 Effect.reply(c.replyTo)(Bad(alreadyObsolete))
               else
                 Effect.persist(GotObsolete).thenReply(c.replyTo)(_ => Resp.OK)
-        case _ =>
-          Effect.unhandled
+            case c: CommandWithReply[_] =>
+              Effect.reply(c.replyTo)(Bad(quizReleased))
 
   val eventHandler: (Quiz, Event) => Quiz =
     (state, evt) =>
@@ -141,6 +164,8 @@ object QuizEntity:
           evt match
             case Created(id, title, intro, curator, authors, inspectors, length) =>
               Composing(id, title, intro, curator, authors, inspectors, length)
+            case _ => state
+
         case composing: Composing =>
           evt match
             case Updated(title, intro, length) =>
@@ -162,6 +187,7 @@ object QuizEntity:
                 Review(comp, Set.empty, Set.empty)
               else
                 comp
+            case _ => state
 
         case review: Review =>
           evt match
@@ -171,6 +197,15 @@ object QuizEntity:
             case AuthorRemoved(author) =>
               review.copy(composing =
                 review.composing.copy(authors = review.composing.authors - author)
+              )
+            case InspectorAdded(inspector) =>
+              val comp = review.composing
+              review.copy(composing = comp.copy(inspectors = comp.inspectors + inspector))
+            case InspectorRemoved(inspector) =>
+              review.copy(composing =
+                review.composing.copy(inspectors = review.composing.inspectors - inspector),
+                approvals = review.approvals - inspector,
+                disapprovals = review.disapprovals - inspector
               )
             case Resolved(inspector, approval) =>
               var rev = review.copy(
@@ -197,9 +232,11 @@ object QuizEntity:
                 rev.composing.copy(readinessSigns = Set.empty)
               else
                 rev
+            case _ => state
 
         case released: Released =>
           evt match
             case GotObsolete =>
               released.copy(obsolete = true)
+            case _ => state
 

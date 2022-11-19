@@ -297,9 +297,11 @@ class QuizEntitySpec
 
       "remove inspector" in {
         val defState = createComposing.stateOfType[Composing]
+        kit.runCommand(AddInspector(inspector3, _))
         val remove = kit.runCommand(RemoveInspector(inspector1, _))
         remove.reply shouldBe Resp.OK
-        remove.state shouldBe defState.copy(inspectors = defState.inspectors - inspector1)
+        remove.state shouldBe
+          defState.copy(inspectors = defState.inspectors + inspector3 - inspector1)
       }
 
       "reject remove inspector if not listed" in {
@@ -307,6 +309,13 @@ class QuizEntitySpec
         val remove = kit.runCommand(RemoveInspector(Person("not-exists", "the name"), _))
         remove.reply shouldBe Bad(notOnList)
         remove.state shouldBe defState
+      }
+
+      "reject remove inspector if min inspectors exceeds" in {
+        val composing = createComposing.state
+        val result = kit.runCommand(RemoveInspector(inspector1, _))
+        result.reply shouldBe Bad(notEnoughInspectors)
+        result.state shouldBe composing
       }
 
       "reject set ready sign if not an author" in {
@@ -326,32 +335,14 @@ class QuizEntitySpec
         result2.stateOfType[Composing].readinessSigns shouldBe Set(author1)
       }
 
-      "reject resolve" in {
+      "reject other actions" in {
         val composing = createComposing.stateOfType[Composing]
-        val result = kit.runCommand(Resolve(inspector2, true, _))
-        result.reply shouldBe Bad(isComposing)
-        result.state shouldBe composing
+        rejected(isComposing, composing)(Resolve(inspector1, true, _), SetObsolete(_))
       }
+
     }
 
     "Review" must {
-
-      "remove author" in {
-        createComposing
-        val composing = kit.runCommand(AddAuthor(author3, _)).stateOfType[Composing]
-        composing.signForReview
-        val remove = kit.runCommand(RemoveAuthor(author3, _))
-        remove.reply shouldBe Resp.OK
-        remove.state shouldBe
-          Review(
-            composing.copy(
-              authors = composing.authors - author3,
-              readinessSigns = Set(author1, author2, author3)
-            ),
-            Set.empty,
-            Set.empty
-          )
-      }
 
       "reject set ready sign" in {
         createComposing.stateOfType[Composing].signForReview
@@ -407,28 +398,116 @@ class QuizEntitySpec
       }
 
       "reject resolve if not an inspector" in {
-        val composing = createComposing.stateOfType[Composing]
-        composing.signForReview
+        val review = createComposing.stateOfType[Composing].signForReview.state
         val result = kit.runCommand(Resolve(curator, true, _))
         result.reply shouldBe Bad(notInspector)
+        result.state shouldBe review
+      }
+
+      def reviewState = createComposing.stateOfType[Composing].signForReview.stateOfType[Review]
+
+      "add author" in {
+        val review = reviewState
+        val result = kit.runCommand(AddAuthor(author3, _))
+        result.reply shouldBe Resp.OK
         result.state shouldBe
+          review
+            .copy(composing = review.composing.copy(authors = review.composing.authors + author3))
+      }
+
+      "reject add author if listed" in {
+        val review = reviewState
+        def rejected(p: Person) =
+          val result = kit.runCommand(AddAuthor(p, _))
+          result.reply shouldBe Bad(alreadyOnList)
+          result.state shouldBe review
+        rejected(curator)
+        rejected(author1)
+        rejected(inspector1)
+      }
+
+      "reject remove author if min authors exceeds" in {
+        val review = reviewState
+        val result = kit.runCommand(RemoveAuthor(author1, _))
+        result.reply shouldBe Bad(notEnoughAuthors)
+        result.state shouldBe review
+      }
+
+      "remove author" in {
+        createComposing
+        val composing = kit.runCommand(AddAuthor(author3, _)).stateOfType[Composing]
+        composing.signForReview
+        val remove = kit.runCommand(RemoveAuthor(author3, _))
+        remove.reply shouldBe Resp.OK
+        remove.state shouldBe
           Review(
-            composing = composing.copy(readinessSigns = composing.authors),
-            approvals = Set.empty,
-            disapprovals = Set.empty
+            composing.copy(
+              authors = composing.authors - author3,
+              readinessSigns = Set(author1, author2, author3)
+            ),
+            Set.empty,
+            Set.empty
           )
+      }
+
+      "add inspector" in {
+        val review = reviewState
+        val result = kit.runCommand(AddInspector(inspector3, _))
+        result.reply shouldBe Resp.OK
+        result.stateOfType[Review].composing.inspectors should contain allOf
+          (inspector1, inspector2, inspector3)
+      }
+
+      "reject add inspector if listed" in {
+        val review = reviewState
+        def rejected(p: Person) =
+          val result = kit.runCommand(AddInspector(p, _))
+          result.reply shouldBe Bad(alreadyOnList)
+          result.state shouldBe review
+        rejected(author1)
+        rejected(inspector1)
+        rejected(curator)
+      }
+
+      "reject remove inspector if min inspectors exceeds" in {
+        val review = reviewState
+        val result = kit.runCommand(RemoveInspector(inspector1, _))
+        result.reply shouldBe Bad(notEnoughInspectors)
+        result.state shouldBe review
+      }
+
+      "remove inspector" in {
+        reviewState
+        kit.runCommand(AddInspector(inspector3, _))
+        val resolve = kit.runCommand(Resolve(inspector2, true, _))
+        resolve.reply shouldBe Resp.OK
+        resolve.stateOfType[Review].approvals shouldBe Set(inspector2)
+        val remove = kit.runCommand(RemoveInspector(inspector2, _))
+        remove.reply shouldBe Resp.OK
+        val review = remove.stateOfType[Review]
+        review.composing.inspectors should contain allOf (inspector1, inspector3)
+        review.approvals shouldBe empty
+      }
+
+      "reject other actions" in {
+        val review = createComposing.stateOfType[Composing].signForReview.state
+        rejected(onReview, review)(
+          Update("", "", 1, _),
+          AddSection("", author1, _),
+          GrabSection("sc", author1, _),
+          DischargeSection("sc", author1, _),
+          MoveSection("sc", false, _),
+          RemoveSection("sc", _),
+          SetObsolete(_)
+        )
       }
 
     }
 
     "Released" must {
 
-      def makeReleased = 
-          createComposing
-            .stateOfType[Composing]
-            .signForReview
-            .stateOfType[Review]
-            .resolveForReleased
+      def makeReleased =
+        createComposing.stateOfType[Composing].signForReview.stateOfType[Review].resolveForReleased
 
       "set obsolete" in {
         val release = makeReleased
@@ -455,7 +534,7 @@ class QuizEntitySpec
         result.state shouldBe a[Released]
       }
 
-      "reject other actions" ignore {
+      "reject other actions" in {
         val released = makeReleased.state
         rejected(quizReleased, released)(
           Update("", "", 1, _),
