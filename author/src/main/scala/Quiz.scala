@@ -10,6 +10,10 @@ object Quiz:
   final case class Blank(id: QuizID) extends Quiz
 
   sealed trait Command extends CborSerializable
+  sealed trait CommandWithReply[R] extends Command:
+    val replyTo: ActorRef[Resp[R]]
+  type CommandOK = CommandWithReply[Nothing]
+  
 
   sealed trait Event extends CborSerializable
 
@@ -22,7 +26,7 @@ object Quiz:
       inspectors: Set[Inspector],
       recommendedLength: Int, // length in minutes
       replyTo: ActorRef[Resp[CreateDetails]]
-  ) extends Command
+  ) extends CommandWithReply[CreateDetails]
   final case class CreateDetails(authors: Set[Author], inspectors: Set[Inspector])
 
   def quizAlreadyExists: Error = Error(2001, "quiz already exists")
@@ -61,57 +65,57 @@ object Quiz:
       intro: String,
       recommendedLength: Int,
       replyTo: ActorRef[Resp[Nothing]]
-  ) extends Command
+  ) extends CommandOK
   final case class Updated(title: String, intro: String, recommendedLength: Int) extends Event
 
   final case class AddInspector(inspector: Inspector, replyTo: ActorRef[Resp[Nothing]])
-      extends Command
+      extends CommandOK
   def alreadyOnList: Error = Error(2015, "already on list")
   final case class InspectorAdded(inspector: Inspector) extends Event
-  final case class AddAuthor(author: Author, replyTo: ActorRef[Resp[Nothing]]) extends Command
+  final case class AddAuthor(author: Author, replyTo: ActorRef[Resp[Nothing]]) extends CommandOK
   final case class AuthorAdded(author: Author) extends Event
 
   final case class RemoveInspector(inspector: Inspector, replyTo: ActorRef[Resp[Nothing]])
-      extends Command
+      extends CommandOK
   final case class InspectorRemoved(inspector: Inspector) extends Event
   def notOnList: Error = Error(2017, "not on list")
-  final case class RemoveAuthor(author: Author, replyTo: ActorRef[Resp[Nothing]]) extends Command
+  final case class RemoveAuthor(author: Author, replyTo: ActorRef[Resp[Nothing]]) extends CommandOK
   final case class AuthorRemoved(author: Author) extends Event
 
   final case class AddSection(
       title: String,
       owner: Author,
       replyTo: ActorRef[Resp[SC]] // responds with identifier of new section
-  ) extends Command
+  ) extends CommandOK
   final case class SectionAdded(title: String, sc: SC, owner: Author) extends Event
 
   final case class GrabSection(sc: SC, owner: Author, replyTo: ActorRef[Resp[Nothing]])
-      extends Command
+      extends CommandOK
   def alreadyGrabbed: Error = Error(2006, "section already grabbed")
   def sectionNotFound: Error = Error(2007, "section not found")
   final case class SectionGrabbed(sectionSC: SC, owner: Author, replyTo: ActorRef[Resp[Nothing]])
       extends Event
 
   final case class DischargeSection(sc: SC, owner: Author, replyTo: ActorRef[Resp[Nothing]])
-      extends Command
+      extends CommandOK
   def notAnOwner: Error = Error(2008, "not an owner of section")
   def isNotGrabbed: Error = Error(2009, "section is not grabbed")
   final case class SectionDischarged(sc: SC) extends Event
 
-  final case class RemoveSection(sc: SC, replyTo: ActorRef[Resp[Nothing]]) extends Command
+  final case class RemoveSection(sc: SC, replyTo: ActorRef[Resp[Nothing]]) extends CommandOK
   final case class SectionRemoved(sc: SC) extends Event
 
   final case class MoveSection(sc: SC, up: Boolean, replyTo: ActorRef[Resp[List[SC]]])
-      extends Command
+      extends CommandWithReply[List[SC]]
   final case class SectionMoved(sc: SC, newOrder: List[SC]) extends Event
 
-  final case class SetReadySign(author: Author, replyTo: ActorRef[Resp[Nothing]]) extends Command
+  final case class SetReadySign(author: Author, replyTo: ActorRef[Resp[Nothing]]) extends CommandOK
   def notAuthor: Error = Error(2004, "not an author")
   def alreadySigned: Error = Error(2017, "already signed")
   def onReview: Error = Error(2020, "quiz on review")
   final case class ReadySignSet(author: Author) extends Event
 
-  final case class UnsetReadySign(author: Author, replyTo: ActorRef[Resp[Nothing]]) extends Command
+  final case class UnsetReadySign(author: Author, replyTo: ActorRef[Resp[Nothing]]) extends CommandOK
   def notSigned: Error = Error(2019, "not signed")
   final case class ReadySignUnset(author: Author) extends Event
 
@@ -127,7 +131,7 @@ object Quiz:
       inspector: Inspector,
       approval: Boolean,
       replyTo: ActorRef[Resp[Nothing]]
-  ) extends Command
+  ) extends CommandOK
   def notInspector: Error = Error(2005, "not an inspector")
   def isComposing: Error = Error(2018, "quiz is composing")
   final case class Resolved(inspector: Inspector, approval: Boolean) extends Event
@@ -145,5 +149,7 @@ object Quiz:
       obsolete: Boolean
   ) extends Quiz
 
-  final case class SetObsolete(replyTo: ActorRef[Resp[Nothing]]) extends Command
+  final case class SetObsolete(replyTo: ActorRef[Resp[Nothing]]) extends CommandOK
+  def alreadyObsolete: Error = Error(2021, "quiz already obsolete")
+  def quizReleased: Error = Error(2022, "quiz released")
   case object GotObsolete extends Event

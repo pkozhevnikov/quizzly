@@ -148,6 +148,11 @@ object QuizEntity:
           cmd match
             case c: Create =>
               Effect.reply(c.replyTo)(Bad(quizAlreadyExists + c.id))
+            case c: SetObsolete =>
+              if released.obsolete then
+                Effect.reply(c.replyTo)(Bad(alreadyObsolete))
+              else
+                Effect.persist(GotObsolete).thenReply(c.replyTo)(_ => Resp.OK)
         case _ =>
           Effect.unhandled
 
@@ -199,8 +204,6 @@ object QuizEntity:
                 rev = rev.copy(approvals = rev.approvals + inspector)
               else
                 rev = rev.copy(disapprovals = rev.disapprovals + inspector)
-              println(rev.composing.inspectors)
-              println(rev.disapprovals)
               if rev.approvals == rev.composing.inspectors then
                 Released(
                   rev.composing.id,
@@ -217,3 +220,9 @@ object QuizEntity:
                 rev.composing.copy(readinessSigns = Set.empty)
               else
                 rev
+
+        case released: Released =>
+          evt match
+            case GotObsolete =>
+              released.copy(obsolete = true)
+
