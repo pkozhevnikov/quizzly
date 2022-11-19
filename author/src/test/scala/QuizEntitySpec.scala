@@ -57,12 +57,11 @@ class QuizEntitySpec
   "Quiz entity" must {
 
     "reject any command if not exists" in {
-      def rejected(cmds: (ActorRef[Resp[_]] => Command)*) =
-        cmds.foreach { cmd =>
-          val result = kit.runCommand(cmd(_))
-          result.reply shouldBe Bad(quizNotFound + id)
-          result.state shouldBe Blank(id)
-        }
+      def rejected(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
+        val result = kit.runCommand(cmd(_))
+        result.reply shouldBe Bad(quizNotFound + id)
+        result.state shouldBe Blank(id)
+      }
 
       rejected(
         Update("", "", 0, _),
@@ -81,15 +80,15 @@ class QuizEntitySpec
       )
     }
     "be created" in {
-      val result =
-        kit.runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _))
+      val result = kit
+        .runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _))
       result.reply shouldBe Good(CreateDetails(authors, inspectors))
       result.state shouldBe a[Composing]
       result.state shouldBe Composing(id, title, intro, curator, authors, inspectors, lenMins)
     }
     "drop inspector if listed as author" in {
-      val result =
-        kit.runCommand(Create(id, title, intro, curator, authors, inspectors + author1, lenMins, _))
+      val result = kit
+        .runCommand(Create(id, title, intro, curator, authors, inspectors + author1, lenMins, _))
       result.reply shouldBe Good(CreateDetails(authors, inspectors))
       result.state shouldBe (Composing(id, title, intro, curator, authors, inspectors, lenMins))
     }
@@ -101,39 +100,42 @@ class QuizEntitySpec
       result.reply shouldBe Good(CreateDetails(authors, inspectors))
       result.state shouldBe (Composing(id, title, intro, curator, authors, inspectors, lenMins))
     }
-    "reject creation if already exists" ignore {
+    "reject creation if already exists" in {
       val defState = createDefault.stateOfType[Composing]
-      val result =
-        kit.runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _))
+      val result = kit
+        .runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _))
       result.reply shouldBe Bad(quizAlreadyExists + id)
       result.state shouldBe defState
 
-      defState.authors.foreach { author =>
-        val res = kit.runCommand(SetReadySign(author, _))
-        res.reply shouldBe Resp.OK
-      }
+      defState
+        .authors
+        .foreach { author =>
+          val res = kit.runCommand(SetReadySign(author, _))
+          res.reply shouldBe Resp.OK
+        }
       val reviewRes = kit.runCommand(Create(id, "", "", curator, authors, inspectors, lenMins, _))
       reviewRes.reply shouldBe Bad(quizAlreadyExists + id)
       reviewRes.state shouldBe a[Review]
 
-      defState.inspectors.foreach { inspector =>
-        val res = kit.runCommand(Resolve(inspector, true, _))
-        res.reply shouldBe Resp.OK
-      }
+      defState
+        .inspectors
+        .foreach { inspector =>
+          val res = kit.runCommand(Resolve(inspector, true, _))
+          res.reply shouldBe Resp.OK
+        }
       val releaseRes = kit.runCommand(Create(id, "", "", curator, authors, inspectors, lenMins, _))
       releaseRes.reply shouldBe Bad(quizAlreadyExists + id)
       releaseRes.state shouldBe a[Released]
     }
     "reject creation if not enough authors" in {
-      val result =
-        kit.runCommand(Create(id, title, intro, curator, authors - author1, inspectors, lenMins, _))
+      val result = kit
+        .runCommand(Create(id, title, intro, curator, authors - author1, inspectors, lenMins, _))
       result.reply shouldBe Bad(notEnoughAuthors)
       result.state shouldBe Blank(id)
     }
     "reject creation if not enough inspectors" in {
-      val result = kit.runCommand(
-        Create(id, title, intro, curator, authors, inspectors - inspector1, lenMins, _)
-      )
+      val result = kit
+        .runCommand(Create(id, title, intro, curator, authors, inspectors - inspector1, lenMins, _))
       result.reply shouldBe Bad(notEnoughInspectors)
       result.state shouldBe Blank(id)
     }
@@ -150,8 +152,8 @@ class QuizEntitySpec
     }
 
     def createDefault = {
-      val result =
-        kit.runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _))
+      val result = kit
+        .runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _))
       result.reply shouldBe Good(CreateDetails(authors, inspectors))
       result
     }
@@ -160,15 +162,8 @@ class QuizEntitySpec
       createDefault
       val update = kit.runCommand(Update("new title", "new intro", 70, _))
       update.reply shouldBe Resp.OK
-      update.state shouldBe Composing(
-        id,
-        "new title",
-        "new intro",
-        curator,
-        authors,
-        inspectors,
-        70
-      )
+      update.state shouldBe
+        Composing(id, "new title", "new intro", curator, authors, inspectors, 70)
     }
     "reject update if title short" in {
       val defState = createDefault.state
@@ -225,22 +220,28 @@ class QuizEntitySpec
       signed.readinessSigns shouldBe Set(author1)
       val remove = kit.runCommand(RemoveAuthor(author1, _))
       remove.reply shouldBe Resp.OK
-      remove.state shouldBe defState.copy(
-        authors = defState.authors + author3 - author1,
-        readinessSigns = Set.empty
-      )
+      remove.state shouldBe
+        defState.copy(authors = defState.authors + author3 - author1, readinessSigns = Set.empty)
     }
     "remove author when review" in {
       createDefault
       val composing = kit.runCommand(AddAuthor(author3, _)).stateOfType[Composing]
-      composing.authors.foreach { author => kit.runCommand(SetReadySign(author, _)) }
+      composing
+        .authors
+        .foreach { author =>
+          kit.runCommand(SetReadySign(author, _))
+        }
       val remove = kit.runCommand(RemoveAuthor(author3, _))
       remove.reply shouldBe Resp.OK
-      remove.state shouldBe Review(
-        composing.copy(authors = composing.authors - author3, readinessSigns = Set(author1, author2, author3)),
-        Set.empty,
-        Set.empty
-      )
+      remove.state shouldBe
+        Review(
+          composing.copy(
+            authors = composing.authors - author3,
+            readinessSigns = Set(author1, author2, author3)
+          ),
+          Set.empty,
+          Set.empty
+        )
     }
     "reject remove author if min authors exceeds" in {
       val composing = createDefault.stateOfType[Composing]
@@ -296,10 +297,12 @@ class QuizEntitySpec
     }
     "reject set ready sign if not composing" in {
       val defState = createDefault.stateOfType[Composing]
-      defState.authors.foreach { author =>
-        val res = kit.runCommand(SetReadySign(author, _))
-        res.reply shouldBe Resp.OK
-      }
+      defState
+        .authors
+        .foreach { author =>
+          val res = kit.runCommand(SetReadySign(author, _))
+          res.reply shouldBe Resp.OK
+        }
       kit.runCommand(AddAuthor(author3, _))
       val failed = kit.runCommand(SetReadySign(author3, _))
       failed.reply shouldBe Bad(onReview)
@@ -308,64 +311,75 @@ class QuizEntitySpec
 
     "resolve to release" in {
       val composing = createDefault.stateOfType[Composing]
-      composing.authors.foreach { author => kit.runCommand(SetReadySign(author, _)) }
+      composing
+        .authors
+        .foreach { author =>
+          kit.runCommand(SetReadySign(author, _))
+        }
       val result1 = kit.runCommand(Resolve(inspector1, true, _))
       result1.reply shouldBe Resp.OK
-      result1.state shouldBe Review(
-        composing = composing.copy(readinessSigns = composing.authors),
-        approvals = Set(inspector1),
-        disapprovals = Set.empty
-      )
+      result1.state shouldBe
+        Review(
+          composing = composing.copy(readinessSigns = composing.authors),
+          approvals = Set(inspector1),
+          disapprovals = Set.empty
+        )
       val result2 = kit.runCommand(Resolve(inspector2, true, _))
       result2.reply shouldBe Resp.OK
       result2.state shouldBe a[Released]
-      result2.state shouldBe Released(
-        composing.id,
-        composing.title,
-        composing.intro,
-        composing.curator,
-        composing.authors,
-        composing.inspectors,
-        composing.recommendedLength,
-        List.empty,
-        false
-      )
+      result2.state shouldBe
+        Released(
+          composing.id,
+          composing.title,
+          composing.intro,
+          composing.curator,
+          composing.authors,
+          composing.inspectors,
+          composing.recommendedLength,
+          List.empty,
+          false
+        )
     }
     "resolve to composing" in {
       val composing = createDefault.stateOfType[Composing]
-      composing.authors.foreach { author => kit.runCommand(SetReadySign(author, _)) }
-      val result1 = kit.runCommand(Resolve(inspector2, false, _))
+      composing
+        .authors
+        .foreach { author =>
+          kit.runCommand(SetReadySign(author, _))
+        }
+      val result1 = kit.runCommand(Resolve(inspector1, false, _))
       result1.reply shouldBe Resp.OK
-      result1.state shouldBe Review(
-        composing = composing.copy(readinessSigns = composing.authors),
-        approvals = Set.empty,
-        disapprovals = Set(inspector2)
-      )
+      result1.state shouldBe
+        Review(
+          composing = composing.copy(readinessSigns = composing.authors),
+          approvals = Set.empty,
+          disapprovals = Set(inspector1)
+        )
       val result2 = kit.runCommand(Resolve(inspector2, false, _))
       result2.reply shouldBe Resp.OK
       result2.state shouldBe a[Composing]
-      result2.state shouldBe Composing(
-        composing.id,
-        composing.title,
-        composing.intro,
-        composing.curator,
-        composing.authors,
-        composing.inspectors,
-        composing.recommendedLength,
-        Set.empty
-      )
+      result2.state shouldBe composing.copy(readinessSigns = Set.empty)
     }
     "reject resolve if not an inspector" in {
       val composing = createDefault.stateOfType[Composing]
-      composing.authors.foreach { author => kit.runCommand(SetReadySign(author, _)) }
+      composing
+        .authors
+        .foreach { author =>
+          kit.runCommand(SetReadySign(author, _))
+        }
       val result = kit.runCommand(Resolve(curator, true, _))
       result.reply shouldBe Bad(notInspector)
-      result.state shouldBe composing
+      result.state shouldBe
+        Review(
+          composing = composing.copy(readinessSigns = composing.authors),
+          approvals = Set.empty,
+          disapprovals = Set.empty
+        )
     }
     "reject resolve if not on review" in {
       val composing = createDefault.stateOfType[Composing]
       val result = kit.runCommand(Resolve(inspector2, true, _))
-      result.reply shouldBe Bad(onReview)
+      result.reply shouldBe Bad(isComposing)
       result.state shouldBe composing
     }
 

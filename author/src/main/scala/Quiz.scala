@@ -129,8 +129,8 @@ object Quiz:
       replyTo: ActorRef[Resp[Nothing]]
   ) extends Command
   def notInspector: Error = Error(2005, "not an inspector")
-  def alreadyResolved: Error = Error(2018, "already resolved")
-  final case class Resolved(inspector: Inspector, approval: Boolean)
+  def isComposing: Error = Error(2018, "quiz is composing")
+  final case class Resolved(inspector: Inspector, approval: Boolean) extends Event
   case object GoneReleased extends Event
   case object GoneComposing extends Event
   final case class Released(

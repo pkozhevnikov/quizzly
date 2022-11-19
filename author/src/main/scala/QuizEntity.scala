@@ -123,13 +123,27 @@ object QuizEntity:
                 Effect.reply(c.replyTo)(Bad(notAuthor))
               else
                 Effect.persist(ReadySignSet(c.author)).thenReply(c.replyTo)(_ => Resp.OK)
+            case c: Resolve =>
+              if !composing.inspectors(c.inspector) then
+                Effect.reply(c.replyTo)(Bad(notInspector))
+              else
+                Effect.reply(c.replyTo)(Bad(isComposing))
 
         case review: Review =>
           cmd match
             case c: Create =>
               Effect.reply(c.replyTo)(Bad(quizAlreadyExists + c.id))
+            case AddAuthor(author, replyTo) =>
+              Effect.persist(AuthorAdded(author)).thenReply(replyTo)(_ => Resp.OK)
             case RemoveAuthor(author, replyTo) =>
               Effect.persist(AuthorRemoved(author)).thenReply(replyTo)(_ => Resp.OK)
+            case c: SetReadySign =>
+              Effect.reply(c.replyTo)(Bad(onReview))
+            case c: Resolve =>
+              if !review.composing.inspectors(c.inspector) then
+                Effect.reply(c.replyTo)(Bad(notInspector))
+              else
+                Effect.persist(Resolved(c.inspector, c.approval)).thenReply(c.replyTo)(_ => Resp.OK)
         case released: Released =>
           cmd match
             case c: Create =>
@@ -140,6 +154,7 @@ object QuizEntity:
   val eventHandler: (Quiz, Event) => Quiz =
     (state, evt) =>
       state match
+
         case _: Blank =>
           evt match
             case Created(id, title, intro, curator, authors, inspectors, length) =>
@@ -165,9 +180,40 @@ object QuizEntity:
                 Review(comp, Set.empty, Set.empty)
               else
                 comp
+
         case review: Review =>
           evt match
+            case AuthorAdded(author) =>
+              val comp = review.composing
+              review.copy(composing = comp.copy(authors = comp.authors + author))
             case AuthorRemoved(author) =>
               review.copy(composing =
                 review.composing.copy(authors = review.composing.authors - author)
               )
+            case Resolved(inspector, approval) =>
+              var rev = review.copy(
+                approvals = review.approvals - inspector,
+                disapprovals = review.disapprovals - inspector
+              )
+              if approval then
+                rev = rev.copy(approvals = rev.approvals + inspector)
+              else
+                rev = rev.copy(disapprovals = rev.disapprovals + inspector)
+              println(rev.composing.inspectors)
+              println(rev.disapprovals)
+              if rev.approvals == rev.composing.inspectors then
+                Released(
+                  rev.composing.id,
+                  rev.composing.title,
+                  rev.composing.intro,
+                  rev.composing.curator,
+                  rev.composing.authors,
+                  rev.composing.inspectors,
+                  rev.composing.recommendedLength,
+                  rev.composing.sections,
+                  false
+                )
+              else if rev.disapprovals == rev.composing.inspectors then
+                rev.composing.copy(readinessSigns = Set.empty)
+              else
+                rev
