@@ -49,34 +49,11 @@ object QuizEntity:
                     .thenReply(replyTo) { case s: Composing =>
                       Good(CreateDetails(s.authors, s.inspectors))
                     }
-            case c: Update =>
+            case c: CommandWithReply[_] =>
               Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
-            case c: AddInspector =>
-              Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
-            case c: AddAuthor =>
-              Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
-            case c: RemoveInspector =>
-              Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
-            case c: RemoveAuthor =>
-              Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
-            case c: AddSection =>
-              Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
-            case c: SetObsolete =>
-              Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
-            case c: GrabSection =>
-              Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
-            case c: DischargeSection =>
-              Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
-            case c: MoveSection =>
-              Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
-            case c: RemoveSection =>
-              Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
-            case c: SetReadySign =>
-              Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
-            case c: Resolve =>
-              Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
+            case _ =>
+              Effect.unhandled
 
-        // case _ => Effect.unhandled
         case composing: Composing =>
           cmd match
             case c: Create =>
