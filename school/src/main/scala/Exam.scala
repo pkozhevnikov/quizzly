@@ -3,8 +3,23 @@ package quizzly.school
 import java.time.*
 import akka.actor.typed.*
 
+trait CborSerializable
+
+type PersonID = String
+
+sealed trait Person:
+  val place: String
+  val id: PersonID
+  val name: String
+case class Official(id: PersonID, name: String) extends Person:
+  val place = "Official"
+case class Student(id: PersonID, name: String) extends Person:
+  val place = "Student"
+
 type QuizID = String
 type ExamID = String
+
+final case class ExamConfig()
 
 final case class ExamPeriod(start: ZonedDateTime, end: ZonedDateTime)
 
@@ -33,7 +48,7 @@ object Exam:
 
   final case class Blank(id: ExamID) extends Exam
 
-  final case class CreateExam(
+  final case class Create(
       id: ExamID,
       quiz: QuizID,
       trialLengthMinutes: Int,
@@ -49,6 +64,7 @@ object Exam:
   def noTimeForPreparation: Error = Error(1004, "no time for preparation")
   def wrongQuiz: Error = Error(1005, "wrong quiz")
   def notOfficial: Error = Error(1006, "you are not an official")
+  def examNotFound: Error = Error(1007, "exam not found")
 
   final case class Pending(
       id: ExamID,
@@ -59,18 +75,37 @@ object Exam:
       testees: Set[Person],
       host: Official
   ) extends Exam:
-    def includeTestees(include: Set[Person]): Pending =
-      Pending(id, quiz, trialLength, preparationStart, period, testees ++ include, host)
-    def excludeTestees(exclude: Set[Person]): Pending =
-      Pending(id, quiz, trialLength, preparationStart, period, testees -- exclude, host)
-    def withTrialLength(length: Duration): Pending =
-      Pending(id, quiz, length, preparationStart, period, testees, host)
-    def proceed(): Upcoming =
-      Upcoming(id, quiz, trialLength, period, testees, host)
-    def cancel(at: Instant): Cancelled =
-      Cancelled(id, quiz, trialLength, period, testees, host, at)
+    def includeTestees(include: Set[Person]): Pending = Pending(
+      id,
+      quiz,
+      trialLength,
+      preparationStart,
+      period,
+      testees ++ include,
+      host
+    )
+    def excludeTestees(exclude: Set[Person]): Pending = Pending(
+      id,
+      quiz,
+      trialLength,
+      preparationStart,
+      period,
+      testees -- exclude,
+      host
+    )
+    def withTrialLength(length: Duration): Pending = Pending(
+      id,
+      quiz,
+      length,
+      preparationStart,
+      period,
+      testees,
+      host
+    )
+    def proceed(): Upcoming = Upcoming(id, quiz, trialLength, period, testees, host)
+    def cancel(at: Instant): Cancelled = Cancelled(id, quiz, trialLength, period, testees, host, at)
 
-  final case class ExamCreated(
+  final case class Created(
       id: ExamID,
       quiz: Quiz,
       trialLength: Duration,
@@ -102,12 +137,10 @@ object Exam:
       testees: Set[Person],
       host: Official
   ) extends Exam:
-    def proceed(): InProgress =
-      InProgress(id, quiz, trialLength, period, testees, host)
-    def cancel(at: Instant): Cancelled =
-      Cancelled(id, quiz, trialLength, period, testees, host, at)
+    def proceed(): InProgress = InProgress(id, quiz, trialLength, period, testees, host)
+    def cancel(at: Instant): Cancelled = Cancelled(id, quiz, trialLength, period, testees, host, at)
 
-  case object WentUpcoming extends Event
+  case object GoneUpcoming extends Event
 
   final case class InProgress(
       id: ExamID,
@@ -117,10 +150,9 @@ object Exam:
       testees: Set[Person],
       host: Official
   ) extends Exam:
-    def proceed(): Ended =
-      Ended(id, quiz, trialLength, period, testees, host)
+    def proceed(): Ended = Ended(id, quiz, trialLength, period, testees, host)
 
-  case object WentInprogress extends Event
+  case object GoneInProgress extends Event
 
   final case class Ended(
       id: ExamID,
