@@ -50,7 +50,10 @@ object QuizEntity:
                       Good(CreateDetails(s.authors, s.inspectors))
                     }
             case c: CommandWithReply[_] =>
-              Effect.reply(c.replyTo)(Bad(quizNotFound + state.id))
+              Effect
+                .none
+                // .thenStop()
+                .thenReply(c.replyTo)(_ => Bad(quizNotFound + state.id))
 
         case composing: Composing =>
           cmd match
@@ -99,7 +102,10 @@ object QuizEntity:
               else if !composing.authors(c.author) then
                 Effect.reply(c.replyTo)(Bad(notAuthor))
               else
-                Effect.persist(ReadySignSet(c.author)).thenReply(c.replyTo)(_ => Resp.OK)
+                var events = Seq[Event](ReadySignSet(c.author))
+                if composing.readinessSigns.size + 1 == composing.authors.size then
+                  events :+= GoneForReview
+                Effect.persist(events).thenReply(c.replyTo)(_ => Resp.OK)
             case c: Resolve =>
               if !composing.inspectors(c.inspector) then
                 Effect.reply(c.replyTo)(Bad(notInspector))
@@ -114,8 +120,9 @@ object QuizEntity:
               Effect.reply(c.replyTo)(Bad(quizAlreadyExists + c.id))
             case AddAuthor(author, replyTo) =>
               if review.composing.curator == author || review.composing.authors(author) ||
-                review.composing.inspectors(author) then
-                  Effect.reply(replyTo)(Bad(alreadyOnList))
+                review.composing.inspectors(author)
+              then
+                Effect.reply(replyTo)(Bad(alreadyOnList))
               else
                 Effect.persist(AuthorAdded(author)).thenReply(replyTo)(_ => Resp.OK)
             case RemoveAuthor(author, replyTo) =>
@@ -125,8 +132,9 @@ object QuizEntity:
                 Effect.persist(AuthorRemoved(author)).thenReply(replyTo)(_ => Resp.OK)
             case AddInspector(inspector, replyTo) =>
               if review.composing.curator == inspector || review.composing.authors(inspector) ||
-                review.composing.inspectors(inspector) then
-                  Effect.reply(replyTo)(Bad(alreadyOnList))
+                review.composing.inspectors(inspector)
+              then
+                Effect.reply(replyTo)(Bad(alreadyOnList))
               else
                 Effect.persist(InspectorAdded(inspector)).thenReply(replyTo)(_ => Resp.OK)
             case RemoveInspector(inspector, replyTo) =>
@@ -140,7 +148,13 @@ object QuizEntity:
               if !review.composing.inspectors(c.inspector) then
                 Effect.reply(c.replyTo)(Bad(notInspector))
               else
-                Effect.persist(Resolved(c.inspector, c.approval)).thenReply(c.replyTo)(_ => Resp.OK)
+                val resolved = review.resolve(c.inspector, c.approval)
+                var events = Seq[Event](Resolved(c.inspector, c.approval))
+                if resolved.approvals.size == resolved.composing.inspectors.size then
+                  events :+= GoneReleased
+                else if resolved.disapprovals.size == resolved.composing.inspectors.size then
+                  events :+= GoneComposing
+                Effect.persist(events).thenReply(c.replyTo)(_ => Resp.OK)
             case c: CommandWithReply[_] =>
               Effect.reply(c.replyTo)(Bad(onReview))
 
@@ -164,7 +178,8 @@ object QuizEntity:
           evt match
             case Created(id, title, intro, curator, authors, inspectors, length) =>
               Composing(id, title, intro, curator, authors, inspectors, length)
-            case _ => state
+            case _ =>
+              state
 
         case composing: Composing =>
           evt match
@@ -182,12 +197,11 @@ object QuizEntity:
             case InspectorRemoved(inspector) =>
               composing.copy(inspectors = composing.inspectors - inspector)
             case ReadySignSet(author) =>
-              val comp = composing.copy(readinessSigns = composing.readinessSigns + author)
-              if comp.readinessSigns == comp.authors then
-                Review(comp, Set.empty, Set.empty)
-              else
-                comp
-            case _ => state
+              composing.copy(readinessSigns = composing.readinessSigns + author)
+            case GoneForReview =>
+              Review(composing, Set.empty, Set.empty)
+            case _ =>
+              state
 
         case review: Review =>
           evt match
@@ -202,41 +216,36 @@ object QuizEntity:
               val comp = review.composing
               review.copy(composing = comp.copy(inspectors = comp.inspectors + inspector))
             case InspectorRemoved(inspector) =>
-              review.copy(composing =
-                review.composing.copy(inspectors = review.composing.inspectors - inspector),
+              review.copy(
+                composing = review
+                  .composing
+                  .copy(inspectors = review.composing.inspectors - inspector),
                 approvals = review.approvals - inspector,
                 disapprovals = review.disapprovals - inspector
               )
             case Resolved(inspector, approval) =>
-              var rev = review.copy(
-                approvals = review.approvals - inspector,
-                disapprovals = review.disapprovals - inspector
+              review.resolve(inspector, approval)
+            case GoneComposing =>
+              review.composing.copy(readinessSigns = Set.empty)
+            case GoneReleased =>
+              Released(
+                review.composing.id,
+                review.composing.title,
+                review.composing.intro,
+                review.composing.curator,
+                review.composing.authors,
+                review.composing.inspectors,
+                review.composing.recommendedLength,
+                review.composing.sections,
+                false
               )
-              if approval then
-                rev = rev.copy(approvals = rev.approvals + inspector)
-              else
-                rev = rev.copy(disapprovals = rev.disapprovals + inspector)
-              if rev.approvals == rev.composing.inspectors then
-                Released(
-                  rev.composing.id,
-                  rev.composing.title,
-                  rev.composing.intro,
-                  rev.composing.curator,
-                  rev.composing.authors,
-                  rev.composing.inspectors,
-                  rev.composing.recommendedLength,
-                  rev.composing.sections,
-                  false
-                )
-              else if rev.disapprovals == rev.composing.inspectors then
-                rev.composing.copy(readinessSigns = Set.empty)
-              else
-                rev
-            case _ => state
+
+            case _ =>
+              state
 
         case released: Released =>
           evt match
             case GotObsolete =>
               released.copy(obsolete = true)
-            case _ => state
-
+            case _ =>
+              state

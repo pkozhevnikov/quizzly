@@ -13,7 +13,6 @@ object Quiz:
   sealed trait CommandWithReply[R] extends Command:
     val replyTo: ActorRef[Resp[R]]
   type CommandOK = CommandWithReply[Nothing]
-  
 
   sealed trait Event extends CborSerializable
 
@@ -115,7 +114,8 @@ object Quiz:
   def onReview: Error = Error(2020, "quiz on review")
   final case class ReadySignSet(author: Author) extends Event
 
-  final case class UnsetReadySign(author: Author, replyTo: ActorRef[Resp[Nothing]]) extends CommandOK
+  final case class UnsetReadySign(author: Author, replyTo: ActorRef[Resp[Nothing]])
+      extends CommandOK
   def notSigned: Error = Error(2019, "not signed")
   final case class ReadySignUnset(author: Author) extends Event
 
@@ -126,6 +126,13 @@ object Quiz:
       disapprovals: Set[Inspector]
   ) extends Quiz:
     override def id: QuizID = composing.id
+    def resolve(inspector: Inspector, approval: Boolean) =
+      val resolutions =
+        if approval then
+          (approvals + inspector) -> (disapprovals - inspector)
+        else
+          (approvals - inspector) -> (disapprovals + inspector)
+      Review(composing, resolutions(0), resolutions(1))
 
   final case class Resolve(
       inspector: Inspector,
