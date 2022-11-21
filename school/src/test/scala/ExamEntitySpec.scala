@@ -29,38 +29,26 @@ class ExamEntitySpec
 
   import Exam.*
 
-  private val kit = TestKit[Command, Event, Quiz](
-    system,
-    ExamEntity(
-      id,
-      ExamConfig()
-    )
-  )
+  private val kit = TestKit[Command, Event, Quiz](system, ExamEntity(id, ExamConfig()))
 
   override protected def beforeEach(): Unit =
     super.beforeEach()
     kit.clear()
 
   "Exam entity" when {
-  
+
     "Blank" must {
-      "do this" in {
-      }
+      "do this" in {}
     }
 
-    "Pending" ignore {
-    }
+    "Pending" ignore {}
 
-    "Upcoming" ignore {
-    }
+    "Upcoming" ignore {}
 
-    "InProgress" ignore {
-    }
+    "InProgress" ignore {}
 
-    "Ended" ignore {
-    }
+    "Ended" ignore {}
 
-    "Cancelled" ignore {
-    }
+    "Cancelled" ignore {}
 
   }

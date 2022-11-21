@@ -2,7 +2,6 @@ package quizzly.school.accept
 
 import org.scalatest.*
 
-
 class ExamManagementSpec extends featurespec.AnyFeatureSpec, GivenWhenThen:
 
   info("As a Staff user")
@@ -30,7 +29,7 @@ class ExamManagementSpec extends featurespec.AnyFeatureSpec, GivenWhenThen:
       And("response contains detailed reason")
     }
   }
-      
+
   Feature("Include/exclude a Testee") {
 
     Scenario("Testee added") {
