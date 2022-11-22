@@ -54,11 +54,12 @@ class QuizFactSpec
       result1.hasNoEvents shouldBe true
       result1.state shouldBe None
 
-      result1.replyOfType[Resp[_]] match
+      result1.replyOfType[Resp[Nothing]] match
         case Resp.OK => println("ok")
         case Resp.Bad(e) => e.reason match
           case Reason.notFound => println("not found")
           case Reason.isNotPublished => println("not published")
+      
       //ignored(kit.runCommand(Use("eid", _)))
       //ignored(kit.runCommand(Publish))
       //ignored(kit.runCommand(Unpublish))

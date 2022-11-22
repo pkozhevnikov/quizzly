@@ -39,12 +39,18 @@ object QuizFact:
     val code: Int
     val reason: String
     def error(): Error = Error(this, Seq.empty)
-
+/*
   enum Resp[+R] extends CborSerializable:
     case OK extends Resp[Nothing]
     case Good(value: R) extends Resp[R]
     case Bad(error: Error) extends Resp[Nothing]
-
+*/
+  sealed trait Resp[+R]
+  object Resp:
+    case class Good[R](value: R) extends Resp[R]
+    case class Bad[R](error: Error) extends Resp[R]
+    object OK extends Good[Nothing]
+  
   type RespOK = Resp[Nothing]
 
   // final case class MayBeUsed(examID: ExamID, replyTo: ActorRef[Boolean]) extends Command
