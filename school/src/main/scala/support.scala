@@ -10,6 +10,7 @@ final case class Reason(code: Int, phrase: String) extends CborSerializable:
 
 final case class Error(reason: Reason, clues: Seq[String]) extends CborSerializable:
   def +(clue: String) = Error(reason, clues :+ clue)
+  def ++(clues: Seq[String]) = Error(reason, this.clues :++ clues)
 
 sealed trait Resp[+R] extends CborSerializable
 object Resp:
@@ -33,6 +34,6 @@ case class Student(id: PersonID, name: String) extends Person:
 type QuizID = String
 type ExamID = String
 
-final case class ExamConfig()
+final case class ExamConfig(preparationPeriodHours: Int)
 
 final case class Quiz(id: QuizID, title: String)

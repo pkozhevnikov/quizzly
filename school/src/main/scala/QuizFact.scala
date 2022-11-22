@@ -34,7 +34,7 @@ object QuizFact:
   val isUsed = Reason(1106, "quiz is in use")
 
   // final case class MayBeUsed(examID: ExamID, replyTo: ActorRef[Boolean]) extends Command
-  final case class Use(examID: ExamID, replyTo: ActorRef[RespOK]) extends CommandWithReply[Nothing]
+  final case class Use(examID: ExamID, replyTo: ActorRef[Resp[Quiz]]) extends CommandWithReply[Quiz]
   final case class Used(examID: ExamID) extends Event
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("QuizFact")
@@ -54,7 +54,7 @@ object QuizFact:
               case _ =>
                 Effect.noReply
           case Some(fact) =>
-            fact.takeCommand(command)
+            fact.takeCommand(id, command)
       ,
       (state, event) =>
         state match
@@ -78,7 +78,7 @@ object QuizFact:
       usedBy: Set[ExamID]
   ) extends CborSerializable:
 
-    private[QuizFact] def takeCommand(command: Command): Effect[Event, Option[Fact]] =
+    private[QuizFact] def takeCommand(id: QuizID, command: Command): Effect[Event, Option[Fact]] =
       command match
         case SetObsolete =>
           Effect.persist(GotObsolete)
@@ -102,7 +102,7 @@ object QuizFact:
           else if everPublished then
             Effect.reply(replyTo)(Bad(wasPublished.error()))
           else
-            Effect.persist(Used(examID)).thenReply(replyTo)(_ => Resp.OK)
+            Effect.persist(Used(examID)).thenReply(replyTo)(_ => Good(Quiz(id, title)))
         case _: Init =>
           Effect.unhandled
 

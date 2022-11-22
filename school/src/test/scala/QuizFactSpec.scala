@@ -30,13 +30,7 @@ class QuizFactSpec
 
   import QuizFact.*
 
-  private val kit = TestKit[Command, Event, Option[Fact]](
-    system,
-    QuizFact(
-      id,
-      ExamConfig()
-    )
-  )
+  private val kit = TestKit[Command, Event, Option[Fact]](system, QuizFact(id, ExamConfig(24)))
 
   override protected def beforeEach(): Unit =
     super.beforeEach()
@@ -45,7 +39,7 @@ class QuizFactSpec
   "QuizFact" must {
 
     import Resp.*
-    
+
     def ignored(reason: Reason, cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
       val result = kit.runCommand(cmd(_))
       result.hasNoEvents shouldBe true
@@ -79,7 +73,7 @@ class QuizFactSpec
     "be used" in {
       init
       val result = kit.runCommand(Use("exam1", _))
-      result.reply shouldBe Resp.OK
+      result.reply shouldBe Good(Quiz("quiz1", "quiz1 title"))
       result.stateOfType[Option[Fact]].get.usedBy shouldBe Set("exam1")
     }
 
