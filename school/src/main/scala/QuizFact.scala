@@ -26,32 +26,12 @@ object QuizFact:
   final case class Unpublish(replyTo: ActorRef[RespOK]) extends CommandWithReply[Nothing]
   case object Unpublished extends Event
 
-  enum Reason(val code: Int, val reason: String) extends ErrorReason, CborSerializable:
-    case notFound extends Reason(1101, "quiz not found")
-    case isObsolete extends Reason(1102, "quiz is obsolete")
-    case wasPublished extends Reason(1103, "quiz had been published")
-    case isNotPublished extends Reason(1104, "quiz is not published")
-
-  final case class Error(reason: ErrorReason, clues: Seq[String]):
-    def +(clue: String) = Error(reason, clues :+ clue)
-
-  trait ErrorReason:
-    val code: Int
-    val reason: String
-    def error(): Error = Error(this, Seq.empty)
-/*
-  enum Resp[+R] extends CborSerializable:
-    case OK extends Resp[Nothing]
-    case Good(value: R) extends Resp[R]
-    case Bad(error: Error) extends Resp[Nothing]
-*/
-  sealed trait Resp[+R]
-  object Resp:
-    case class Good[R](value: R) extends Resp[R]
-    case class Bad[R](error: Error) extends Resp[R]
-    object OK extends Good[Nothing]
-  
-  type RespOK = Resp[Nothing]
+  val notFound = Reason(1101, "quiz not found")
+  val isObsolete = Reason(1102, "quiz is obsolete")
+  val wasPublished = Reason(1103, "quiz had been published")
+  val isNotPublished = Reason(1104, "quiz is not published")
+  val isAlreadyUsed = Reason(1105, "quiz is already used by this exam")
+  val isUsed = Reason(1106, "quiz is in use")
 
   // final case class MayBeUsed(examID: ExamID, replyTo: ActorRef[Boolean]) extends Command
   final case class Use(examID: ExamID, replyTo: ActorRef[RespOK]) extends CommandWithReply[Nothing]
@@ -70,7 +50,7 @@ object QuizFact:
               case Init(title, obsolete) =>
                 Effect.persist(Inited(title, obsolete))
               case c: CommandWithReply[_] =>
-                Effect.reply(c.replyTo)(Resp.Bad(Reason.notFound.error()))
+                Effect.reply(c.replyTo)(Resp.Bad(notFound.error()))
               case _ =>
                 Effect.noReply
           case Some(fact) =>
@@ -87,6 +67,8 @@ object QuizFact:
           case Some(fact) =>
             Some(fact.takeEvent(event))
     )
+
+  import Resp.*
 
   final case class Fact(
       title: String,
@@ -105,7 +87,14 @@ object QuizFact:
         case _: Unpublish =>
           Effect.persist(Unpublished)
         case Use(examID, replyTo) =>
-          Effect.noReply
+          if obsolete then
+            Effect.reply(replyTo)(Bad(isObsolete.error()))
+          else if usedBy(examID) then
+            Effect.reply(replyTo)(Bad(isAlreadyUsed.error()))
+          else if everPublished then
+            Effect.reply(replyTo)(Bad(wasPublished.error()))
+          else
+            Effect.persist(Used(examID)).thenReply(replyTo)(_ => Resp.OK)
         case _: Init =>
           Effect.unhandled
 

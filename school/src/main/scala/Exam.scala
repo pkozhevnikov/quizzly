@@ -3,44 +3,12 @@ package quizzly.school
 import java.time.*
 import akka.actor.typed.*
 
-trait CborSerializable
-
-type PersonID = String
-
-sealed trait Person:
-  val place: String
-  val id: PersonID
-  val name: String
-case class Official(id: PersonID, name: String) extends Person:
-  val place = "Official"
-case class Student(id: PersonID, name: String) extends Person:
-  val place = "Student"
-
-type QuizID = String
-type ExamID = String
-
-final case class ExamConfig()
-
 final case class ExamPeriod(start: ZonedDateTime, end: ZonedDateTime)
-
-final case class Quiz(id: QuizID, title: String)
 
 sealed trait Exam:
   val id: ExamID
 
 object Exam:
-
-  case class Error(code: Int, reason: String, clues: Set[String] = Set.empty)
-      extends CborSerializable:
-    def +(clue: String): Error = Error(code, reason, clues + clue)
-    def ++(clues: String*): Error = Error(code, reason, this.clues ++ clues)
-
-  sealed trait Resp[+V] extends CborSerializable
-  type RespOK = Resp[Nothing]
-  object Resp:
-    case object OK extends RespOK
-  final case class Good[+V](v: V) extends Resp[V]
-  final case class Bad[+V](e: Error) extends Resp[V]
 
   sealed trait Command extends CborSerializable
 
@@ -58,13 +26,14 @@ object Exam:
       replyTo: ActorRef[Resp[CreateExamDetails]]
   ) extends Command
   final case class CreateExamDetails(preparationStart: ZonedDateTime, host: Official)
-  def examAlreadyExists: Error = Error(1001, "exam already exists")
-  def badTrialLength: Error = Error(1002, "bad trial length")
-  def badExamPeriod: Error = Error(1003, "bad exam period")
-  def noTimeForPreparation: Error = Error(1004, "no time for preparation")
-  def wrongQuiz: Error = Error(1005, "wrong quiz")
-  def notOfficial: Error = Error(1006, "you are not an official")
-  def examNotFound: Error = Error(1007, "exam not found")
+
+  val examAlreadyExists = Reason(1001, "exam already exists")
+  val badTrialLength = Reason(1002, "bad trial length")
+  val badExamPeriod = Reason(1003, "bad exam period")
+  val noTimeForPreparation = Reason(1004, "no time for preparation")
+  val wrongQuiz = Reason(1005, "wrong quiz")
+  val notOfficial = Reason(1006, "you are not an official")
+  val examNotFound = Reason(1007, "exam not found")
 
   final case class Pending(
       id: ExamID,

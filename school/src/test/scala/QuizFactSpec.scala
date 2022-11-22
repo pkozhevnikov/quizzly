@@ -43,27 +43,22 @@ class QuizFactSpec
     kit.clear()
 
   "QuizFact" must {
+
+    import Resp.*
     
-    def ignored(result: CommandResult[Command, Event, Option[Fact]]) = 
+    def ignored(reason: Reason, cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
+      val result = kit.runCommand(cmd(_))
+      result.hasNoEvents shouldBe true
+      result.reply shouldBe Bad(reason.error())
+      result.state shouldBe None
+    }
+
+    "ignore any command except initialization" in {
+      ignored(notFound, Use("eid", _), Publish(_), Unpublish(_))
+
+      val result = kit.runCommand(SetObsolete)
       result.hasNoEvents shouldBe true
       result.state shouldBe None
-
-    "ignore any command except initialization" ignore {
-      val result1 = kit.runCommand(Use("eid", _))
-      result1.reply shouldBe Resp.Bad(Reason.notFound.error())
-      result1.hasNoEvents shouldBe true
-      result1.state shouldBe None
-
-      result1.replyOfType[Resp[Nothing]] match
-        case Resp.OK => println("ok")
-        case Resp.Bad(e) => e.reason match
-          case Reason.notFound => println("not found")
-          case Reason.isNotPublished => println("not published")
-      
-      //ignored(kit.runCommand(Use("eid", _)))
-      //ignored(kit.runCommand(Publish))
-      //ignored(kit.runCommand(Unpublish))
-      //ignored(kit.runCommand(SetObsolete))
     }
 
     "be initialized" in {
@@ -72,46 +67,87 @@ class QuizFactSpec
       result.state shouldBe Some(Fact("quiz1", false, false, false, Set.empty))
     }
 
-    "ignore initialization if already initialized" ignore {
-      //ignored(kit.runCommand(Init("t", false)))
+    "ignore initialization if already initialized" in {
+      init
+      val result = kit.runCommand(Init("quiz2", false))
+      result.hasNoEvents shouldBe true
+      result.state shouldBe Some(Fact("quiz1", false, false, false, Set.empty))
     }
 
     def init = kit.runCommand(Init("quiz1", false))
 
-    "be used" ignore {
-      //init
-      //val result = kit.runCommand(Use("exam1", _))
-      //result.reply shouldBe UseReply.OK
-      //result.stateOfType[Fact].usedBy shouldBe Set("exam1")
+    "be used" in {
+      init
+      val result = kit.runCommand(Use("exam1", _))
+      result.reply shouldBe Resp.OK
+      result.stateOfType[Option[Fact]].get.usedBy shouldBe Set("exam1")
     }
 
     "reject usage if had ever been published" ignore {
-      //init
-      //kit.runCommand(Publish)
+      init
+      kit.runCommand(Publish(_))
+      kit.runCommand(Unpublish(_))
+      val result = kit.runCommand(Use("exam1", _))
+      result.reply shouldBe Bad(wasPublished.error())
+      result.state shouldBe Some(Fact("quiz1", false, true, true, Set.empty))
     }
 
     "reject usage if is obsolete" ignore {
+      init
+      kit.runCommand(SetObsolete)
+      val result = kit.runCommand(Use("exam1", _))
+      result.reply shouldBe Bad(isObsolete.error())
+      result.state shouldBe Some(Fact("quiz1", true, false, false, Set.empty))
     }
 
     "reject usage if not initialized" ignore {
+      val result = kit.runCommand(Use("exam1", _))
+      result.reply shouldBe Bad(notFound.error())
+      result.state shouldBe None
     }
 
     "be published" ignore {
+      init
+      val result = kit.runCommand(Publish(_))
+      result.reply shouldBe Resp.OK
+      result.state shouldBe Some(Fact("quiz1", false, true, true, Set.empty))
     }
 
     "reject publication if already published" ignore {
+      init
+      kit.runCommand(Publish(_))
+      val result = kit.runCommand(Publish(_))
+      result.reply shouldBe Bad(wasPublished.error())
+      result.state shouldBe Some(Fact("quiz1", false, true, true, Set.empty))
     }
 
-    "reject publication if is ignore use" ignore {
+    "reject publication if is in use" ignore {
+      init
+      kit.runCommand(Use("exam1", _))
+      val result = kit.runCommand(Publish(_))
+      result.reply shouldBe Bad(isUsed.error())
+      result.state shouldBe Some(Fact("quiz1", false, false, false, Set("exam1")))
     }
 
     "be unpublished" ignore {
+      init
+      kit.runCommand(Publish(_))
+      val result = kit.runCommand(Unpublish(_))
+      result.reply shouldBe Resp.OK
+      result.state shouldBe Some(Fact("quiz1", false, true, false, Set.empty))
     }
 
     "reject unpublication if not published" ignore {
+      init
+      val result = kit.runCommand(Unpublish(_))
+      result.reply shouldBe Bad(isNotPublished.error())
+      result.reply shouldBe Some(Fact("quiz1", false, false, false, Set.empty))
     }
 
     "be set obsolete" ignore {
+      init
+      val result = kit.runCommand(SetObsolete)
+      result.state shouldBe Some(Fact("quiz1", true, false, false, Set.empty))
     }
 
   }
