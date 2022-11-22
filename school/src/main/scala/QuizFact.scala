@@ -82,10 +82,18 @@ object QuizFact:
       command match
         case SetObsolete =>
           Effect.persist(GotObsolete)
-        case _: Publish =>
-          Effect.persist(Published)
-        case _: Unpublish =>
-          Effect.persist(Unpublished)
+        case Publish(replyTo) =>
+          if isPublished then
+            Effect.reply(replyTo)(Bad(wasPublished.error()))
+          else if !usedBy.isEmpty then
+            Effect.reply(replyTo)(Bad(isUsed.error()))
+          else
+            Effect.persist(Published).thenReply(replyTo)(_ => Resp.OK)
+        case Unpublish(replyTo) =>
+          if !isPublished then
+            Effect.reply(replyTo)(Bad(isNotPublished.error()))
+          else
+            Effect.persist(Unpublished).thenReply(replyTo)(_ => Resp.OK)
         case Use(examID, replyTo) =>
           if obsolete then
             Effect.reply(replyTo)(Bad(isObsolete.error()))

@@ -83,16 +83,16 @@ class QuizFactSpec
       result.stateOfType[Option[Fact]].get.usedBy shouldBe Set("exam1")
     }
 
-    "reject usage if had ever been published" ignore {
+    "reject usage if had ever been published" in {
       init
       kit.runCommand(Publish(_))
       kit.runCommand(Unpublish(_))
       val result = kit.runCommand(Use("exam1", _))
       result.reply shouldBe Bad(wasPublished.error())
-      result.state shouldBe Some(Fact("quiz1", false, true, true, Set.empty))
+      result.state shouldBe Some(Fact("quiz1", false, true, false, Set.empty))
     }
 
-    "reject usage if is obsolete" ignore {
+    "reject usage if is obsolete" in {
       init
       kit.runCommand(SetObsolete)
       val result = kit.runCommand(Use("exam1", _))
@@ -100,20 +100,20 @@ class QuizFactSpec
       result.state shouldBe Some(Fact("quiz1", true, false, false, Set.empty))
     }
 
-    "reject usage if not initialized" ignore {
+    "reject usage if not initialized" in {
       val result = kit.runCommand(Use("exam1", _))
       result.reply shouldBe Bad(notFound.error())
       result.state shouldBe None
     }
 
-    "be published" ignore {
+    "be published" in {
       init
       val result = kit.runCommand(Publish(_))
       result.reply shouldBe Resp.OK
       result.state shouldBe Some(Fact("quiz1", false, true, true, Set.empty))
     }
 
-    "reject publication if already published" ignore {
+    "reject publication if already published" in {
       init
       kit.runCommand(Publish(_))
       val result = kit.runCommand(Publish(_))
@@ -121,7 +121,7 @@ class QuizFactSpec
       result.state shouldBe Some(Fact("quiz1", false, true, true, Set.empty))
     }
 
-    "reject publication if is in use" ignore {
+    "reject publication if is in use" in {
       init
       kit.runCommand(Use("exam1", _))
       val result = kit.runCommand(Publish(_))
@@ -129,7 +129,7 @@ class QuizFactSpec
       result.state shouldBe Some(Fact("quiz1", false, false, false, Set("exam1")))
     }
 
-    "be unpublished" ignore {
+    "be unpublished" in {
       init
       kit.runCommand(Publish(_))
       val result = kit.runCommand(Unpublish(_))
@@ -137,16 +137,17 @@ class QuizFactSpec
       result.state shouldBe Some(Fact("quiz1", false, true, false, Set.empty))
     }
 
-    "reject unpublication if not published" ignore {
+    "reject unpublication if not published" in {
       init
       val result = kit.runCommand(Unpublish(_))
       result.reply shouldBe Bad(isNotPublished.error())
-      result.reply shouldBe Some(Fact("quiz1", false, false, false, Set.empty))
+      result.state shouldBe Some(Fact("quiz1", false, false, false, Set.empty))
     }
 
-    "be set obsolete" ignore {
+    "be set obsolete" in {
       init
       val result = kit.runCommand(SetObsolete)
+      result.event shouldBe GotObsolete
       result.state shouldBe Some(Fact("quiz1", true, false, false, Set.empty))
     }
 
