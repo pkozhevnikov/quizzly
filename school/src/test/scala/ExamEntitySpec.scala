@@ -86,21 +86,21 @@ class ExamEntitySpec
         result.state shouldBe Blank()
       }
 
+      val period = ExamPeriod(
+        ZonedDateTime.parse("2022-11-23T10:11:12Z"),
+        ZonedDateTime.parse("2022-11-30T11:12:13Z")
+      )
+      
       "be created" in {
         val quiz = Quiz(UUID.randomUUID.toString, "test quiz")
         putFact(
           quiz.id,
           Behaviors.receiveMessage[QuizFact.Command] { 
             case QuizFact.Use("exam-1", replyTo) =>
-              println(s"got use command from $replyTo")
               replyTo ! Good(quiz)
-              Behaviors.same
+              Behaviors.stopped
             case _ => Behaviors.stopped
           }
-        )
-        val period = ExamPeriod(
-          ZonedDateTime.parse("2022-11-23T10:11:12Z"),
-          ZonedDateTime.parse("2022-11-30T11:12:13Z")
         )
         val prepStart = ZonedDateTime.parse("2022-11-22T10:11:12Z")
         val result = kit
@@ -117,13 +117,34 @@ class ExamEntitySpec
           )
       }
 
-      "reject creation if quiz is obsolete" ignore {}
+      def reject(reason: Reason) =
+        val quizID = UUID.randomUUID.toString
+        putFact(quizID, Behaviors.receiveMessage[QuizFact.Command] {
+          case QuizFact.Use("exam-1", replyTo) =>
+            replyTo ! Bad(reason.error())
+            Behaviors.stopped
+          case _ => 
+            Behaviors.stopped
+        })
+        val result = kit.runCommand(Create(quizID, 60, period, Set.empty, official1, _))
+        result.reply shouldBe Bad(reason.error())
+        result.state shouldBe Blank()
 
-      "reject creation if quiz is used by this exam" ignore {}
+      "reject creation if quiz is obsolete" in {
+        reject(QuizFact.isObsolete)
+      }
 
-      "reject creation if quiz had ever been published" ignore {}
+      "reject creation if quiz is used by this exam" in {
+        reject(QuizFact.isAlreadyUsed)
+      }
 
-      "reject creation if quiz is now published" ignore {}
+      "reject creation if quiz had ever been published" in {
+        reject(QuizFact.wasPublished)
+      }
+
+      "reject creation if quiz is now published" in {
+        reject(QuizFact.wasPublished)
+      }
 
     }
 
