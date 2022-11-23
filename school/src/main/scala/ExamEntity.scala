@@ -69,29 +69,34 @@ object ExamEntity:
 
   private def create(id: ExamID, c: Create, fact: EntityRef[QuizFact.Command], config: ExamConfig)(
       using ExecutionContext
-  ): Effect[Event, Exam] = Await.result(
-    fact
-      .ask(QuizFact.Use(id, _))
-      .map {
-        case Success(Good(quiz @ Quiz(_, _))) =>
-          val prepStart = c.period.start.minus(config.preparationPeriodHours, ChronoUnit.HOURS)
-          Effect
-            .persist(Created(quiz, c.trialLengthMinutes, prepStart, c.period, c.testees, c.host))
-            .thenReply(c.replyTo)(_ => Good(CreateExamDetails(prepStart, c.host)))
-        case Success(Bad(Error(reason, clues))) =>
-          Effect.reply(c.replyTo)(Bad(reason.error() ++ clues))
-        case Failure(ex) =>
-          Effect.reply(c.replyTo)(Bad(unprocessed(ex.getMessage).error()))
-      },
-    2.seconds
-  )
+  ): Effect[Event, Exam] = 
+    println("create proc started")
+    Await.result(
+      fact
+        .ask(QuizFact.Use(id, _))
+        .map { rsp =>
+          println(s"got resp $rsp")
+          rsp match
+            case Good(quiz @ Quiz(_, _)) =>
+              println(s"got quiz $quiz")
+              val prepStart = c.period.start.minus(config.preparationPeriodHours, ChronoUnit.HOURS)
+              Effect
+                .persist(Created(quiz, c.trialLengthMinutes, prepStart, c.period, c.testees, c.host))
+                .thenReply(c.replyTo)(_ => Good(CreateExamDetails(prepStart, c.host)))
+            case Bad(Error(reason, clues)) =>
+              Effect.reply(c.replyTo)(Bad(reason.error() ++ clues))
+        },
+      2.seconds
+    )
 
   val eventHandler: (Exam, Event) => Exam =
     (state, evt) =>
       state match
 
         case _: Blank =>
-          state
+          evt match
+            case c: Created =>
+              Pending(c.quiz, c.trialLengthMinutes, c.preparationStart, c.period, c.testees, c.host)
 
         case pending: Pending =>
           state

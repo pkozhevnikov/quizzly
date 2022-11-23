@@ -22,7 +22,12 @@ type RespOK = Resp[Nothing]
 
 type PersonID = String
 
-sealed trait Person:
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
+@JsonSubTypes(Array(
+  new JsonSubTypes.Type(value = classOf[Official], name = "Official"),
+  new JsonSubTypes.Type(value = classOf[Student], name = "Student")
+))
+sealed trait Person extends CborSerializable:
   val place: String
   val id: PersonID
   val name: String

@@ -3,9 +3,9 @@ package quizzly.school
 import java.time.*
 import akka.actor.typed.*
 
-final case class ExamPeriod(start: ZonedDateTime, end: ZonedDateTime)
+final case class ExamPeriod(start: ZonedDateTime, end: ZonedDateTime) extends CborSerializable
 
-sealed trait Exam
+sealed trait Exam extends CborSerializable
 
 object Exam:
 
