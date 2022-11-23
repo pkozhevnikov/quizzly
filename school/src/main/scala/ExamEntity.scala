@@ -1,6 +1,7 @@
 package quizzly.school
 
 import akka.actor.typed.{Behavior, ActorRef}
+import akka.actor.typed.scaladsl.{Behaviors, ActorContext}
 import akka.cluster.sharding.typed.scaladsl.EntityTypeKey
 import akka.persistence.typed.PersistenceId
 import akka.persistence.typed.scaladsl.*
@@ -22,27 +23,71 @@ object ExamEntity:
   def apply(id: ExamID, config: ExamConfig)(using
       facts: String => EntityRef[QuizFact.Command],
       ec: ExecutionContext
-  ): Behavior[Command] = EventSourcedBehavior[Command, Event, Exam](
-    PersistenceId.ofUniqueId(id),
-    Blank(),
-    commandHandler(id, config, facts),
-    eventHandler
-  )
+  ): Behavior[Command] = Behaviors.setup { ctx =>
+    // given ActorContext[Command] = ctx
+    EventSourcedBehavior[Command, Event, Exam](
+      PersistenceId.ofUniqueId(id),
+      Blank(),
+      commandHandler(ctx, id, config, facts),
+      eventHandler
+    )
+  }
 
   given Timeout = 2.seconds
 
   import Resp.*
 
-  def commandHandler(id: ExamID, config: ExamConfig, facts: String => EntityRef[QuizFact.Command])(
-      using ExecutionContext
-  ): (Exam, Command) => Effect[Event, Exam] =
+  def commandHandler(
+      ctx: ActorContext[Command],
+      id: ExamID,
+      config: ExamConfig,
+      facts: String => EntityRef[QuizFact.Command]
+  )(using ExecutionContext): (Exam, Command) => Effect[Event, Exam] =
     (state, cmd) =>
       state match
 
         case _: Blank =>
           cmd match
             case c: Create =>
-              create(id, c, facts(c.quizID), config)
+
+              val extra = ctx.spawnAnonymous(
+                Behaviors.receiveMessage[Resp[Quiz]] {
+                  case Good(quiz) =>
+                    ctx.self !
+                      InternalCreate(
+                        quiz,
+                        c.trialLengthMinutes,
+                        c.period.start.minus(config.preparationPeriodHours, ChronoUnit.HOURS),
+                        c.period,
+                        c.testees,
+                        c.host,
+                        c.replyTo
+                      )
+                    Behaviors.stopped
+                  case Bad(e) =>
+                    c.replyTo ! Bad(e)
+                    Behaviors.stopped
+                  case _ =>
+                    Behaviors.stopped
+                }
+              )
+              facts(c.quizID) ! QuizFact.Use(id, extra)
+
+              Effect.none
+
+            case c: InternalCreate =>
+              Effect
+                .persist(
+                  Created(
+                    c.quiz,
+                    c.trialLengthMinutes,
+                    c.preparationStart,
+                    c.period,
+                    c.testees,
+                    c.host
+                  )
+                )
+                .thenReply(c.replyTo)(_ => Good(CreateExamDetails(c.preparationStart, c.host)))
 
             case c: CommandWithReply[_] =>
               Effect.reply(c.replyTo)(Bad(examNotFound.error()))
@@ -66,28 +111,6 @@ object ExamEntity:
           Effect.none
 
   import Resp.*
-
-  private def create(id: ExamID, c: Create, fact: EntityRef[QuizFact.Command], config: ExamConfig)(
-      using ExecutionContext
-  ): Effect[Event, Exam] = 
-    println("create proc started")
-    Await.result(
-      fact
-        .ask(QuizFact.Use(id, _))
-        .map { rsp =>
-          println(s"got resp $rsp")
-          rsp match
-            case Good(quiz @ Quiz(_, _)) =>
-              println(s"got quiz $quiz")
-              val prepStart = c.period.start.minus(config.preparationPeriodHours, ChronoUnit.HOURS)
-              Effect
-                .persist(Created(quiz, c.trialLengthMinutes, prepStart, c.period, c.testees, c.host))
-                .thenReply(c.replyTo)(_ => Good(CreateExamDetails(prepStart, c.host)))
-            case Bad(Error(reason, clues)) =>
-              Effect.reply(c.replyTo)(Bad(reason.error() ++ clues))
-        },
-      2.seconds
-    )
 
   val eventHandler: (Exam, Event) => Exam =
     (state, evt) =>

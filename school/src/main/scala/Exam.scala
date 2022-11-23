@@ -78,6 +78,15 @@ object Exam:
       at
     )
 
+  final case class InternalCreate(
+      quiz: Quiz,
+      trialLengthMinutes: Int,
+      preparationStart: ZonedDateTime,
+      period: ExamPeriod,
+      testees: Set[Person],
+      host: Official,
+      replyTo: ActorRef[Resp[CreateExamDetails]]
+  ) extends Command
   final case class Created(
       quiz: Quiz,
       trialLengthMinutes: Int,
