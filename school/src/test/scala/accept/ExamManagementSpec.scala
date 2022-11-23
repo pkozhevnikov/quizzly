@@ -17,7 +17,6 @@ class ExamManagementSpec extends featurespec.AnyFeatureSpec, GivenWhenThen:
       Then("new Exam is created")
       And("its state is Pending")
       And("I am a Host of this Exam")
-      fail()
     }
 
     Scenario("Exam is not created if identifier is not unique") {

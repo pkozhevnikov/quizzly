@@ -34,6 +34,7 @@ object Exam:
   val wrongQuiz = Reason(1005, "wrong quiz")
   val notOfficial = Reason(1006, "you are not an official")
   val examNotFound = Reason(1007, "exam not found")
+  val illegalState = Reason(1008, "illegal state")
   def unprocessed(msg: String) = Reason(5000, msg)
 
   final case class Pending(
@@ -43,40 +44,7 @@ object Exam:
       period: ExamPeriod,
       testees: Set[Person],
       host: Official
-  ) extends Exam:
-    def includeTestees(include: Set[Person]): Pending = Pending(
-      quiz,
-      trialLengthMinutes,
-      preparationStart,
-      period,
-      testees ++ include,
-      host
-    )
-    def excludeTestees(exclude: Set[Person]): Pending = Pending(
-      quiz,
-      trialLengthMinutes,
-      preparationStart,
-      period,
-      testees -- exclude,
-      host
-    )
-    def withTrialLength(length: Int): Pending = Pending(
-      quiz,
-      length,
-      preparationStart,
-      period,
-      testees,
-      host
-    )
-    def proceed(): Upcoming = Upcoming(quiz, trialLengthMinutes, period, testees, host)
-    def cancel(at: Instant): Cancelled = Cancelled(
-      quiz,
-      trialLengthMinutes,
-      period,
-      testees,
-      host,
-      at
-    )
+  ) extends Exam
 
   final case class InternalCreate(
       quiz: Quiz,
@@ -116,16 +84,7 @@ object Exam:
       period: ExamPeriod,
       testees: Set[Person],
       host: Official
-  ) extends Exam:
-    def proceed(): InProgress = InProgress(quiz, trialLengthMinutes, period, testees, host)
-    def cancel(at: Instant): Cancelled = Cancelled(
-      quiz,
-      trialLengthMinutes,
-      period,
-      testees,
-      host,
-      at
-    )
+  ) extends Exam
 
   case object GoneUpcoming extends Event
 
@@ -135,8 +94,7 @@ object Exam:
       period: ExamPeriod,
       testees: Set[Person],
       host: Official
-  ) extends Exam:
-    def proceed(): Ended = Ended(quiz, trialLengthMinutes, period, testees, host)
+  ) extends Exam
 
   case object GoneInProgress extends Event
 
@@ -148,6 +106,8 @@ object Exam:
       host: Official
   ) extends Exam
 
+  final case class Cancel(at: Instant, replyTo: ActorRef[RespOK]) extends CommandWithReply[Nothing]
+  final case class GoneCancelled(at: Instant) extends Event
   final case class Cancelled(
       quiz: Quiz,
       trialLengthMinutes: Int,

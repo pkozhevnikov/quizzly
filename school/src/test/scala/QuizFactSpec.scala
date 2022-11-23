@@ -73,7 +73,7 @@ class QuizFactSpec
     "be used" in {
       init
       val result = kit.runCommand(Use("exam1", _))
-      result.reply shouldBe Good(Quiz("quiz1", "quiz1 title"))
+      result.reply shouldBe Good(Quiz("fact-1", "quiz1"))
       result.stateOfType[Option[Fact]].get.usedBy shouldBe Set("exam1")
     }
 

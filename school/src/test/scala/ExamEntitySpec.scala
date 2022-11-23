@@ -68,6 +68,12 @@ class ExamEntitySpec
   val official4 = Official("off4", "off4 name")
   val official5 = Official("off5", "off5 name")
 
+  val period = ExamPeriod(
+    ZonedDateTime.parse("2022-11-23T10:11:12Z"),
+    ZonedDateTime.parse("2022-11-30T11:12:13Z")
+  )
+  val prepStart = ZonedDateTime.parse("2022-11-22T10:11:12Z")
+
   "Exam entity" when {
 
     "Blank" must {
@@ -86,46 +92,37 @@ class ExamEntitySpec
         result.state shouldBe Blank()
       }
 
-      val period = ExamPeriod(
-        ZonedDateTime.parse("2022-11-23T10:11:12Z"),
-        ZonedDateTime.parse("2022-11-30T11:12:13Z")
-      )
-      
       "be created" in {
         val quiz = Quiz(UUID.randomUUID.toString, "test quiz")
         putFact(
           quiz.id,
-          Behaviors.receiveMessage[QuizFact.Command] { 
+          Behaviors.receiveMessage[QuizFact.Command] {
             case QuizFact.Use("exam-1", replyTo) =>
               replyTo ! Good(quiz)
               Behaviors.stopped
-            case _ => Behaviors.stopped
+            case _ =>
+              Behaviors.stopped
           }
         )
-        val prepStart = ZonedDateTime.parse("2022-11-22T10:11:12Z")
         val result = kit
           .runCommand(Create(quiz.id, 60, period, Set(student1, student2, official3), official4, _))
         result.reply shouldBe Good(CreateExamDetails(prepStart, official4))
         result.state shouldBe
-          Pending(
-            quiz,
-            60,
-            prepStart,
-            period,
-            Set(student1, student2, official3),
-            official4
-          )
+          Pending(quiz, 60, prepStart, period, Set(student1, student2, official3), official4)
       }
 
       def reject(reason: Reason) =
         val quizID = UUID.randomUUID.toString
-        putFact(quizID, Behaviors.receiveMessage[QuizFact.Command] {
-          case QuizFact.Use("exam-1", replyTo) =>
-            replyTo ! Bad(reason.error())
-            Behaviors.stopped
-          case _ => 
-            Behaviors.stopped
-        })
+        putFact(
+          quizID,
+          Behaviors.receiveMessage[QuizFact.Command] {
+            case QuizFact.Use("exam-1", replyTo) =>
+              replyTo ! Bad(reason.error())
+              Behaviors.stopped
+            case _ =>
+              Behaviors.stopped
+          }
+        )
         val result = kit.runCommand(Create(quizID, 60, period, Set.empty, official1, _))
         result.reply shouldBe Bad(reason.error())
         result.state shouldBe Blank()
@@ -148,9 +145,143 @@ class ExamEntitySpec
 
     }
 
-    "Pending" ignore {}
+    val quiz = Quiz(UUID.randomUUID.toString, "test quiz")
+    putFact(
+      quiz.id,
+      Behaviors.receiveMessage[QuizFact.Command] {
+        case QuizFact.Use("exam-1", replyTo) =>
+          replyTo ! Good(quiz)
+          Behaviors.same
+        case _ =>
+          Behaviors.stopped
+      }
+    )
 
-    "Upcoming" ignore {}
+    def init =
+      val result = kit.runCommand(Create(quiz.id, 60, period, Set.empty, official1, _))
+      val initial = Pending(quiz, 60, prepStart, period, Set.empty, official1)
+      result.state shouldBe initial
+      initial
+
+    "Pending" must {
+
+      "include testees" in {
+        val initial = init
+        val result1 = kit.runCommand(IncludeTestees(Set(student1, student2, official2), _))
+        result1.reply shouldBe OK
+        result1.state shouldBe initial.copy(testees = Set(student1, student2, official2))
+      }
+
+      "exclude testees" in {
+        val initial = init
+        kit.runCommand(IncludeTestees(Set(student1, student2, official2), _))
+        val result = kit.runCommand(ExcludeTestees(Set(student1, official2, student3), _))
+        result.reply shouldBe OK
+        result.state shouldBe initial.copy(testees = Set(student2))
+      }
+
+      "set trial length" in {
+        val initial = init
+        val result = kit.runCommand(SetTrialLength(90, _))
+        result.reply shouldBe OK
+        result.state shouldBe initial.copy(trialLengthMinutes = 90)
+      }
+
+      "proceed to upcoming" in {
+        val initial = init
+        val result = kit.runCommand(Proceed)
+        result.event shouldBe GoneUpcoming
+        result.state shouldBe
+          Upcoming(
+            initial.quiz,
+            initial.trialLengthMinutes,
+            initial.period,
+            initial.testees,
+            initial.host
+          )
+      }
+
+      "be cancelled" in {
+        val initial = init
+        val at = Instant.now()
+        val result = kit.runCommand(Cancel(at, _))
+        result.reply shouldBe OK
+        result.state shouldBe Cancelled(
+            initial.quiz,
+            initial.trialLengthMinutes,
+            initial.period,
+            initial.testees,
+            initial.host,
+            at
+          )
+      }
+
+      "reject creation" in {
+        val initial = init
+        val result = kit.runCommand(Create("", 1, period, Set.empty, official1, _))
+        result.reply shouldBe Bad(illegalState.error() + "Pending")
+        result.state shouldBe initial
+      }
+
+    }
+
+    "Upcoming" must {
+
+      "be cancelled" in {
+        val initial = init
+        val result0 = kit.runCommand(Proceed)
+        result0.state shouldBe Upcoming(
+            initial.quiz,
+            initial.trialLengthMinutes,
+            initial.period,
+            initial.testees,
+            initial.host
+          )
+
+        val at = Instant.now()
+        val result = kit.runCommand(Cancel(at, _))
+        result.reply shouldBe OK
+        result.state shouldBe Cancelled(
+            initial.quiz,
+            initial.trialLengthMinutes,
+            initial.period,
+            initial.testees,
+            initial.host,
+            at
+          )
+      }
+
+      "reject any other action" in {
+        val initial = init
+        kit.runCommand(Proceed)
+        def rejected(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
+          val result = kit.runCommand(cmd(_))
+          result.reply shouldBe Bad(illegalState.error() + "Upcoming")
+        }
+
+        rejected(
+          Create("", 1, period, Set.empty, official1, _),
+          IncludeTestees(Set.empty, _),
+          ExcludeTestees(Set.empty, _),
+          SetTrialLength(2, _)
+        )
+      }
+
+      "proceed to in progress" in {
+        val pending = init
+        kit.runCommand(Proceed)
+        val result = kit.runCommand(Proceed)
+        result.event shouldBe GoneInProgress
+        result.state shouldBe InProgress(
+            quiz,
+            pending.trialLengthMinutes,
+            pending.period,
+            pending.testees,
+            pending.host
+          )
+      }
+          
+    }
 
     "InProgress" ignore {}
 

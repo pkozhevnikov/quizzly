@@ -49,7 +49,6 @@ object ExamEntity:
         case _: Blank =>
           cmd match
             case c: Create =>
-
               val extra = ctx.spawnAnonymous(
                 Behaviors.receiveMessage[Resp[Quiz]] {
                   case Good(quiz) =>
@@ -96,10 +95,32 @@ object ExamEntity:
               Effect.unhandled
 
         case pending: Pending =>
-          Effect.none
+          cmd match
+            case IncludeTestees(include, replyTo) =>
+              Effect.persist(TesteesIncluded(include)).thenReply(replyTo)(_ => Resp.OK)
+            case ExcludeTestees(exclude, replyTo) =>
+              Effect.persist(TesteesExcluded(exclude)).thenReply(replyTo)(_ => Resp.OK)
+            case SetTrialLength(length, replyTo) =>
+              Effect.persist(TrialLengthSet(length)).thenReply(replyTo)(_ => Resp.OK)
+            case Proceed =>
+              Effect.persist(GoneUpcoming)
+            case c: Create =>
+              Effect.reply(c.replyTo)(Bad(illegalState.error() + "Pending"))
+            case Cancel(at, replyTo) =>
+              Effect.persist(GoneCancelled(at)).thenReply(replyTo)(_ => Resp.OK)
+            case _ =>
+              Effect.unhandled
 
         case upcoming: Upcoming =>
-          Effect.none
+          cmd match
+            case Cancel(at, replyTo) =>
+              Effect.persist(GoneCancelled(at)).thenReply(replyTo)(_ => Resp.OK)
+            case Proceed =>
+              Effect.persist(GoneInProgress)
+            case c: CommandWithReply[_] =>
+              Effect.reply(c.replyTo)(Bad(illegalState.error() + "Upcoming"))
+            case _ =>
+              Effect.unhandled
 
         case inprogress: InProgress =>
           Effect.none
@@ -122,10 +143,54 @@ object ExamEntity:
               Pending(c.quiz, c.trialLengthMinutes, c.preparationStart, c.period, c.testees, c.host)
 
         case pending: Pending =>
-          state
+          evt match
+            case TesteesIncluded(include) =>
+              pending.copy(testees = pending.testees ++ include)
+            case TesteesExcluded(exclude) =>
+              pending.copy(testees = pending.testees -- exclude)
+            case TrialLengthSet(length) =>
+              pending.copy(trialLengthMinutes = length)
+            case GoneUpcoming =>
+              Upcoming(
+                pending.quiz,
+                pending.trialLengthMinutes,
+                pending.period,
+                pending.testees,
+                pending.host
+              )
+            case GoneCancelled(at) =>
+              Cancelled(
+                pending.quiz,
+                pending.trialLengthMinutes,
+                pending.period,
+                pending.testees,
+                pending.host,
+                at
+              )
+            case _ =>
+              pending
 
         case upcoming: Upcoming =>
-          state
+          evt match
+            case GoneCancelled(at) =>
+              Cancelled(
+                upcoming.quiz,
+                upcoming.trialLengthMinutes,
+                upcoming.period,
+                upcoming.testees,
+                upcoming.host,
+                at
+              )
+            case GoneInProgress =>
+              InProgress(
+                upcoming.quiz,
+                upcoming.trialLengthMinutes,
+                upcoming.period,
+                upcoming.testees,
+                upcoming.host
+              )
+            case _ =>
+              upcoming
 
         case inprogress: InProgress =>
           state
