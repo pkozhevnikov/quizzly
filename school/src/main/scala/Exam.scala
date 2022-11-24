@@ -30,7 +30,7 @@ object Exam:
   val examAlreadyExists = Reason(1001, "exam already exists")
   val badTrialLength = Reason(1002, "bad trial length")
   val badExamPeriod = Reason(1003, "bad exam period")
-  val noTimeForPreparation = Reason(1004, "no time for preparation")
+  val examTooSoon = Reason(1004, "exam too soon")
   val wrongQuiz = Reason(1005, "wrong quiz")
   val notOfficial = Reason(1006, "you are not an official")
   val examNotFound = Reason(1007, "exam not found")

@@ -44,9 +44,16 @@ class ExamEntitySpec
   private var factm = Map.empty[QuizID, EntityRef[QuizFact.Command]]
   private def putFact(id: QuizID, beh: Behavior[QuizFact.Command]) =
     factm += (id -> TestEntityRef(QuizFact.EntityKey, id, plainKit.spawn(beh)))
-  given (QuizID => EntityRef[QuizFact.Command]) = factm(_)
+  given (() => Instant) = () => Instant.parse("2022-11-01T00:00:00Z")
 
-  private val kit = TestKit[Command, Event, Quiz](system, ExamEntity(id, ExamConfig(24)))
+  private val kit = TestKit[Command, Event, Quiz](
+    system,
+    ExamEntity(
+      id,
+      factm(_),
+      ExamConfig(preparationPeriodHours = 48, trialLengthMinutesRange = (5, 180))
+    )
+  )
   private val plainKit = ActorTestKit()
 
   override def beforeEach(): Unit =
@@ -72,7 +79,7 @@ class ExamEntitySpec
     ZonedDateTime.parse("2022-11-23T10:11:12Z"),
     ZonedDateTime.parse("2022-11-30T11:12:13Z")
   )
-  val prepStart = ZonedDateTime.parse("2022-11-22T10:11:12Z")
+  val prepStart = ZonedDateTime.parse("2022-11-21T10:11:12Z")
 
   "Exam entity" when {
 
@@ -143,6 +150,52 @@ class ExamEntitySpec
         reject(QuizFact.wasPublished)
       }
 
+      "reject creation if bad period" in {
+        val result = kit.runCommand(
+          Create(
+            "q",
+            50,
+            ExamPeriod(
+              ZonedDateTime.parse("2022-11-12T10:00:00Z"),
+              ZonedDateTime.parse("2022-11-10T10:00:00Z")
+            ),
+            Set.empty,
+            official1,
+            _
+          )
+        )
+        result.reply shouldBe Bad(badExamPeriod.error())
+        result.state shouldBe Blank()
+      }
+
+      "reject creation if period start too soon" in {
+        val result = kit.runCommand(
+          Create(
+            "q",
+            50,
+            ExamPeriod(
+              ZonedDateTime.parse("2022-11-02T23:59:59Z"),
+              ZonedDateTime.parse("2022-11-03T12:00:00Z")
+            ),
+            Set.empty,
+            official1,
+            _
+          )
+        )
+        result.reply shouldBe Bad(examTooSoon.error() + "prep time hours" + "48")
+        result.state shouldBe Blank()
+      }
+
+      "reject creation if trial length is not in range" in {
+        val result1 = kit.runCommand(Create("q", 4, period, Set.empty, official1, _))
+        result1.reply shouldBe Bad(badTrialLength.error() + "5" + "180")
+        result1.state shouldBe Blank()
+
+        val result2 = kit.runCommand(Create("q", 181, period, Set.empty, official1, _))
+        result2.reply shouldBe Bad(badTrialLength.error() + "5" + "180")
+        result2.state shouldBe Blank()
+      }
+
     }
 
     val quiz = Quiz(UUID.randomUUID.toString, "test quiz")
@@ -206,7 +259,8 @@ class ExamEntitySpec
         val at = Instant.now()
         val result = kit.runCommand(Cancel(at, _))
         result.reply shouldBe OK
-        result.state shouldBe Cancelled(
+        result.state shouldBe
+          Cancelled(
             initial.quiz,
             initial.trialLengthMinutes,
             initial.period,
@@ -230,7 +284,8 @@ class ExamEntitySpec
       "be cancelled" in {
         val initial = init
         val result0 = kit.runCommand(Proceed)
-        result0.state shouldBe Upcoming(
+        result0.state shouldBe
+          Upcoming(
             initial.quiz,
             initial.trialLengthMinutes,
             initial.period,
@@ -241,7 +296,8 @@ class ExamEntitySpec
         val at = Instant.now()
         val result = kit.runCommand(Cancel(at, _))
         result.reply shouldBe OK
-        result.state shouldBe Cancelled(
+        result.state shouldBe
+          Cancelled(
             initial.quiz,
             initial.trialLengthMinutes,
             initial.period,
@@ -272,7 +328,8 @@ class ExamEntitySpec
         kit.runCommand(Proceed)
         val result = kit.runCommand(Proceed)
         result.event shouldBe GoneInProgress
-        result.state shouldBe InProgress(
+        result.state shouldBe
+          InProgress(
             quiz,
             pending.trialLengthMinutes,
             pending.period,
@@ -280,7 +337,7 @@ class ExamEntitySpec
             pending.host
           )
       }
-          
+
     }
 
     "InProgress" ignore {}

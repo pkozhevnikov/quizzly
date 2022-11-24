@@ -13,6 +13,7 @@ import scala.concurrent.{ExecutionContext, Await}
 import scala.util.{Success, Failure}
 
 import java.time.temporal.ChronoUnit
+import java.time.*
 
 object ExamEntity:
 
@@ -20,15 +21,14 @@ object ExamEntity:
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("Exam")
 
-  def apply(id: ExamID, config: ExamConfig)(using
-      facts: String => EntityRef[QuizFact.Command],
-      ec: ExecutionContext
+  def apply(id: ExamID, facts: String => EntityRef[QuizFact.Command], config: ExamConfig)(using
+      () => Instant,
+      ExecutionContext
   ): Behavior[Command] = Behaviors.setup { ctx =>
-    // given ActorContext[Command] = ctx
     EventSourcedBehavior[Command, Event, Exam](
       PersistenceId.ofUniqueId(id),
       Blank(),
-      commandHandler(ctx, id, config, facts),
+      commandHandler(ctx, id, facts, config),
       eventHandler
     )
   }
@@ -40,39 +40,58 @@ object ExamEntity:
   def commandHandler(
       ctx: ActorContext[Command],
       id: ExamID,
-      config: ExamConfig,
-      facts: String => EntityRef[QuizFact.Command]
-  )(using ExecutionContext): (Exam, Command) => Effect[Event, Exam] =
+      facts: String => EntityRef[QuizFact.Command],
+      config: ExamConfig
+  )(using now: () => Instant, ec: ExecutionContext): (Exam, Command) => Effect[Event, Exam] =
     (state, cmd) =>
       state match
 
         case _: Blank =>
           cmd match
             case c: Create =>
-              val extra = ctx.spawnAnonymous(
-                Behaviors.receiveMessage[Resp[Quiz]] {
-                  case Good(quiz) =>
-                    ctx.self !
-                      InternalCreate(
-                        quiz,
-                        c.trialLengthMinutes,
-                        c.period.start.minus(config.preparationPeriodHours, ChronoUnit.HOURS),
-                        c.period,
-                        c.testees,
-                        c.host,
-                        c.replyTo
-                      )
-                    Behaviors.stopped
-                  case Bad(e) =>
-                    c.replyTo ! Bad(e)
-                    Behaviors.stopped
-                  case _ =>
-                    Behaviors.stopped
-                }
-              )
-              facts(c.quizID) ! QuizFact.Use(id, extra)
+              val prepStart = c.period.start.minus(config.preparationPeriodHours, ChronoUnit.HOURS)
+              if c.period.start.isAfter(c.period.end) then
+                Effect.reply(c.replyTo)(Bad(badExamPeriod.error()))
+              else if now().isAfter(prepStart.toInstant) then
+                Effect.reply(c.replyTo)(
+                  Bad(
+                    examTooSoon.error() + "prep time hours" + config.preparationPeriodHours.toString
+                  )
+                )
+              else if c.trialLengthMinutes < config.trialLengthMinutesRange(0) ||
+                c.trialLengthMinutes > config.trialLengthMinutesRange(1)
+              then
+                Effect.reply(c.replyTo)(
+                  Bad(
+                    badTrialLength.error() + config.trialLengthMinutesRange(0).toString +
+                      config.trialLengthMinutesRange(1).toString
+                  )
+                )
+              else
+                val extra = ctx.spawnAnonymous(
+                  Behaviors.receiveMessage[Resp[Quiz]] {
+                    case Good(quiz) =>
+                      ctx.self !
+                        InternalCreate(
+                          quiz,
+                          c.trialLengthMinutes,
+                          prepStart,
+                          c.period,
+                          c.testees,
+                          c.host,
+                          c.replyTo
+                        )
+                      Behaviors.stopped
+                    case Bad(e) =>
+                      c.replyTo ! Bad(e)
+                      Behaviors.stopped
+                    case _ =>
+                      Behaviors.stopped
+                  }
+                )
+                facts(c.quizID) ! QuizFact.Use(id, extra)
 
-              Effect.none
+                Effect.none
 
             case c: InternalCreate =>
               Effect

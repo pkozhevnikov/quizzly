@@ -30,7 +30,10 @@ class QuizFactSpec
 
   import QuizFact.*
 
-  private val kit = TestKit[Command, Event, Option[Fact]](system, QuizFact(id, ExamConfig(24)))
+  private val kit = TestKit[Command, Event, Option[Fact]](
+    system,
+    QuizFact(id, ExamConfig(24, (1, 2)))
+  )
 
   override protected def beforeEach(): Unit =
     super.beforeEach()
