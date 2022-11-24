@@ -105,7 +105,8 @@ and all Testees included in the Exam receive the **Exam Notification** of upcomi
  
 Testee is notified of her inclusion/exclusion in/from the Exam.
 
-An Exam may be duplicated in order to create another exam keeping the Testee list.
+A Cancelled or Ended Exam may be duplicated in order to create another exam keeping the Testee
+list.
 
 Related links:
 

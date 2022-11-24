@@ -25,7 +25,7 @@ Implemented by module **`school`**.
 
 See
 
- * [QuizFact entity](../school/src/main/scala/QuizFactEntity.scala)
+ * [QuizFact entity](../school/src/main/scala/QuizFact.scala)
  * [Exam entity](../school/src/main/scala/ExamEntity.scala)
  * [School root](../school/src/main/scala/School.scala)
 
