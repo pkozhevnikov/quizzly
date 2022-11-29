@@ -339,26 +339,114 @@ class ExamEntitySpec
 
     }
 
-    "InProgress" in {
+    "InProgress" must {
       
-      "be cancelled" ignore {
+      "be cancelled" in {
+        val initial = init
+        factKit.runCommand(Proceed)
+        val result0 = factKit.runCommand(Proceed)
+        result0.state shouldBe
+          InProgress(
+            initial.quiz,
+            initial.trialLengthMinutes,
+            initial.period,
+            initial.testees,
+            initial.host
+          )
+
+        val at = Instant.now()
+        val result = factKit.runCommand(Cancel(at, _))
+        result.reply shouldBe OK
+        result.state shouldBe
+          Cancelled(
+            initial.quiz,
+            initial.trialLengthMinutes,
+            initial.period,
+            initial.testees,
+            initial.host,
+            at
+          )
       }
 
-      "reject any other action" ignore {
+      "reject any other action" in {
+        val initial = init
+        factKit.runCommand(Proceed)
+        factKit.runCommand(Proceed)
+
+        def rejected(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
+          val result = factKit.runCommand(cmd(_))
+          result.reply shouldBe Bad(illegalState.error() + "InProgress")
+        }
+
+        rejected(
+          Create("", 1, period, Set.empty, official1, _),
+          IncludeTestees(Set.empty, _),
+          ExcludeTestees(Set.empty, _),
+          SetTrialLength(2, _)
+        )
       }
 
-      "proceed to ended" ignore {
+      "proceed to ended" in {
+        val pending = init
+        factKit.runCommand(Proceed)
+        factKit.runCommand(Proceed)
+        val result = factKit.runCommand(Proceed)
+        result.event shouldBe GoneEnded
+        result.state shouldBe
+          Ended(
+            quiz,
+            pending.trialLengthMinutes,
+            pending.period,
+            pending.testees,
+            pending.host
+          )
       }
 
     }
 
-    "Ended" in {
-      "reject any action" ignore {
+    "Ended" must {
+      "reject any action" in {
+        val initial = init
+        factKit.runCommand(Proceed)
+        factKit.runCommand(Proceed)
+        factKit.runCommand(Proceed)
+
+        def rejected(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
+          val result = factKit.runCommand(cmd(_))
+          result.reply shouldBe Bad(illegalState.error() + "Ended")
+        }
+
+        rejected(
+          Create("", 1, period, Set.empty, official1, _),
+          IncludeTestees(Set.empty, _),
+          ExcludeTestees(Set.empty, _),
+          SetTrialLength(2, _)
+        )
+
+        val result = factKit.runCommand(Proceed)
+        result.hasNoEvents shouldBe true
       }
     }
 
-    "Cancelled" in {
-      "reject any action" ignore {
+    "Cancelled" must {
+      "reject any action" in {
+        val initial = init
+        factKit.runCommand(Cancel(Instant.now(), _))
+
+        def rejected(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
+          val result = factKit.runCommand(cmd(_))
+          result.reply shouldBe Bad(illegalState.error() + "Cancelled")
+        }
+
+        rejected(
+          Create("", 1, period, Set.empty, official1, _),
+          IncludeTestees(Set.empty, _),
+          ExcludeTestees(Set.empty, _),
+          SetTrialLength(2, _)
+        )
+
+        val result = factKit.runCommand(Proceed)
+        result.hasNoEvents shouldBe true
       }
     }
 

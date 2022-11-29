@@ -98,6 +98,7 @@ object Exam:
 
   case object GoneInProgress extends Event
 
+  case object GoneEnded extends Event
   final case class Ended(
       quiz: Quiz,
       trialLengthMinutes: Int,

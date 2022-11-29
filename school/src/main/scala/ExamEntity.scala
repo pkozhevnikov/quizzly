@@ -142,13 +142,29 @@ object ExamEntity:
               Effect.unhandled
 
         case inprogress: InProgress =>
-          Effect.none
+          cmd match
+            case Cancel(at, replyTo) =>
+              Effect.persist(GoneCancelled(at)).thenReply(replyTo)(_ => Resp.OK)
+            case Proceed =>
+              Effect.persist(GoneEnded)
+            case c: CommandWithReply[_] =>
+              Effect.reply(c.replyTo)(Bad(illegalState.error() + "InProgress"))
+            case _ =>
+              Effect.unhandled
 
         case ended: Ended =>
-          Effect.none
+          cmd match
+            case c: CommandWithReply[_] =>
+              Effect.reply(c.replyTo)(Bad(illegalState.error() + "Ended"))
+            case _ =>
+              Effect.unhandled
 
         case cancelled: Cancelled =>
-          Effect.none
+          cmd match
+            case c: CommandWithReply[_] =>
+              Effect.reply(c.replyTo)(Bad(illegalState.error() + "Cancelled"))
+            case _ =>
+              Effect.unhandled
 
   import Resp.*
 
@@ -212,7 +228,26 @@ object ExamEntity:
               upcoming
 
         case inprogress: InProgress =>
-          state
+          evt match
+            case GoneCancelled(at) =>
+              Cancelled(
+                inprogress.quiz,
+                inprogress.trialLengthMinutes,
+                inprogress.period,
+                inprogress.testees,
+                inprogress.host,
+                at
+              )
+            case GoneEnded =>
+              Ended(
+                inprogress.quiz,
+                inprogress.trialLengthMinutes,
+                inprogress.period,
+                inprogress.testees,
+                inprogress.host
+              )
+            case _ =>
+              inprogress
 
         case ended: Ended =>
           state
