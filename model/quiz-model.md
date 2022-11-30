@@ -8,7 +8,7 @@ An Item is a question with a multi-choice answer which consists of:
 
  * *Intro* - question text
  * *Definition* - a *Statement* with text of question details and optional image 
- * *Hints* - an ordered set of variants of the answer, every variant is a set of alternative
+ * *Hints* - an indexed list of variants of the answer, every variant is a set of alternative
  Statements, that consists of text and optional image
  * *Hints visible* flag whether hints should be visible to Testees
  * *Solutions* - list of indexes of correct hints

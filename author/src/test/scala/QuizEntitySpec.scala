@@ -28,6 +28,7 @@ class QuizEntitySpec
   val id = "tq-1"
 
   import Quiz.*
+  import Resp.*
 
   private val kit = TestKit[Command, Event, Quiz](
     system,
@@ -94,7 +95,7 @@ class QuizEntitySpec
     "Blank" must {
 
       "reject any command except create" in {
-        rejected(quizNotFound + id, Blank(id))(
+        rejected(quizNotFound.error() + id, Blank(id))(
           Update("", "", 0, _),
           AddInspector(inspector1, _),
           AddAuthor(author1, _),
@@ -137,7 +138,7 @@ class QuizEntitySpec
       "reject creation if not enough authors" in {
         val result = kit
           .runCommand(Create(id, title, intro, curator, authors - author1, inspectors, lenMins, _))
-        result.reply shouldBe Bad(notEnoughAuthors)
+        result.reply shouldBe Bad(notEnoughAuthors.error())
         result.state shouldBe Blank(id)
       }
 
@@ -145,20 +146,20 @@ class QuizEntitySpec
         val result = kit.runCommand(
           Create(id, title, intro, curator, authors, inspectors - inspector1, lenMins, _)
         )
-        result.reply shouldBe Bad(notEnoughInspectors)
+        result.reply shouldBe Bad(notEnoughInspectors.error())
         result.state shouldBe Blank(id)
       }
 
       "reject creation if title short" in {
         val result = kit
           .runCommand(Create(id, "x", intro, curator, authors, inspectors, lenMins, _))
-        result.reply shouldBe Bad(tooShortTitle)
+        result.reply shouldBe Bad(tooShortTitle.error())
         result.state shouldBe Blank(id)
       }
 
       "reject creation if length short" in {
         val result = kit.runCommand(Create(id, title, intro, curator, authors, inspectors, 1, _))
-        result.reply shouldBe Bad(tooShortLength)
+        result.reply shouldBe Bad(tooShortLength.error())
         result.state shouldBe Blank(id)
       }
 
@@ -170,7 +171,7 @@ class QuizEntitySpec
         val defState = createComposing.stateOfType[Composing]
         val result = kit
           .runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _))
-        result.reply shouldBe Bad(quizAlreadyExists + id)
+        result.reply shouldBe Bad(quizAlreadyExists.error() + id)
         result.state shouldBe defState
 
         defState
@@ -180,7 +181,7 @@ class QuizEntitySpec
             res.reply shouldBe Resp.OK
           }
         val reviewRes = kit.runCommand(Create(id, "", "", curator, authors, inspectors, lenMins, _))
-        reviewRes.reply shouldBe Bad(quizAlreadyExists + id)
+        reviewRes.reply shouldBe Bad(quizAlreadyExists.error() + id)
         reviewRes.state shouldBe a[Review]
 
         defState
@@ -191,7 +192,7 @@ class QuizEntitySpec
           }
         val releaseRes = kit
           .runCommand(Create(id, "", "", curator, authors, inspectors, lenMins, _))
-        releaseRes.reply shouldBe Bad(quizAlreadyExists + id)
+        releaseRes.reply shouldBe Bad(quizAlreadyExists.error() + id)
         releaseRes.state shouldBe a[Released]
       }
 
@@ -206,16 +207,16 @@ class QuizEntitySpec
       "reject update if title short" in {
         val defState = createComposing.state
         val update = kit.runCommand(Update("x", intro, lenMins, _))
-        update.reply shouldBe Bad(Error(2002, "too short title"))
+        update.reply shouldBe Bad(tooShortTitle.error())
         update.state shouldBe defState
       }
 
       "reject update if length short" in {
         val defState = createComposing.state
         val update1 = kit.runCommand(Update(title, intro, -1, _))
-        update1.reply shouldBe Bad(tooShortLength)
+        update1.reply shouldBe Bad(tooShortLength.error())
         val update2 = kit.runCommand(Update(title, intro, 1, _))
-        update2.reply shouldBe Bad(tooShortLength)
+        update2.reply shouldBe Bad(tooShortLength.error())
         update2.state shouldBe defState
       }
 
@@ -231,7 +232,7 @@ class QuizEntitySpec
         val defState = createComposing.state
         def check(person: Person) =
           val insert = kit.runCommand(AddAuthor(person, _))
-          insert.reply shouldBe Bad(alreadyOnList)
+          insert.reply shouldBe Bad(alreadyOnList.error())
           insert.state shouldBe defState
         check(author1)
         check(inspector1)
@@ -250,7 +251,7 @@ class QuizEntitySpec
         val defState = createComposing.state
         def check(person: Person) =
           val insert = kit.runCommand(AddInspector(person, _))
-          insert.reply shouldBe Bad(alreadyOnList)
+          insert.reply shouldBe Bad(alreadyOnList.error())
           insert.state shouldBe defState
         check(author1)
         check(inspector1)
@@ -284,14 +285,14 @@ class QuizEntitySpec
       "reject remove author if min authors exceeds" in {
         val composing = createComposing.stateOfType[Composing]
         val result = kit.runCommand(RemoveAuthor(author1, _))
-        result.reply shouldBe Bad(notEnoughAuthors)
+        result.reply shouldBe Bad(notEnoughAuthors.error())
         result.state shouldBe composing
       }
 
       "reject remove author if not listed" in {
         val defState = createComposing.state
         val remove = kit.runCommand(RemoveAuthor(Person("not-exists", "the name"), _))
-        remove.reply shouldBe Bad(notOnList)
+        remove.reply shouldBe Bad(notOnList.error())
         remove.state shouldBe defState
       }
 
@@ -307,21 +308,21 @@ class QuizEntitySpec
       "reject remove inspector if not listed" in {
         val defState = createComposing.state
         val remove = kit.runCommand(RemoveInspector(Person("not-exists", "the name"), _))
-        remove.reply shouldBe Bad(notOnList)
+        remove.reply shouldBe Bad(notOnList.error())
         remove.state shouldBe defState
       }
 
       "reject remove inspector if min inspectors exceeds" in {
         val composing = createComposing.state
         val result = kit.runCommand(RemoveInspector(inspector1, _))
-        result.reply shouldBe Bad(notEnoughInspectors)
+        result.reply shouldBe Bad(notEnoughInspectors.error())
         result.state shouldBe composing
       }
 
       "reject set ready sign if not an author" in {
         val defState = createComposing.state
         val result = kit.runCommand(SetReadySign(inspector1, _))
-        result.reply shouldBe Bad(notAuthor)
+        result.reply shouldBe Bad(notAuthor.error())
         result.state shouldBe defState
       }
 
@@ -331,13 +332,13 @@ class QuizEntitySpec
         result1.reply shouldBe Resp.OK
         result1.stateOfType[Composing].readinessSigns shouldBe Set(author1)
         val result2 = kit.runCommand(SetReadySign(author1, _))
-        result2.reply shouldBe Bad(alreadySigned)
+        result2.reply shouldBe Bad(alreadySigned.error())
         result2.stateOfType[Composing].readinessSigns shouldBe Set(author1)
       }
 
       "reject other actions" in {
         val composing = createComposing.stateOfType[Composing]
-        rejected(isComposing, composing)(Resolve(inspector1, true, _), SetObsolete(_))
+        rejected(isComposing.error(), composing)(Resolve(inspector1, true, _), SetObsolete(_))
       }
 
     }
@@ -348,7 +349,7 @@ class QuizEntitySpec
         createComposing.stateOfType[Composing].signForReview
         kit.runCommand(AddAuthor(author3, _))
         val failed = kit.runCommand(SetReadySign(author3, _))
-        failed.reply shouldBe Bad(onReview)
+        failed.reply shouldBe Bad(onReview.error())
         failed.stateOfType[Review].composing.readinessSigns should not contain author3
       }
 
@@ -400,7 +401,7 @@ class QuizEntitySpec
       "reject resolve if not an inspector" in {
         val review = createComposing.stateOfType[Composing].signForReview.state
         val result = kit.runCommand(Resolve(curator, true, _))
-        result.reply shouldBe Bad(notInspector)
+        result.reply shouldBe Bad(notInspector.error())
         result.state shouldBe review
       }
 
@@ -419,7 +420,7 @@ class QuizEntitySpec
         val review = reviewState
         def rejected(p: Person) =
           val result = kit.runCommand(AddAuthor(p, _))
-          result.reply shouldBe Bad(alreadyOnList)
+          result.reply shouldBe Bad(alreadyOnList.error())
           result.state shouldBe review
         rejected(curator)
         rejected(author1)
@@ -429,7 +430,7 @@ class QuizEntitySpec
       "reject remove author if min authors exceeds" in {
         val review = reviewState
         val result = kit.runCommand(RemoveAuthor(author1, _))
-        result.reply shouldBe Bad(notEnoughAuthors)
+        result.reply shouldBe Bad(notEnoughAuthors.error())
         result.state shouldBe review
       }
 
@@ -462,7 +463,7 @@ class QuizEntitySpec
         val review = reviewState
         def rejected(p: Person) =
           val result = kit.runCommand(AddInspector(p, _))
-          result.reply shouldBe Bad(alreadyOnList)
+          result.reply shouldBe Bad(alreadyOnList.error())
           result.state shouldBe review
         rejected(author1)
         rejected(inspector1)
@@ -472,7 +473,7 @@ class QuizEntitySpec
       "reject remove inspector if min inspectors exceeds" in {
         val review = reviewState
         val result = kit.runCommand(RemoveInspector(inspector1, _))
-        result.reply shouldBe Bad(notEnoughInspectors)
+        result.reply shouldBe Bad(notEnoughInspectors.error())
         result.state shouldBe review
       }
 
@@ -491,7 +492,7 @@ class QuizEntitySpec
 
       "reject other actions" in {
         val review = createComposing.stateOfType[Composing].signForReview.state
-        rejected(onReview, review)(
+        rejected(onReview.error(), review)(
           Update("", "", 1, _),
           AddSection("", author1, _),
           GrabSection("sc", author1, _),
@@ -523,20 +524,20 @@ class QuizEntitySpec
         result.reply shouldBe Resp.OK
         result.stateOfType[Released].obsolete shouldBe true
         val result2 = kit.runCommand(SetObsolete(_))
-        result2.reply shouldBe Bad(alreadyObsolete)
+        result2.reply shouldBe Bad(alreadyObsolete.error())
         result2.stateOfType[Released].obsolete shouldBe true
       }
 
       "reject creation" in {
         makeReleased
         val result = kit.runCommand(Create(id, "", "", curator, Set.empty, Set.empty, lenMins, _))
-        result.reply shouldBe Bad(quizAlreadyExists + id)
+        result.reply shouldBe Bad(quizAlreadyExists.error() + id)
         result.state shouldBe a[Released]
       }
 
       "reject other actions" in {
         val released = makeReleased.state
-        rejected(quizReleased, released)(
+        rejected(quizReleased.error(), released)(
           Update("", "", 1, _),
           AddAuthor(author1, _),
           RemoveAuthor(author1, _),

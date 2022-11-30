@@ -47,7 +47,7 @@ object Section:
       sc: Option[SC], // empty if the item is new
       replyTo: ActorRef[Resp[SC]]
   ) extends Command
-  def itemNotFound: Error = Error(2011, "item not found")
+  def itemNotFound = Reason(2011, "item not found")
   final case class ItemSaved(item: Item) extends Event
 
   final case class MoveItem(sc: SC, up: Boolean, replyTo: ActorRef[Resp[List[SC]]]) extends Command

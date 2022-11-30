@@ -19,6 +19,8 @@ object QuizEntity:
       eventHandler
     )
 
+  import Resp.*
+
   def commandHandler(config: QuizConfig): (Quiz, Command) => Effect[Event, Quiz] =
     (state, cmd) =>
       state match
@@ -30,13 +32,13 @@ object QuizEntity:
               val titl = title.trim
               (
                 if length < config.minTrialLength then
-                  Some(tooShortLength)
+                  Some(tooShortLength.error())
                 else if titl.length < config.minTitleLength then
-                  Some(tooShortTitle)
+                  Some(tooShortTitle.error())
                 else if insps.size < config.minInspectors then
-                  Some(notEnoughInspectors)
+                  Some(notEnoughInspectors.error())
                 else if auths.size < config.minAuthors then
-                  Some(notEnoughAuthors)
+                  Some(notEnoughAuthors.error())
                 else
                   None
               )
@@ -53,17 +55,17 @@ object QuizEntity:
               Effect
                 .none
                 // .thenStop()
-                .thenReply(c.replyTo)(_ => Bad(quizNotFound + state.id))
+                .thenReply(c.replyTo)(_ => Bad(quizNotFound.error() + state.id))
 
         case composing: Composing =>
           cmd match
             case c: Create =>
-              Effect.reply(c.replyTo)(Bad(quizAlreadyExists + c.id))
+              Effect.reply(c.replyTo)(Bad(quizAlreadyExists.error() + c.id))
             case c: Update =>
               if c.title.trim.length < config.minTitleLength then
-                Effect.reply(c.replyTo)(Bad(tooShortTitle))
+                Effect.reply(c.replyTo)(Bad(tooShortTitle.error()))
               else if c.recommendedLength < config.minTrialLength then
-                Effect.reply(c.replyTo)(Bad(tooShortLength))
+                Effect.reply(c.replyTo)(Bad(tooShortLength.error()))
               else
                 Effect
                   .persist(Updated(c.title.trim, c.intro, c.recommendedLength))
@@ -72,35 +74,35 @@ object QuizEntity:
               if composing.curator == c.author || composing.authors(c.author) ||
                 composing.inspectors(c.author)
               then
-                Effect.reply(c.replyTo)(Bad(alreadyOnList))
+                Effect.reply(c.replyTo)(Bad(alreadyOnList.error()))
               else
                 Effect.persist(AuthorAdded(c.author)).thenReply(c.replyTo)(_ => Resp.OK)
             case c: RemoveAuthor =>
               if !composing.authors(c.author) then
-                Effect.reply(c.replyTo)(Bad(notOnList))
+                Effect.reply(c.replyTo)(Bad(notOnList.error()))
               else if composing.authors.size == config.minAuthors then
-                Effect.reply(c.replyTo)(Bad(notEnoughAuthors))
+                Effect.reply(c.replyTo)(Bad(notEnoughAuthors.error()))
               else
                 Effect.persist(AuthorRemoved(c.author)).thenReply(c.replyTo)(_ => Resp.OK)
             case c: AddInspector =>
               if composing.curator == c.inspector || composing.authors(c.inspector) ||
                 composing.inspectors(c.inspector)
               then
-                Effect.reply(c.replyTo)(Bad(alreadyOnList))
+                Effect.reply(c.replyTo)(Bad(alreadyOnList.error()))
               else
                 Effect.persist(InspectorAdded(c.inspector)).thenReply(c.replyTo)(_ => Resp.OK)
             case c: RemoveInspector =>
               if !composing.inspectors(c.inspector) then
-                Effect.reply(c.replyTo)(Bad(notOnList))
+                Effect.reply(c.replyTo)(Bad(notOnList.error()))
               else if composing.inspectors.size == config.minInspectors then
-                Effect.reply(c.replyTo)(Bad(notEnoughInspectors))
+                Effect.reply(c.replyTo)(Bad(notEnoughInspectors.error()))
               else
                 Effect.persist(InspectorRemoved(c.inspector)).thenReply(c.replyTo)(_ => Resp.OK)
             case c: SetReadySign =>
               if composing.readinessSigns(c.author) then
-                Effect.reply(c.replyTo)(Bad(alreadySigned))
+                Effect.reply(c.replyTo)(Bad(alreadySigned.error()))
               else if !composing.authors(c.author) then
-                Effect.reply(c.replyTo)(Bad(notAuthor))
+                Effect.reply(c.replyTo)(Bad(notAuthor.error()))
               else
                 var events = Seq[Event](ReadySignSet(c.author))
                 if composing.readinessSigns.size + 1 == composing.authors.size then
@@ -108,45 +110,45 @@ object QuizEntity:
                 Effect.persist(events).thenReply(c.replyTo)(_ => Resp.OK)
             case c: Resolve =>
               if !composing.inspectors(c.inspector) then
-                Effect.reply(c.replyTo)(Bad(notInspector))
+                Effect.reply(c.replyTo)(Bad(notInspector.error()))
               else
-                Effect.reply(c.replyTo)(Bad(isComposing))
+                Effect.reply(c.replyTo)(Bad(isComposing.error()))
             case c: CommandWithReply[_] =>
-              Effect.reply(c.replyTo)(Bad(isComposing))
+              Effect.reply(c.replyTo)(Bad(isComposing.error()))
 
         case review: Review =>
           cmd match
             case c: Create =>
-              Effect.reply(c.replyTo)(Bad(quizAlreadyExists + c.id))
+              Effect.reply(c.replyTo)(Bad(quizAlreadyExists.error() + c.id))
             case AddAuthor(author, replyTo) =>
               if review.composing.curator == author || review.composing.authors(author) ||
                 review.composing.inspectors(author)
               then
-                Effect.reply(replyTo)(Bad(alreadyOnList))
+                Effect.reply(replyTo)(Bad(alreadyOnList.error()))
               else
                 Effect.persist(AuthorAdded(author)).thenReply(replyTo)(_ => Resp.OK)
             case RemoveAuthor(author, replyTo) =>
               if review.composing.authors.size == config.minAuthors then
-                Effect.reply(replyTo)(Bad(notEnoughAuthors))
+                Effect.reply(replyTo)(Bad(notEnoughAuthors.error()))
               else
                 Effect.persist(AuthorRemoved(author)).thenReply(replyTo)(_ => Resp.OK)
             case AddInspector(inspector, replyTo) =>
               if review.composing.curator == inspector || review.composing.authors(inspector) ||
                 review.composing.inspectors(inspector)
               then
-                Effect.reply(replyTo)(Bad(alreadyOnList))
+                Effect.reply(replyTo)(Bad(alreadyOnList.error()))
               else
                 Effect.persist(InspectorAdded(inspector)).thenReply(replyTo)(_ => Resp.OK)
             case RemoveInspector(inspector, replyTo) =>
               if review.composing.inspectors.size == config.minInspectors then
-                Effect.reply(replyTo)(Bad(notEnoughInspectors))
+                Effect.reply(replyTo)(Bad(notEnoughInspectors.error()))
               else
                 Effect.persist(InspectorRemoved(inspector)).thenReply(replyTo)(_ => Resp.OK)
             case c: SetReadySign =>
-              Effect.reply(c.replyTo)(Bad(onReview))
+              Effect.reply(c.replyTo)(Bad(onReview.error()))
             case c: Resolve =>
               if !review.composing.inspectors(c.inspector) then
-                Effect.reply(c.replyTo)(Bad(notInspector))
+                Effect.reply(c.replyTo)(Bad(notInspector.error()))
               else
                 val resolved = review.resolve(c.inspector, c.approval)
                 var events = Seq[Event](Resolved(c.inspector, c.approval))
@@ -156,19 +158,19 @@ object QuizEntity:
                   events :+= GoneComposing
                 Effect.persist(events).thenReply(c.replyTo)(_ => Resp.OK)
             case c: CommandWithReply[_] =>
-              Effect.reply(c.replyTo)(Bad(onReview))
+              Effect.reply(c.replyTo)(Bad(onReview.error()))
 
         case released: Released =>
           cmd match
             case c: Create =>
-              Effect.reply(c.replyTo)(Bad(quizAlreadyExists + c.id))
+              Effect.reply(c.replyTo)(Bad(quizAlreadyExists.error() + c.id))
             case c: SetObsolete =>
               if released.obsolete then
-                Effect.reply(c.replyTo)(Bad(alreadyObsolete))
+                Effect.reply(c.replyTo)(Bad(alreadyObsolete.error()))
               else
                 Effect.persist(GotObsolete).thenReply(c.replyTo)(_ => Resp.OK)
             case c: CommandWithReply[_] =>
-              Effect.reply(c.replyTo)(Bad(quizReleased))
+              Effect.reply(c.replyTo)(Bad(quizReleased.error()))
 
   val eventHandler: (Quiz, Event) => Quiz =
     (state, evt) =>

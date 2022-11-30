@@ -1,7 +1,7 @@
 ## Quiz usage model
 
 All Released Quizzes are available for usage in Exams and Practicing. Releasing a Quiz entails
-creation of **QuizFact** which controls availability of its related Quiz. Creation of an Exam,
+creation of **QuizFact** which controls availability of its related Quiz. Creation an Exam,
 thus usage a particular Quiz in the Exam, is performed through consulting with related QuizFact.
 Publishing a Quiz for Practicing is peformed by means of related QuizFact.
 

@@ -3,15 +3,16 @@
 ### Author
 
 Authoring Quizzes is a separate activity which doesn't depend on any other parts.
-Integrity is provided by the only entity
 
  * `Quiz` - entity and root
+ * `Section` - entity
 
 Implemented by module **`author`**.
 
 See
 
  * [Quiz entity](../author/src/main/scala/QuizEntity.scala)
+ * [Section entity](../author/src/main/scala/SectionEntity.scala)
 
 ### School
 

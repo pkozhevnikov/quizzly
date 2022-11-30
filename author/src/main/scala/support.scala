@@ -13,21 +13,19 @@ type Inspector = Person
 
 trait CborSerializable
 
-case class Error(code: Int, reason: String, clues: Seq[String] = Seq.empty)
-    extends CborSerializable:
-  def +(clue: String): Error = Error(code, reason, clues :+ clue)
-  def ++(clues: Seq[String]): Error = Error(code, reason, this.clues ++ clues)
+final case class Reason(code: Int, phrase: String) extends CborSerializable:
+  def error(): Error = Error(this, Seq.empty)
 
-//enum Resp[+R] extends CborSerializable:
-//  case Good(r: R)
-//  case Bad(e: Error)
-//  case OK
+final case class Error(reason: Reason, clues: Seq[String]) extends CborSerializable:
+  def +(clue: String) = Error(reason, clues :+ clue)
+  def ++(clues: Seq[String]) = Error(reason, this.clues :++ clues)
 
-sealed trait Resp[+V] extends CborSerializable
-type RespOK = Resp[Nothing]
+sealed trait Resp[+R] extends CborSerializable
 object Resp:
-  case object OK extends RespOK
-final case class Good[+V](v: V) extends Resp[V]
-final case class Bad[+V](e: Error) extends Resp[V]
+  case class Good[R](value: R) extends Resp[R]
+  case class Bad[R](error: Error) extends Resp[R]
+  case object OK extends Resp[Nothing]
+
+type RespOK = Resp[Nothing]
 
 case class QuizConfig(minAuthors: Int, minInspectors: Int, minTrialLength: Int, minTitleLength: Int)
