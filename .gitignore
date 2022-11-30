@@ -2,3 +2,5 @@
 target
 .bsp
 misc
+.ctags
+*.swo

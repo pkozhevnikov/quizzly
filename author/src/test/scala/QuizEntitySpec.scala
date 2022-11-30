@@ -55,6 +55,10 @@ class QuizEntitySpec
   val inspector3 = Person("inspector3", "inspector3 name")
   val inspectors = Set(inspector1, inspector2)
 
+  val item = Item("33", "item33", Statement("stmt33-1", Some("img33-1")), 
+    List(List(Statement("hint33-1", None))), true, List(1))
+  val section = Section("tq-1-1", "section title", List(item))
+
   def createComposing =
     val result = kit.runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _))
     result.reply shouldBe Good(CreateDetails(authors, inspectors))
@@ -102,8 +106,8 @@ class QuizEntitySpec
           RemoveInspector(inspector1, _),
           RemoveAuthor(author1, _),
           AddSection("", author1, _),
-          GrabSection("sc", author1, _),
-          DischargeSection("sc", author1, _),
+          OwnSection("sc", author1, _),
+          SaveSection(section, _),
           MoveSection("sc", false, _),
           RemoveSection("sc", _),
           SetReadySign(author1, _),
@@ -341,6 +345,103 @@ class QuizEntitySpec
         rejected(isComposing.error(), composing)(Resolve(inspector1, true, _), SetObsolete(_))
       }
 
+      "reject add section if not author" ignore {
+        val defState = createComposing.state
+        val result = kit.runCommand(AddSection("s", inspector1, _))
+        result.reply shouldBe Bad(notAuthor.error())
+        result.hasNoEvents shouldBe true
+        result.state shouldBe defState
+      }
+
+      "not add section as section doesn't respond" ignore {
+        val defState = createComposing.state
+        val result = kit.runCommand(AddSection("s", author1, _))
+        result.hasNoEvents shouldBe true
+        result.reply shouldBe Bad(timedOut.error())
+        result.event shouldBe SCIncrement
+      }
+
+      "add section" ignore {
+        val defState  = createComposing.stateOfType[Composing]
+        val result = kit.runCommand(AddSection("s", author1, _))
+        result.reply shouldBe Good("qt-1-1")
+        result.event shouldBe SCIncrement
+        result.state shouldBe defState.copy(scCounter = 1)
+      }
+
+      "save section" ignore {
+        val defState = createComposing.stateOfType[Composing]
+        kit.runCommand(AddSection(section.title, author1, _))
+        val result = kit.runCommand(SaveSection(section, _))
+        result.reply shouldBe Resp.OK
+        result.event shouldBe a[SectionSaved]
+        result.state shouldBe defState.copy(scCounter = 1, sections = List(section))
+      }
+
+      "reject move section" ignore {
+        val defState = createComposing.state
+        kit.runCommand(AddSection(section.title, author1, _))
+        kit.runCommand(SaveSection(section, _))
+        val result = kit.runCommand(MoveSection("tq-1-1", true, author1, _))
+        result.reply shouldBe Bad(cannotMove.error())
+        result.hasNoEvents shouldBe true
+        val result2 = kit.runCommand(MoveSection("tq-1-1", false, author1, _))
+        result2.reply shouldBe Bad(cannotMove.error())
+        result2.hasNoEvents shouldBe true
+        val result3 = kit.runCommand(MoveSection("notexist", true, author1, _))
+        result3.reply shouldBe Bad(sectionNotFound.error())
+        result3.hasNoEvent shouldBe true
+      }
+
+      "move section" ignore {
+        val defState = createComposing.stateOfType[Composing]
+        kit.runCommand(AddSection(section.title, author1, _))
+        kit.runCommand(SaveSection(section, _))
+        val section2 = section.copy(sc = "tq-1-2", title = "section2")
+        kit.runCommand(AddSection(section2.title, author1, _))
+        kit.runCommand(SaveSection(section2, _))
+        val result = kit.runCommand(MoveSection("tq-1-2", true, _))
+        result.reply shouldBe Good(List("tq-1-2", "tq-1-1"))
+        result.state shouldBe defState.copy(scCounter = 2, sections = List(section2, section))
+
+        val result2 = kit.runCommand(MoveSection("t1-1-2", false, _))
+        result2.reply shouldBe Good(List("tq-1-1", "tq-1-2"))
+        result2.state shouldBe defState.copy(scCounter = 2, sections = List(section, section2))
+      }
+
+      "reject remove section not found" ignore {
+        val defState = createComposing.state
+        val result = kit.runCommand(RemoveSection("notexist", _))
+        result.reply shouldBe Bad(sectionNotFound.error())
+        result.hasNoEvents shouldBe true
+      }
+
+      "reject remove section not author" ignore {
+        val desTate = createComposing.state
+        kit.runCommand(AddSection(section.title, author1, _))
+        kit.runCommand(SaveSection(section, _))
+        val result = kit.runCommand(RemoveSection("tq-1-1", inspector1, _))
+        result.reply shouldBe Bad(notAuthor.error())
+        result.hasNoEvents shouldBe true
+      }
+
+      "reject remove section is owned" ignore {
+        val defState = createComposing.state
+        kit.runCommand(AddSection(section.title, author1, _))
+        val result = kit.runCommand(RemoveSection("tq-1-1", author2, _))
+        result.reply shouldBe Bad(Section.alreadyOwned.error())
+        result.hasNoEvents shouldBe true
+      }
+
+      "remove section" ignore {
+        val defState = createComposing.stateOfType[Composing]
+        kit.runCommand(AddSection(section.title, author1, _))
+        kit.runCommand(SaveSection(section, _))
+        val result = kit.runCommand(RemoveSection("tq-1-1", author1, _))
+        result.reply shouldBe Resp.OK
+        result.state shouldBe defState.copy(scCounter = 1)
+      }
+
     }
 
     "Review" must {
@@ -495,8 +596,8 @@ class QuizEntitySpec
         rejected(onReview.error(), review)(
           Update("", "", 1, _),
           AddSection("", author1, _),
-          GrabSection("sc", author1, _),
-          DischargeSection("sc", author1, _),
+          OwnSection("sc", author1, _),
+          SaveSection(section, _),
           MoveSection("sc", false, _),
           RemoveSection("sc", _),
           SetObsolete(_)
@@ -545,6 +646,9 @@ class QuizEntitySpec
           RemoveInspector(inspector1, _),
           SetReadySign(author1, _),
           Resolve(inspector1, true, _),
+          AddSection("", author1, _),
+          OwnSection("", author1, _),
+          SaveSection(section, _),
           MoveSection("sc", true, _),
           RemoveSection("sc", _)
         )

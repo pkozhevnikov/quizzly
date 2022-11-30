@@ -11,7 +11,7 @@ type HintIdx = Int
 
 final case class Statement(text: String, image: Option[String]) extends CborSerializable
 
-type Hint = Set[Statement]
+type Hint = List[Statement]
 
 final case class Item(
     sc: SC,
@@ -80,10 +80,10 @@ object Quiz:
       inspectors: Set[Inspector],
       recommendedLength: Int,
       readinessSigns: Set[Author] = Set.empty,
-      sections: List[Section] = List.empty
+      sections: List[Section] = List.empty,
+      scCounter: Int = 0
   ) extends Quiz:
-    def nextSectionSC: SC =
-      id + "-" + (sections.map(_.sc.split("\\-").last).map(_.toInt).maxOption.getOrElse(0) + 1)
+    def nextSectionSC: SC = id + "-" + (scCounter + 1)
 
   final case class Update(
       title: String,
@@ -112,6 +112,8 @@ object Quiz:
       owner: Author,
       replyTo: ActorRef[Resp[SC]] // responds with identifier of new section
   ) extends CommandWithReply[SC]
+  case object SCIncrement extends Event
+  val timedOut = Reason(2023, "request timed out")
 
   final case class SaveSection(section: Section, replyTo: ActorRef[RespOK]) extends CommandOK
   final case class SectionSaved(section: Section) extends Event

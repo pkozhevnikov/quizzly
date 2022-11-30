@@ -102,7 +102,7 @@ Quiz is in Review state, if an Inspector is removed and she has already set her 
 the resolution is also removed.
 
 Author adds a Section. To avoid conflicts of changes from different Authors, Sections are
-modified exclusively by a single Author. Author *grab*s a Section thus becomes the owner of the
+modified exclusively by a single Author. Author *own*s a Section thus becomes the owner of the
 Section until the Author *discharge*s the Section. While an Author is the owner of the Section,
 only this Author is able to add, modify, reorder and delete Items within the Section. If no
 activity is registered within configured timespan, the section is discharged automatically,
