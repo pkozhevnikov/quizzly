@@ -124,12 +124,13 @@ object Quiz:
   final case class SectionOwned(sc: SC, owner: Author, replyTo: ActorRef[RespOK])
       extends Event
 
-  final case class RemoveSection(sc: SC, replyTo: ActorRef[RespOK]) extends CommandOK
+  final case class RemoveSection(sc: SC, author: Author, replyTo: ActorRef[RespOK]) extends CommandOK
   final case class SectionRemoved(sc: SC) extends Event
 
-  final case class MoveSection(sc: SC, up: Boolean, replyTo: ActorRef[Resp[List[SC]]])
+  final case class MoveSection(sc: SC, up: Boolean, author: Author, replyTo: ActorRef[Resp[List[SC]]])
       extends CommandWithReply[List[SC]]
   final case class SectionMoved(sc: SC, newOrder: List[SC]) extends Event
+  val cannotMove = Reason(2024, "cannot move")
 
   final case class SetReadySign(author: Author, replyTo: ActorRef[RespOK]) extends CommandOK
   val notAuthor = Reason(2004, "not an author")

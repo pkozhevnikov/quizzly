@@ -113,8 +113,15 @@ object QuizEntity:
                 Effect.reply(c.replyTo)(Bad(notInspector.error()))
               else
                 Effect.reply(c.replyTo)(Bad(isComposing.error()))
+            case c: AddSection =>
+              if !composing.authors(c.owner) then
+                Effect.reply(c.replyTo)(Bad(notAuthor.error()))
+              else
+                Effect.unhandled
+
             case c: CommandWithReply[_] =>
               Effect.reply(c.replyTo)(Bad(isComposing.error()))
+
 
         case review: Review =>
           cmd match

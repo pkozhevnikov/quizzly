@@ -108,8 +108,8 @@ class QuizEntitySpec
           AddSection("", author1, _),
           OwnSection("sc", author1, _),
           SaveSection(section, _),
-          MoveSection("sc", false, _),
-          RemoveSection("sc", _),
+          MoveSection("sc", false, author1, _),
+          RemoveSection("sc", author1, _),
           SetReadySign(author1, _),
           Resolve(inspector1, false, _),
           SetObsolete(_)
@@ -345,7 +345,7 @@ class QuizEntitySpec
         rejected(isComposing.error(), composing)(Resolve(inspector1, true, _), SetObsolete(_))
       }
 
-      "reject add section if not author" ignore {
+      "reject add section if not author" in {
         val defState = createComposing.state
         val result = kit.runCommand(AddSection("s", inspector1, _))
         result.reply shouldBe Bad(notAuthor.error())
@@ -390,7 +390,7 @@ class QuizEntitySpec
         result2.hasNoEvents shouldBe true
         val result3 = kit.runCommand(MoveSection("notexist", true, author1, _))
         result3.reply shouldBe Bad(sectionNotFound.error())
-        result3.hasNoEvent shouldBe true
+        result3.hasNoEvents shouldBe true
       }
 
       "move section" ignore {
@@ -400,18 +400,18 @@ class QuizEntitySpec
         val section2 = section.copy(sc = "tq-1-2", title = "section2")
         kit.runCommand(AddSection(section2.title, author1, _))
         kit.runCommand(SaveSection(section2, _))
-        val result = kit.runCommand(MoveSection("tq-1-2", true, _))
+        val result = kit.runCommand(MoveSection("tq-1-2", true, author1, _))
         result.reply shouldBe Good(List("tq-1-2", "tq-1-1"))
         result.state shouldBe defState.copy(scCounter = 2, sections = List(section2, section))
 
-        val result2 = kit.runCommand(MoveSection("t1-1-2", false, _))
+        val result2 = kit.runCommand(MoveSection("t1-1-2", false, author1, _))
         result2.reply shouldBe Good(List("tq-1-1", "tq-1-2"))
         result2.state shouldBe defState.copy(scCounter = 2, sections = List(section, section2))
       }
 
       "reject remove section not found" ignore {
         val defState = createComposing.state
-        val result = kit.runCommand(RemoveSection("notexist", _))
+        val result = kit.runCommand(RemoveSection("notexist", author1, _))
         result.reply shouldBe Bad(sectionNotFound.error())
         result.hasNoEvents shouldBe true
       }
@@ -429,7 +429,7 @@ class QuizEntitySpec
         val defState = createComposing.state
         kit.runCommand(AddSection(section.title, author1, _))
         val result = kit.runCommand(RemoveSection("tq-1-1", author2, _))
-        result.reply shouldBe Bad(Section.alreadyOwned.error())
+        result.reply shouldBe Bad(SectionEdit.alreadyOwned.error())
         result.hasNoEvents shouldBe true
       }
 
@@ -598,8 +598,8 @@ class QuizEntitySpec
           AddSection("", author1, _),
           OwnSection("sc", author1, _),
           SaveSection(section, _),
-          MoveSection("sc", false, _),
-          RemoveSection("sc", _),
+          MoveSection("sc", false, author1, _),
+          RemoveSection("sc", author1, _),
           SetObsolete(_)
         )
       }
@@ -649,8 +649,8 @@ class QuizEntitySpec
           AddSection("", author1, _),
           OwnSection("", author1, _),
           SaveSection(section, _),
-          MoveSection("sc", true, _),
-          RemoveSection("sc", _)
+          MoveSection("sc", true, author1, _),
+          RemoveSection("sc", author1, _)
         )
       }
 

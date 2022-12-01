@@ -18,7 +18,7 @@ object SectionEdit:
   final case class Created(title: String, owner: Author, quizID: QuizID) extends Event
 
   final case class Own(owner: Author, replyTo: ActorRef[RespOK]) extends CommandOK
-  var alreadyOnwned = Reason(2014, "already owned")
+  var alreadyOwned = Reason(2014, "already owned")
   final case class Owned(owner: Author) extends Event
 
   final case class Update(owner: Author, title: String, replyTo: ActorRef[RespOK]) extends Command
@@ -36,7 +36,6 @@ object SectionEdit:
 
   final case class MoveItem(owner: Author, sc: SC, 
     up: Boolean, replyTo: ActorRef[Resp[List[SC]]]) extends CommandWithReply[List[SC]]
-  val cannotMove = Reason(2013, "cannot move")
   final case class ItemMoved(sc: SC, newOrder: List[SC]) extends Event
 
   final case class RemoveItem(owner: Author, sc: SC, replyTo: ActorRef[RespOK]) extends CommandOK
