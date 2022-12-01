@@ -5,14 +5,14 @@
 Authoring Quizzes is a separate activity which doesn't depend on any other parts.
 
  * `Quiz` - entity and root
- * `Section` - entity
+ * `SectionEdit` - entity
 
 Implemented by module **`author`**.
 
 See
 
  * [Quiz entity](../author/src/main/scala/QuizEntity.scala)
- * [Section entity](../author/src/main/scala/SectionEntity.scala)
+ * [Section entity](../author/src/main/scala/SectionEditEntity.scala)
 
 ### School
 

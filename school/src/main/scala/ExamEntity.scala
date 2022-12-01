@@ -21,8 +21,8 @@ object ExamEntity:
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("Exam")
 
-  def apply(id: ExamID, facts: String => EntityRef[QuizFact.Command], config: ExamConfig)(using
-      () => Instant,
+  def apply(id: ExamID, facts: String => EntityRef[QuizFact.Command], config: ExamConfig)(
+      using () => Instant,
       ExecutionContext
   ): Behavior[Command] = Behaviors.setup { ctx =>
     EventSourcedBehavior[Command, Event, Exam](

@@ -1,27 +1,45 @@
 package quizzly.author
 
 import akka.actor.typed.{Behavior, ActorRef}
-import akka.cluster.sharding.typed.scaladsl.EntityTypeKey
+import akka.actor.typed.scaladsl.{Behaviors, ActorContext}
+import akka.cluster.sharding.typed.scaladsl.{EntityRef, EntityTypeKey}
 import akka.persistence.typed.PersistenceId
 import akka.persistence.typed.scaladsl.*
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.*
+import scala.util.{Success, Failure}
+
+import org.slf4j.*
+
+import java.util.concurrent.TimeoutException
+
 object QuizEntity:
+
+  val log = LoggerFactory.getLogger("QuizEntity")
 
   import Quiz.*
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("Quiz")
 
-  def apply(id: QuizID, config: QuizConfig): Behavior[Command] =
+  def apply(id: QuizID, sections: String => EntityRef[SectionEdit.Command], config: QuizConfig)(
+      using ExecutionContext
+  ): Behavior[Command] = Behaviors.setup { ctx =>
     EventSourcedBehavior[Command, Event, Quiz](
       PersistenceId.ofUniqueId(id),
       Blank(id),
-      commandHandler(config),
+      commandHandler(ctx, sections, config),
       eventHandler
     )
+  }
 
   import Resp.*
 
-  def commandHandler(config: QuizConfig): (Quiz, Command) => Effect[Event, Quiz] =
+  def commandHandler(
+      ctx: ActorContext[Command],
+      sections: String => EntityRef[SectionEdit.Command],
+      config: QuizConfig
+  )(using ExecutionContext): (Quiz, Command) => Effect[Event, Quiz] =
     (state, cmd) =>
       state match
         case _: Blank =>
@@ -117,11 +135,61 @@ object QuizEntity:
               if !composing.authors(c.owner) then
                 Effect.reply(c.replyTo)(Bad(notAuthor.error()))
               else
-                Effect.unhandled
+                val sc = composing.id + "-" + composing.scCounter
+                sections(sc)
+                  .ask(SectionEdit.Create(c.title, c.owner, composing.id, _))(2.seconds)
+                  .onComplete {
+                    case Success(r) =>
+                      r match
+                        case Resp.OK =>
+                          c.replyTo ! Good(sc)
+                        case Bad(e) =>
+                          c.replyTo ! Bad(e)
+                    case Failure(ex) =>
+                      ex match
+                        case to: TimeoutException =>
+                          c.replyTo ! Bad(timedOut.error())
+                        case e: Throwable =>
+                          c.replyTo ! Bad(unprocessed(ex.getMessage).error())
+                  }
+                Effect.persist(SCIncrement)
+            case c: SaveSection =>
+              Effect.persist(SectionSaved(c.section)).thenReply(c.replyTo)(_ => Resp.OK)
+            case MoveSection(sc, up, author, replyTo) =>
+              if !composing.authors(author) then
+                Effect.reply(replyTo)(Bad(notAuthor.error()))
+              else
+                val idx = composing.sections.indexWhere(_.sc == sc)
+                if idx == -1 then
+                  Effect.reply(replyTo)(Bad(sectionNotFound.error() + sc))
+                else if (idx == 0 && up) || (idx == composing.sections.size - 1 && !up) then
+                  Effect.reply(replyTo)(Bad(cannotMove.error()))
+                else
+                  Effect.persist(SectionMoved(sc, up)).thenReply(replyTo) {
+                    case ns: Composing => Good(ns.sections.map(_.sc))
+                  }
+            case RemoveSection(sc, author, replyTo) =>
+              if !composing.authors(author) then
+                Effect.reply(replyTo)(Bad(notAuthor.error()))
+              else if !composing.sections.exists(_.sc == sc) then
+                Effect.reply(replyTo)(Bad(sectionNotFound.error() + sc))
+              else
+                sections(sc).ask(SectionEdit.GetOwner(_))(2.seconds).onComplete {
+                  case Success(r) =>
+                    r match
+                      case None =>
+                        ctx.self ! InternalRemoveSection(sc, replyTo)
+                      case Some(owner: Author) =>
+                        replyTo ! Bad(SectionEdit.alreadyOwned.error() + owner.name)
+                  case Failure(ex) =>
+                    replyTo ! Bad(unprocessed(ex.getMessage).error())
+                }
+                Effect.none
+            case InternalRemoveSection(sc, replyTo) =>
+              Effect.persist(SectionRemoved(sc)).thenReply(replyTo)(_ => Resp.OK)
 
             case c: CommandWithReply[_] =>
               Effect.reply(c.replyTo)(Bad(isComposing.error()))
-
 
         case review: Review =>
           cmd match
@@ -209,8 +277,36 @@ object QuizEntity:
               composing.copy(readinessSigns = composing.readinessSigns + author)
             case GoneForReview =>
               Review(composing, Set.empty, Set.empty)
+            case SCIncrement =>
+              composing.copy(scCounter = composing.scCounter + 1)
+            case SectionSaved(section) =>
+              if composing.sections.exists(_.sc == section.sc) then
+                composing.copy(sections =
+                  composing
+                    .sections
+                    .map { e =>
+                      if e.sc == section.sc then
+                        section
+                      else
+                        e
+                    }
+                )
+              else
+                composing.copy(sections = composing.sections :+ section)
+            case SectionMoved(sc, up) =>
+              def move(list: List[Section]): List[Section] = list match
+                case Nil => list
+                case _ +: Nil => list
+                case h +: t => 
+                  if (if up then t.head else h).sc == sc then
+                    t.head +: (h +: t.tail)
+                  else
+                    h +: move(t)
+              composing.copy(sections = move(composing.sections))
             case _ =>
               state
+            case SectionRemoved(sc) =>
+              composing.copy(sections = composing.sections.filter(_.sc != sc))
 
         case review: Review =>
           evt match

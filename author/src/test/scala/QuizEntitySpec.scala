@@ -1,13 +1,18 @@
 package quizzly.author
 
-import akka.actor.typed.ActorRef
+import akka.actor.typed.*
+import scaladsl.Behaviors
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.persistence.testkit.scaladsl.{EventSourcedBehaviorTestKit as TestKit}
+import akka.cluster.sharding.typed.scaladsl.EntityRef
+import akka.cluster.sharding.typed.testkit.scaladsl.TestEntityRef
 
 import org.scalatest.*
 import org.scalatest.wordspec.AnyWordSpecLike
 
 import com.typesafe.config.*
+
+import scala.concurrent.ExecutionContext
 
 object QuizEntitySpec:
   val config: Config = ConfigFactory
@@ -29,11 +34,18 @@ class QuizEntitySpec
 
   import Quiz.*
   import Resp.*
+    
+  private var sectionsm = scala.collection.mutable.Map.empty[SC, EntityRef[SectionEdit.Command]]
+  private def putSection(id: SC, beh: Behavior[SectionEdit.Command]) =
+    sectionsm += (id -> TestEntityRef(SectionEditEntity.EntityKey, id, testKit.spawn(beh)))
+    
+  given ExecutionContext = system.executionContext
 
   private val kit = TestKit[Command, Event, Quiz](
     system,
     QuizEntity(
       id,
+      sectionsm(_),
       QuizConfig(minAuthors = 2, minInspectors = 2, minTrialLength = 3, minTitleLength = 2)
     )
   )
@@ -353,35 +365,50 @@ class QuizEntitySpec
         result.state shouldBe defState
       }
 
-      "not add section as section doesn't respond" ignore {
-        val defState = createComposing.state
+      "not add section as section doesn't respond" in {
+        val defState = createComposing.stateOfType[Composing]
+        putSection("tq-1-1", Behaviors.empty)
         val result = kit.runCommand(AddSection("s", author1, _))
-        result.hasNoEvents shouldBe true
         result.reply shouldBe Bad(timedOut.error())
         result.event shouldBe SCIncrement
+        result.state shouldBe defState.copy(scCounter = 2)
       }
 
-      "add section" ignore {
+      def stdCreateSection = Behaviors.receiveMessage[SectionEdit.Command] { 
+          case c: SectionEdit.CommandWithReply[_] => 
+            c.replyTo ! Resp.OK
+            Behaviors.stopped
+          case _ =>
+            Behaviors.stopped
+        }
+
+      "add section" in {
         val defState  = createComposing.stateOfType[Composing]
+        putSection("tq-1-1", stdCreateSection)
         val result = kit.runCommand(AddSection("s", author1, _))
-        result.reply shouldBe Good("qt-1-1")
+        result.reply shouldBe Good("tq-1-1")
         result.event shouldBe SCIncrement
-        result.state shouldBe defState.copy(scCounter = 1)
+        result.state shouldBe defState.copy(scCounter = 2)
       }
 
-      "save section" ignore {
+      "save section" in {
         val defState = createComposing.stateOfType[Composing]
+        putSection("tq-1-1", stdCreateSection)
         kit.runCommand(AddSection(section.title, author1, _))
         val result = kit.runCommand(SaveSection(section, _))
         result.reply shouldBe Resp.OK
         result.event shouldBe a[SectionSaved]
-        result.state shouldBe defState.copy(scCounter = 1, sections = List(section))
+        result.state shouldBe defState.copy(scCounter = 2, sections = List(section))
       }
 
-      "reject move section" ignore {
+      "reject move section" in {
         val defState = createComposing.state
+        putSection("tq-1-1", stdCreateSection)
         kit.runCommand(AddSection(section.title, author1, _))
         kit.runCommand(SaveSection(section, _))
+        val result4 = kit.runCommand(MoveSection("t1-1-1", true, inspector1, _))
+        result4.reply shouldBe Bad(notAuthor.error())
+        result4.hasNoEvents shouldBe true
         val result = kit.runCommand(MoveSection("tq-1-1", true, author1, _))
         result.reply shouldBe Bad(cannotMove.error())
         result.hasNoEvents shouldBe true
@@ -389,35 +416,39 @@ class QuizEntitySpec
         result2.reply shouldBe Bad(cannotMove.error())
         result2.hasNoEvents shouldBe true
         val result3 = kit.runCommand(MoveSection("notexist", true, author1, _))
-        result3.reply shouldBe Bad(sectionNotFound.error())
+        result3.reply shouldBe Bad(sectionNotFound.error() + "notexist")
         result3.hasNoEvents shouldBe true
       }
 
-      "move section" ignore {
+      "move section" in {
         val defState = createComposing.stateOfType[Composing]
+        putSection("tq-1-1", stdCreateSection)
+        putSection("tq-1-2", stdCreateSection)
         kit.runCommand(AddSection(section.title, author1, _))
         kit.runCommand(SaveSection(section, _))
         val section2 = section.copy(sc = "tq-1-2", title = "section2")
         kit.runCommand(AddSection(section2.title, author1, _))
-        kit.runCommand(SaveSection(section2, _))
+        val result0 = kit.runCommand(SaveSection(section2, _))
+        result0.state shouldBe defState.copy(scCounter = 3, sections = List(section, section2))
         val result = kit.runCommand(MoveSection("tq-1-2", true, author1, _))
         result.reply shouldBe Good(List("tq-1-2", "tq-1-1"))
-        result.state shouldBe defState.copy(scCounter = 2, sections = List(section2, section))
+        result.state shouldBe defState.copy(scCounter = 3, sections = List(section2, section))
 
-        val result2 = kit.runCommand(MoveSection("t1-1-2", false, author1, _))
+        val result2 = kit.runCommand(MoveSection("tq-1-2", false, author1, _))
         result2.reply shouldBe Good(List("tq-1-1", "tq-1-2"))
-        result2.state shouldBe defState.copy(scCounter = 2, sections = List(section, section2))
+        result2.state shouldBe defState.copy(scCounter = 3, sections = List(section, section2))
       }
 
-      "reject remove section not found" ignore {
+      "reject remove section not found" in {
         val defState = createComposing.state
         val result = kit.runCommand(RemoveSection("notexist", author1, _))
-        result.reply shouldBe Bad(sectionNotFound.error())
+        result.reply shouldBe Bad(sectionNotFound.error() + "notexist")
         result.hasNoEvents shouldBe true
       }
 
-      "reject remove section not author" ignore {
+      "reject remove section not author" in {
         val desTate = createComposing.state
+        putSection("tq-1-1", stdCreateSection)
         kit.runCommand(AddSection(section.title, author1, _))
         kit.runCommand(SaveSection(section, _))
         val result = kit.runCommand(RemoveSection("tq-1-1", inspector1, _))
@@ -425,11 +456,19 @@ class QuizEntitySpec
         result.hasNoEvents shouldBe true
       }
 
-      "reject remove section is owned" ignore {
+      "reject remove section is owned" in {
         val defState = createComposing.state
+        putSection("tq-1-1", Behaviors.receiveMessage { 
+          case c: SectionEdit.Create => 
+            c.replyTo ! Resp.OK
+            Behaviors.same
+          case c: SectionEdit.GetOwner =>
+            c.replyTo ! Good(None)
+            Behaviors.stopped
+        })
         kit.runCommand(AddSection(section.title, author1, _))
-        val result = kit.runCommand(RemoveSection("tq-1-1", author2, _))
-        result.reply shouldBe Bad(SectionEdit.alreadyOwned.error())
+        val result = kit.runCommand(RemoveSection("tq-1-1", author1, _))
+        result.reply shouldBe Bad(SectionEdit.alreadyOwned.error() + author1.name)
         result.hasNoEvents shouldBe true
       }
 

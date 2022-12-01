@@ -22,11 +22,7 @@ final case class Item(
     solutions: List[HintIdx]
 ) extends CborSerializable
 
-final case class Section(
-    sc: SC,
-    title: String,
-    items: List[Item]
-) extends CborSerializable
+final case class Section(sc: SC, title: String, items: List[Item]) extends CborSerializable
 
 sealed trait Quiz extends CborSerializable:
   def id: QuizID
@@ -60,6 +56,7 @@ object Quiz:
   val notEnoughInspectors = Reason(2007, "not enough inspectors")
   val quizNotFound = Reason(2010, "quiz not found")
   val tooShortLength = Reason(2011, "too short recommended trial length")
+  def unprocessed(msg: String) = Reason(5000, msg)
 
   final case class Created(
       id: QuizID,
@@ -81,9 +78,8 @@ object Quiz:
       recommendedLength: Int,
       readinessSigns: Set[Author] = Set.empty,
       sections: List[Section] = List.empty,
-      scCounter: Int = 0
-  ) extends Quiz:
-    def nextSectionSC: SC = id + "-" + (scCounter + 1)
+      scCounter: Int = 1
+  ) extends Quiz
 
   final case class Update(
       title: String,
@@ -93,8 +89,7 @@ object Quiz:
   ) extends CommandOK
   final case class Updated(title: String, intro: String, recommendedLength: Int) extends Event
 
-  final case class AddInspector(inspector: Inspector, replyTo: ActorRef[RespOK])
-      extends CommandOK
+  final case class AddInspector(inspector: Inspector, replyTo: ActorRef[RespOK]) extends CommandOK
   val alreadyOnList = Reason(2015, "already on list")
   final case class InspectorAdded(inspector: Inspector) extends Event
   final case class AddAuthor(author: Author, replyTo: ActorRef[RespOK]) extends CommandOK
@@ -118,18 +113,22 @@ object Quiz:
   final case class SaveSection(section: Section, replyTo: ActorRef[RespOK]) extends CommandOK
   final case class SectionSaved(section: Section) extends Event
 
-  final case class OwnSection(sc: SC, owner: Author, replyTo: ActorRef[RespOK])
-      extends CommandOK
+  final case class OwnSection(sc: SC, owner: Author, replyTo: ActorRef[RespOK]) extends CommandOK
   val sectionNotFound = Reason(2007, "section not found")
-  final case class SectionOwned(sc: SC, owner: Author, replyTo: ActorRef[RespOK])
-      extends Event
+  final case class SectionOwned(sc: SC, owner: Author, replyTo: ActorRef[RespOK]) extends Event
 
-  final case class RemoveSection(sc: SC, author: Author, replyTo: ActorRef[RespOK]) extends CommandOK
+  final case class RemoveSection(sc: SC, author: Author, replyTo: ActorRef[RespOK])
+      extends CommandOK
+  final case class InternalRemoveSection(sc: SC, replyTo: ActorRef[RespOK]) extends CommandOK
   final case class SectionRemoved(sc: SC) extends Event
 
-  final case class MoveSection(sc: SC, up: Boolean, author: Author, replyTo: ActorRef[Resp[List[SC]]])
-      extends CommandWithReply[List[SC]]
-  final case class SectionMoved(sc: SC, newOrder: List[SC]) extends Event
+  final case class MoveSection(
+      sc: SC,
+      up: Boolean,
+      author: Author,
+      replyTo: ActorRef[Resp[List[SC]]]
+  ) extends CommandWithReply[List[SC]]
+  final case class SectionMoved(sc: SC, up: Boolean) extends Event
   val cannotMove = Reason(2024, "cannot move")
 
   final case class SetReadySign(author: Author, replyTo: ActorRef[RespOK]) extends CommandOK
@@ -138,8 +137,7 @@ object Quiz:
   val onReview = Reason(2020, "quiz on review")
   final case class ReadySignSet(author: Author) extends Event
 
-  final case class UnsetReadySign(author: Author, replyTo: ActorRef[RespOK])
-      extends CommandOK
+  final case class UnsetReadySign(author: Author, replyTo: ActorRef[RespOK]) extends CommandOK
   val notSigned = Reason(2019, "not signed")
   final case class ReadySignUnset(author: Author) extends Event
 
@@ -158,11 +156,8 @@ object Quiz:
           (approvals - inspector) -> (disapprovals + inspector)
       Review(composing, resolutions(0), resolutions(1))
 
-  final case class Resolve(
-      inspector: Inspector,
-      approval: Boolean,
-      replyTo: ActorRef[RespOK]
-  ) extends CommandOK
+  final case class Resolve(inspector: Inspector, approval: Boolean, replyTo: ActorRef[RespOK])
+      extends CommandOK
   val notInspector = Reason(2005, "not an inspector")
   val isComposing = Reason(2018, "quiz is composing")
   final case class Resolved(inspector: Inspector, approval: Boolean) extends Event
