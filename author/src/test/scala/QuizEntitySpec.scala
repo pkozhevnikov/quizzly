@@ -381,7 +381,7 @@ class QuizEntitySpec
       }
 
       def stdCreateSection = Behaviors.receiveMessage[SectionEdit.Command] {
-        case c: SectionEdit.CommandWithReply[_] =>
+        case c: SectionEdit.Create =>
           c.replyTo ! Resp.OK
           Behaviors.stopped
         case _ =>
@@ -393,7 +393,8 @@ class QuizEntitySpec
         putSection("tq-1-1", stdCreateSection)
         val result = kit.runCommand(AddSection(section.title, author1, _))
         result.reply shouldBe Good("tq-1-1")
-        result.event shouldBe SCIncrement
+        result.events shouldBe
+          Seq(SCIncrement, SectionSaved(Section("tq-1-1", section.title, List.empty)))
         result.state shouldBe
           defState
             .copy(scCounter = 2, sections = List(Section("tq-1-1", section.title, List.empty)))
@@ -404,7 +405,7 @@ class QuizEntitySpec
         putSection("tq-1-1", stdCreateSection)
         kit.runCommand(AddSection(section.title, author1, _))
         val result = kit.runCommand(SaveSection(section, _))
-        result.reply shouldBe Resp.OK
+        result.reply shouldBe Good("tq-1-1")
         result.event shouldBe a[SectionSaved]
         result.state shouldBe defState.copy(scCounter = 2, sections = List(section))
       }
@@ -501,6 +502,56 @@ class QuizEntitySpec
         val result = kit.runCommand(RemoveSection("tq-1-1", author1, _))
         result.reply shouldBe Resp.OK
         result.state shouldBe defState.copy(scCounter = 2)
+      }
+
+      "reject own section if not found" in {
+        createComposing
+        val result = kit.runCommand(OwnSection("notexist", author1, _))
+        result.reply shouldBe Bad(sectionNotFound.error() + "notexist")
+      }
+
+      "reject own section if not author" in {
+        createComposing
+        putSection("tq-1-1", stdCreateSection)
+        kit.runCommand(AddSection(section.title, author1, _))
+        val result = kit.runCommand(OwnSection("tq-1-1", inspector1, _))
+        result.reply shouldBe Bad(notAuthor.error())
+      }
+
+      "reject own section if already owned" in {
+        val defState = createComposing.stateOfType[Composing]
+        putSection(
+          "tq-1-1",
+          Behaviors.receiveMessage {
+            case c: SectionEdit.Create =>
+              c.replyTo ! Resp.OK
+              Behaviors.same
+            case c: SectionEdit.Own =>
+              c.replyTo ! Bad(SectionEdit.alreadyOwned.error() + author1.name)
+              Behaviors.stopped
+          }
+        )
+        kit.runCommand(AddSection(section.title, author1, _))
+        val result = kit.runCommand(OwnSection("tq-1-1", author1, _))
+        result.reply shouldBe Bad(SectionEdit.alreadyOwned.error() + author1.name)
+      }
+
+      "own section" in {
+        createComposing
+        putSection(
+          "tq-1-1",
+          Behaviors.receiveMessage {
+            case c: SectionEdit.Create =>
+              c.replyTo ! Resp.OK
+              Behaviors.same
+            case c: SectionEdit.Own =>
+              c.replyTo ! Resp.OK
+              Behaviors.stopped
+          }
+        )
+        kit.runCommand(AddSection(section.title, author1, _))
+        val result = kit.runCommand(OwnSection("tq-1-1", author2, _))
+        result.reply shouldBe Resp.OK
       }
 
     }

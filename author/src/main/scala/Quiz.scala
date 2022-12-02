@@ -110,8 +110,7 @@ object Quiz:
   case object SCIncrement extends Event
   val timedOut = Reason(2023, "request timed out")
 
-  final case class SaveSection(section: Section, replyTo: ActorRef[RespOK]) extends CommandOK
-  final case class InternalSaveSection(section: Section) extends Command
+  final case class SaveSection(section: Section, replyTo: ActorRef[Resp[SC]]) extends CommandWithReply[SC]
   final case class SectionSaved(section: Section) extends Event
 
   final case class OwnSection(sc: SC, owner: Author, replyTo: ActorRef[RespOK]) extends CommandOK

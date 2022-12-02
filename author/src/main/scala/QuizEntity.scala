@@ -142,8 +142,7 @@ object QuizEntity:
                     case Success(r) =>
                       r match
                         case Resp.OK =>
-                          ctx.self ! InternalSaveSection(Section(sc, c.title, List.empty))
-                          c.replyTo ! Good(sc)
+                          ctx.self ! SaveSection(Section(sc, c.title, List.empty), c.replyTo)
                         case Bad(e) =>
                           c.replyTo ! Bad(e)
                     case Failure(ex) =>
@@ -155,9 +154,7 @@ object QuizEntity:
                   }
                 Effect.persist(SCIncrement)
             case SaveSection(section, replyTo) =>
-              Effect.persist(SectionSaved(section)).thenReply(replyTo)(_ => Resp.OK)
-            case InternalSaveSection(section) =>
-              Effect.persist(SectionSaved(section))
+              Effect.persist(SectionSaved(section)).thenReply(replyTo)(_ => Good(section.sc))
             case MoveSection(sc, up, author, replyTo) =>
               if !composing.authors(author) then
                 Effect.reply(replyTo)(Bad(notAuthor.error()))
@@ -168,28 +165,46 @@ object QuizEntity:
                 else if (idx == 0 && up) || (idx == composing.sections.size - 1 && !up) then
                   Effect.reply(replyTo)(Bad(cannotMove.error()))
                 else
-                  Effect.persist(SectionMoved(sc, up)).thenReply(replyTo) {
-                    case ns: Composing => Good(ns.sections.map(_.sc))
-                  }
+                  Effect
+                    .persist(SectionMoved(sc, up))
+                    .thenReply(replyTo) { case ns: Composing =>
+                      Good(ns.sections.map(_.sc))
+                    }
             case RemoveSection(sc, author, replyTo) =>
               if !composing.authors(author) then
                 Effect.reply(replyTo)(Bad(notAuthor.error()))
               else if !composing.sections.exists(_.sc == sc) then
                 Effect.reply(replyTo)(Bad(sectionNotFound.error() + sc))
               else
-                sections(sc).ask(SectionEdit.GetOwner(_))(2.seconds).onComplete {
-                  case Success(r) =>
-                    r match
-                      case Good(None) =>
-                        ctx.self ! InternalRemoveSection(sc, replyTo)
-                      case Good(Some(owner: Author)) =>
-                        replyTo ! Bad(SectionEdit.alreadyOwned.error() + owner.name)
-                  case Failure(ex) =>
-                    replyTo ! Bad(unprocessed(ex.getMessage).error())
-                }
+                sections(sc)
+                  .ask(SectionEdit.GetOwner(_))(2.seconds)
+                  .onComplete {
+                    case Success(r) =>
+                      r match
+                        case Good(None) =>
+                          ctx.self ! InternalRemoveSection(sc, replyTo)
+                        case Good(Some(owner: Author)) =>
+                          replyTo ! Bad(SectionEdit.alreadyOwned.error() + owner.name)
+                    case Failure(ex) =>
+                      replyTo ! Bad(unprocessed(ex.getMessage).error())
+                  }
                 Effect.none
             case InternalRemoveSection(sc, replyTo) =>
               Effect.persist(SectionRemoved(sc)).thenReply(replyTo)(_ => Resp.OK)
+            case OwnSection(sc, owner, replyTo) =>
+              if !composing.sections.exists(_.sc == sc) then
+                Effect.reply(replyTo)(Bad(sectionNotFound.error() + sc))
+              else if !composing.authors(owner) then
+                Effect.reply(replyTo)(Bad(notAuthor.error()))
+              else
+                sections(sc).ask(SectionEdit.Own(owner, _))(2.seconds)
+                  .onComplete {
+                    case Success(r: RespOK) =>
+                      replyTo ! r
+                    case Failure(ex) =>
+                      replyTo ! Bad(unprocessed(ex.getMessage).error())
+                  }
+                Effect.none
 
             case c: CommandWithReply[_] =>
               Effect.reply(c.replyTo)(Bad(isComposing.error()))
@@ -297,18 +312,27 @@ object QuizEntity:
               else
                 composing.copy(sections = composing.sections :+ section)
             case SectionMoved(sc, up) =>
-              def move(list: List[Section]): List[Section] = list match
-                case Nil => list
-                case _ +: Nil => list
-                case h +: t => 
-                  if (if up then t.head else h).sc == sc then
-                    t.head +: (h +: t.tail)
-                  else
-                    h +: move(t)
+              def move(list: List[Section]): List[Section] =
+                list match
+                  case Nil =>
+                    list
+                  case _ +: Nil =>
+                    list
+                  case h +: t =>
+                    if (
+                        if up then
+                          t.head
+                        else
+                          h
+                      ).sc == sc
+                    then
+                      t.head +: (h +: t.tail)
+                    else
+                      h +: move(t)
               composing.copy(sections = move(composing.sections))
             case SectionRemoved(sc) =>
               composing.copy(sections = composing.sections.filter(_.sc != sc))
-            case _ => //final
+            case _ => // final
               state
 
         case review: Review =>

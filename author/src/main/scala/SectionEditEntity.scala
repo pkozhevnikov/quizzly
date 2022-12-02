@@ -1,9 +1,12 @@
 package quizzly.author
 
 import akka.actor.typed.{Behavior, ActorRef}
-import akka.cluster.sharding.typed.scaladsl.EntityTypeKey
+import akka.actor.typed.scaladsl.{Behaviors, ActorContext}
+import akka.cluster.sharding.typed.scaladsl.{EntityTypeKey, EntityRef}
 import akka.persistence.typed.PersistenceId
 import akka.persistence.typed.scaladsl.*
+
+import scala.concurrent.ExecutionContext
 
 object SectionEditEntity:
 
@@ -12,7 +15,9 @@ object SectionEditEntity:
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("SectionEdit")
 
-  def apply(id: SC, config: QuizConfig): Behavior[Command] =
+  def apply(id: SC, quizzes: String => EntityRef[Quiz.Command], config: QuizConfig)(using
+      ExecutionContext
+  ): Behavior[Command] = Behaviors.setup { ctx =>
     EventSourcedBehavior[Command, Event, Option[SectionEdit]](
       PersistenceId.ofUniqueId(id),
       None,
@@ -28,7 +33,7 @@ object SectionEditEntity:
                 Effect.unhandled
 
           case Some(edit) =>
-            takeCommand(edit, cmd)
+            takeCommand(edit, cmd, quizzes, ctx)
       ,
       (state, evt) =>
         state match
@@ -41,9 +46,20 @@ object SectionEditEntity:
           case Some(edit) =>
             Some(takeEvent(edit, evt))
     )
+  }
 
-  def takeCommand(edit: SectionEdit, cmd: Command): Effect[Event, Option[SectionEdit]] =
-    Effect.unhandled
+  def takeCommand(
+      edit: SectionEdit,
+      cmd: Command,
+      quizzes: String => EntityRef[Quiz.Command],
+      ctx: ActorContext[Command]
+  )(using ExecutionContext): Effect[Event, Option[SectionEdit]] = cmd match
+    case Own(author, replyTo) => 
+      edit.owner match
+        case None =>
+          Effect.persist(Owned(author)).thenReply(replyTo)(_ => Resp.OK)
+        case Some(owner) =>
+          Effect.reply(replyTo)(Bad(alreadyOwned.error() + owner.name))
 
   def takeEvent(edit: SectionEdit, evt: Event): SectionEdit =
     evt match

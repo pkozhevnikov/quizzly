@@ -23,7 +23,8 @@ object SectionEdit:
   val alreadyOwned = Reason(2014, "already owned")
   final case class Owned(owner: Author) extends Event
 
-  final case class GetOwner(replyTo: ActorRef[Resp[Option[Author]]]) extends CommandWithReply[Option[Author]]
+  final case class GetOwner(replyTo: ActorRef[Resp[Option[Author]]])
+      extends CommandWithReply[Option[Author]]
 
   final case class Update(owner: Author, title: String, replyTo: ActorRef[RespOK]) extends Command
   final case class Updated(title: String) extends Event
