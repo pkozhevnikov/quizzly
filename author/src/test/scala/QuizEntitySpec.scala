@@ -34,11 +34,11 @@ class QuizEntitySpec
 
   import Quiz.*
   import Resp.*
-    
+
   private var sectionsm = scala.collection.mutable.Map.empty[SC, EntityRef[SectionEdit.Command]]
   private def putSection(id: SC, beh: Behavior[SectionEdit.Command]) =
     sectionsm += (id -> TestEntityRef(SectionEditEntity.EntityKey, id, testKit.spawn(beh)))
-    
+
   given ExecutionContext = system.executionContext
 
   private val kit = TestKit[Command, Event, Quiz](
@@ -67,8 +67,14 @@ class QuizEntitySpec
   val inspector3 = Person("inspector3", "inspector3 name")
   val inspectors = Set(inspector1, inspector2)
 
-  val item = Item("33", "item33", Statement("stmt33-1", Some("img33-1")), 
-    List(List(Statement("hint33-1", None))), true, List(1))
+  val item = Item(
+    "33",
+    "item33",
+    Statement("stmt33-1", Some("img33-1")),
+    List(List(Statement("hint33-1", None))),
+    true,
+    List(1)
+  )
   val section = Section("tq-1-1", "section title", List(item))
 
   def createComposing =
@@ -374,21 +380,23 @@ class QuizEntitySpec
         result.state shouldBe defState.copy(scCounter = 2)
       }
 
-      def stdCreateSection = Behaviors.receiveMessage[SectionEdit.Command] { 
-          case c: SectionEdit.CommandWithReply[_] => 
-            c.replyTo ! Resp.OK
-            Behaviors.stopped
-          case _ =>
-            Behaviors.stopped
-        }
+      def stdCreateSection = Behaviors.receiveMessage[SectionEdit.Command] {
+        case c: SectionEdit.CommandWithReply[_] =>
+          c.replyTo ! Resp.OK
+          Behaviors.stopped
+        case _ =>
+          Behaviors.stopped
+      }
 
       "add section" in {
-        val defState  = createComposing.stateOfType[Composing]
+        val defState = createComposing.stateOfType[Composing]
         putSection("tq-1-1", stdCreateSection)
-        val result = kit.runCommand(AddSection("s", author1, _))
+        val result = kit.runCommand(AddSection(section.title, author1, _))
         result.reply shouldBe Good("tq-1-1")
         result.event shouldBe SCIncrement
-        result.state shouldBe defState.copy(scCounter = 2)
+        result.state shouldBe
+          defState
+            .copy(scCounter = 2, sections = List(Section("tq-1-1", section.title, List.empty)))
       }
 
       "save section" in {
@@ -458,27 +466,41 @@ class QuizEntitySpec
 
       "reject remove section is owned" in {
         val defState = createComposing.state
-        putSection("tq-1-1", Behaviors.receiveMessage { 
-          case c: SectionEdit.Create => 
-            c.replyTo ! Resp.OK
-            Behaviors.same
-          case c: SectionEdit.GetOwner =>
-            c.replyTo ! Good(None)
-            Behaviors.stopped
-        })
+        putSection(
+          "tq-1-1",
+          Behaviors.receiveMessage {
+            case c: SectionEdit.Create =>
+              c.replyTo ! Resp.OK
+              Behaviors.same
+            case c: SectionEdit.GetOwner =>
+              c.replyTo ! Good(Some(author1))
+              Behaviors.stopped
+          }
+        )
         kit.runCommand(AddSection(section.title, author1, _))
         val result = kit.runCommand(RemoveSection("tq-1-1", author1, _))
         result.reply shouldBe Bad(SectionEdit.alreadyOwned.error() + author1.name)
         result.hasNoEvents shouldBe true
       }
 
-      "remove section" ignore {
+      "remove section" in {
         val defState = createComposing.stateOfType[Composing]
+        putSection(
+          "tq-1-1",
+          Behaviors.receiveMessage {
+            case c: SectionEdit.Create =>
+              c.replyTo ! Resp.OK
+              Behaviors.same
+            case c: SectionEdit.GetOwner =>
+              c.replyTo ! Good(None)
+              Behaviors.stopped
+          }
+        )
         kit.runCommand(AddSection(section.title, author1, _))
         kit.runCommand(SaveSection(section, _))
         val result = kit.runCommand(RemoveSection("tq-1-1", author1, _))
         result.reply shouldBe Resp.OK
-        result.state shouldBe defState.copy(scCounter = 1)
+        result.state shouldBe defState.copy(scCounter = 2)
       }
 
     }

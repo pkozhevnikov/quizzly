@@ -142,6 +142,7 @@ object QuizEntity:
                     case Success(r) =>
                       r match
                         case Resp.OK =>
+                          ctx.self ! InternalSaveSection(Section(sc, c.title, List.empty))
                           c.replyTo ! Good(sc)
                         case Bad(e) =>
                           c.replyTo ! Bad(e)
@@ -153,8 +154,10 @@ object QuizEntity:
                           c.replyTo ! Bad(unprocessed(ex.getMessage).error())
                   }
                 Effect.persist(SCIncrement)
-            case c: SaveSection =>
-              Effect.persist(SectionSaved(c.section)).thenReply(c.replyTo)(_ => Resp.OK)
+            case SaveSection(section, replyTo) =>
+              Effect.persist(SectionSaved(section)).thenReply(replyTo)(_ => Resp.OK)
+            case InternalSaveSection(section) =>
+              Effect.persist(SectionSaved(section))
             case MoveSection(sc, up, author, replyTo) =>
               if !composing.authors(author) then
                 Effect.reply(replyTo)(Bad(notAuthor.error()))
@@ -177,9 +180,9 @@ object QuizEntity:
                 sections(sc).ask(SectionEdit.GetOwner(_))(2.seconds).onComplete {
                   case Success(r) =>
                     r match
-                      case None =>
+                      case Good(None) =>
                         ctx.self ! InternalRemoveSection(sc, replyTo)
-                      case Some(owner: Author) =>
+                      case Good(Some(owner: Author)) =>
                         replyTo ! Bad(SectionEdit.alreadyOwned.error() + owner.name)
                   case Failure(ex) =>
                     replyTo ! Bad(unprocessed(ex.getMessage).error())
@@ -303,10 +306,10 @@ object QuizEntity:
                   else
                     h +: move(t)
               composing.copy(sections = move(composing.sections))
-            case _ =>
-              state
             case SectionRemoved(sc) =>
               composing.copy(sections = composing.sections.filter(_.sc != sc))
+            case _ => //final
+              state
 
         case review: Review =>
           evt match
