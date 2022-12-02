@@ -36,7 +36,7 @@ class SectionEditEntitySpec
   import Resp.*
 
   private var quizm = scala.collection.mutable.Map.empty[SC, EntityRef[Quiz.Command]]
-  private def putSection(id: QuizID, beh: Behavior[Quiz.Command]) =
+  private def putQuiz(id: QuizID, beh: Behavior[Quiz.Command]) =
     quizm += (id -> TestEntityRef(QuizEntity.EntityKey, id, testKit.spawn(beh)))
 
   given ExecutionContext = system.executionContext
@@ -59,10 +59,10 @@ class SectionEditEntitySpec
   val author3 = Person("author3", "author3 name")
 
   val item = Item(
-    "33",
-    "item33",
-    Statement("stmt33-1", Some("img33-1")),
-    List(List(Statement("hint33-1", None))),
+    "1",
+    "item1",
+    Statement("stmt1-1", Some("img1-1")),
+    List(List(Statement("hint1-1", None))),
     true,
     List(1)
   )
@@ -77,7 +77,7 @@ class SectionEditEntitySpec
         val result = kit.runCommand(Create(section.title, author1, "tq-1", _))
         result.reply shouldBe Resp.OK
         result.event shouldBe a[Created]
-        result.state shouldBe Some(SectionEdit(Some(author1), section0, "tq-1"))
+        result.state shouldBe Some(SectionEdit(Some(author1), section0, "tq-1", 0))
       }
 
       "reject other actions" in {
@@ -101,40 +101,98 @@ class SectionEditEntitySpec
 
     }
 
-    "is owned" must {
+    def create = kit.runCommand(Create(section.title, author1, "tq-1", _))
 
-      def create = kit.runCommand(Create(section.title, author1, "tq-1", _))
+    "is owned" must {
 
       "reject create if exists" in {
         create
         val result = kit.runCommand(Create(section.title, author1, "tq-1", _))
         result.reply shouldBe Bad(alreadyExists.error())
       }
-
-      "reject update by other author" in {
-        create
-        val result = kit.runCommand(Update(author2, "new title", _))
+      
+      def rejectAuthor(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
+        val result = kit.runCommand(cmd(_))
         result.reply shouldBe Bad(notOwner.error())
         result.hasNoEvents shouldBe true
+      }
+
+      "reject action by other author" in {
+        create
+        rejectAuthor(
+          Update(author2, "", _),
+          Discharge(author2, _)
+        )
       }
 
       "be updated" in {
         create
         val result = kit.runCommand(Update(author1, "new title", _))
         result.reply shouldBe Resp.OK
-        result.state shouldBe Some(SectionEdit(Some(author1), section0.copy(title = "new title"), "tq-1"))
+        result.state shouldBe Some(SectionEdit(Some(author1), section0.copy(title = "new title"), "tq-1", 0))
+      }
+
+      "be discharged" in {
+        create
+        putQuiz("tq-1", Behaviors.receiveMessage {
+          case c: Quiz.SaveSection => 
+            c.replyTo ! Resp.OK
+            Behaviors.stopped
+        })
+        val result = kit.runCommand(Discharge(author1, _))
+        result.reply shouldBe Resp.OK
+        result.stateOfType[Option[SectionEdit]].get.owner shouldBe None
+      }
+
+      "return next item sc" in {
+        create
+        val result = kit.runCommand(NextItemSC(author1, _))
+        result.reply shouldBe Good("1")
+        result.event shouldBe SCIncrement
+        result.stateOfType[Option[SectionEdit]].get.scCounter shouldBe 1
+      }
+
+      "save item" in {
+        create
+        val result = kit.runCommand(SaveItem(author1, item, _))
+        result.reply shouldBe Resp.OK
+        result.event shouldBe a[ItemSaved]
+        result.stateOfType[Option[SectionEdit]].get.section.items shouldBe List(item)
+      }
+
+      "reject save item if not found" in {
+        create
+        val result = kit.runCommand(RemoveItem(author1, "xyz", _))
+        result.reply shouldBe Bad(itemNotFound.error() + "xyz")
+        result.hasNoEvents shouldBe true
+      }
+
+      "remove item" in {
+        create
+        kit.runCommand(SaveItem(author1, item, _))
+        val result = kit.runCommand(RemoveItem(author1, "1", _))
+        result.reply shouldBe Resp.OK
+        result.stateOfType[Option[SectionEdit]].get.section.items shouldBe List.empty[Item]
       }
 
     }
 
     "is not owned" must {
 
-      "reject create if exists" ignore {
+      "reject create if exists" in {
         kit.runCommand(Create(section.title, author1, "tq-1", _))
         kit.runCommand(Discharge(author1, _))
         val result = kit.runCommand(Create(section.title, author1, "tq-1", _))
         result.reply shouldBe Bad(alreadyExists.error())
       }
+
+      "be owned" in {
+        create
+        val result = kit.runCommand(Discharge(author2, _))
+        result.reply shouldBe Resp.OK
+        result.stateOfType[Option[SectionEdit]].get.owner shouldBe Some(author2)
+      }
+
     }
 
   }

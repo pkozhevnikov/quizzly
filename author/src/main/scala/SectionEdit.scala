@@ -2,9 +2,8 @@ package quizzly.author
 
 import akka.actor.typed.*
 
-case class SectionEdit(owner: Option[Author], section: Section, quizID: QuizID)
-    extends CborSerializable:
-  def nextItemSC: SC = (section.items.map(_.sc.toInt).maxOption.getOrElse(0) + 1).toString
+case class SectionEdit(owner: Option[Author], section: Section, quizID: QuizID, scCounter: Int)
+    extends CborSerializable
 object SectionEdit:
 
   sealed trait Command extends CborSerializable
@@ -35,6 +34,7 @@ object SectionEdit:
   val notOwner = Reason(2012, "not an owner")
 
   final case class NextItemSC(owner: Author, replyTo: ActorRef[Resp[SC]]) extends CommandWithOwnerReply[SC]
+  case object SCIncrement extends Event
 
   final case class SaveItem(
       owner: Author,
@@ -46,12 +46,14 @@ object SectionEdit:
 
   final case class MoveItem(owner: Author, sc: SC, up: Boolean, replyTo: ActorRef[Resp[List[SC]]])
       extends CommandWithOwnerReply[List[SC]]
-  final case class ItemMoved(sc: SC, newOrder: List[SC]) extends Event
+  final case class ItemMoved(sc: SC, up: Boolean) extends Event
+  val cannotMove = Reason(2019, "cannot move")
 
   final case class RemoveItem(owner: Author, sc: SC, replyTo: ActorRef[RespOK]) extends CommandOK
   final case class ItemRemoved(sc: SC) extends Event
 
   case object DischargeInternally extends Command
+  final case class InternalDischarge(replyTo: ActorRef[RespOK]) extends CommandWithReply[Nothing]
   final case class Discharge(owner: Author, replyTo: ActorRef[RespOK]) extends CommandOK
   val notOwned = Reason(2016, "section is not owned")
   case object Discharged extends Event
