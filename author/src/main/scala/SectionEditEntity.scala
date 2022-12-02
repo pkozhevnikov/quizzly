@@ -33,7 +33,19 @@ object SectionEditEntity:
                 Effect.unhandled
 
           case Some(edit) =>
-            takeCommand(edit, cmd, quizzes, ctx)
+            cmd match
+              case c: Create =>
+                Effect.reply(c.replyTo)(Bad(alreadyExists.error()))
+              case c: CommandWithOwnerReply[_] =>
+                edit.owner match
+                  case Some(person) =>
+                    if c.owner != person then
+                      Effect.reply(c.replyTo)(Bad(notOwner.error()))
+                    else
+                      takeCommand(edit, cmd, quizzes, ctx)
+                  case _ =>
+                    takeCommand(edit, cmd, quizzes, ctx)
+              case _ => takeCommand(edit, cmd, quizzes, ctx)
       ,
       (state, evt) =>
         state match
@@ -54,6 +66,8 @@ object SectionEditEntity:
       quizzes: String => EntityRef[Quiz.Command],
       ctx: ActorContext[Command]
   )(using ExecutionContext): Effect[Event, Option[SectionEdit]] = cmd match
+    case Update(_, title, replyTo) =>
+      Effect.persist(Updated(title)).thenReply(replyTo)(_ => Resp.OK)
     case Own(author, replyTo) => 
       edit.owner match
         case None =>
@@ -63,6 +77,8 @@ object SectionEditEntity:
 
   def takeEvent(edit: SectionEdit, evt: Event): SectionEdit =
     evt match
+      case Updated(title) =>
+        edit.copy(section = edit.section.copy(title = title))
       case Discharged =>
         edit.copy(owner = None)
       case Owned(owner) =>

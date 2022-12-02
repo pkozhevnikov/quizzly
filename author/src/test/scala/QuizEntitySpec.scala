@@ -380,6 +380,18 @@ class QuizEntitySpec
         result.state shouldBe defState.copy(scCounter = 2)
       }
 
+      "reject add section if already exists" in {
+        val defState = createComposing.stateOfType[Composing]
+        putSection("tq-1-1", Behaviors.receiveMessage {
+          case c: SectionEdit.Create =>
+            c.replyTo ! Bad(SectionEdit.alreadyExists.error() + "tq-1-1")
+            Behaviors.stopped
+        })
+        val result = kit.runCommand(AddSection(section.title, author1, _))
+        result.reply shouldBe Bad(SectionEdit.alreadyExists.error() + "tq-1-1")
+        result.state shouldBe defState.copy(scCounter = 2)
+      }
+
       def stdCreateSection = Behaviors.receiveMessage[SectionEdit.Command] {
         case c: SectionEdit.Create =>
           c.replyTo ! Resp.OK
@@ -770,18 +782,3 @@ class QuizEntitySpec
 
   }
 
-  // "Quiz entity" must {
-
-  /*
-    "add section" in {}
-    "reject section creation if title not specified" in {}
-    "reject section creation if quiz not found" in {}
-    "reject section creation if not author" in {}
-    "grab section" in {}
-    "reject grab section if not author" in {}
-    "reject grab section if section not found" in {}
-    "save section" in {}
-    "move section" in {}
-    "not move section if at top or bottom" in {}
-   */
-  // }
