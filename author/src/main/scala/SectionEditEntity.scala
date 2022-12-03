@@ -84,7 +84,7 @@ object SectionEditEntity:
             case None =>
               evt match
                 case Created(title, owner, quizID) =>
-                  Some(SectionEdit(Some(owner), Section(id, title, List.empty), quizID, 0))
+                  Some(SectionEdit(Some(owner), Section(id, title, List.empty), quizID))
                 case _ =>
                   state
             case Some(edit) =>

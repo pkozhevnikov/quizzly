@@ -2,7 +2,7 @@ package quizzly.author
 
 import akka.actor.typed.*
 
-case class SectionEdit(owner: Option[Author], section: Section, quizID: QuizID, scCounter: Int)
+case class SectionEdit(owner: Option[Author], section: Section, quizID: QuizID)
     extends CborSerializable:
   def nextItemSC() = (section.items.map(_.sc).map(_.toInt).maxOption.getOrElse(0) + 1).toString
 object SectionEdit:

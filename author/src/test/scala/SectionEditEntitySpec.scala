@@ -89,7 +89,7 @@ class SectionEditEntitySpec
         val result = kit.runCommand(Create(section.title, author1, "tq-1", _))
         result.reply shouldBe Resp.OK
         result.event shouldBe a[Created]
-        result.state shouldBe Some(SectionEdit(Some(author1), section0, "tq-1", 0))
+        result.state shouldBe Some(SectionEdit(Some(author1), section0, "tq-1"))
       }
 
       "reject create if short title" in {
@@ -145,7 +145,7 @@ class SectionEditEntitySpec
         val result = kit.runCommand(Update(author1, "new title", _))
         result.reply shouldBe Resp.OK
         result.state shouldBe
-          Some(SectionEdit(Some(author1), section0.copy(title = "new title"), "tq-1", 0))
+          Some(SectionEdit(Some(author1), section0.copy(title = "new title"), "tq-1"))
       }
 
       "be discharged" in {
