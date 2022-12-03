@@ -28,4 +28,10 @@ object Resp:
 
 type RespOK = Resp[Nothing]
 
-case class QuizConfig(minAuthors: Int, minInspectors: Int, minTrialLength: Int, minTitleLength: Int)
+case class QuizConfig(
+    minAuthors: Int,
+    minInspectors: Int,
+    minTrialLength: Int,
+    minTitleLength: Int,
+    inactivityMinutes: Int
+)

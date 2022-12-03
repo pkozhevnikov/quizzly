@@ -49,7 +49,7 @@ object SectionEdit:
   final case class RemoveItem(owner: Author, sc: SC, replyTo: ActorRef[RespOK]) extends CommandOK
   final case class ItemRemoved(sc: SC) extends Event
 
-  case object DischargeInternally extends Command
+  case object DischargeInactive extends Command
   final case class InternalDischarge(replyTo: ActorRef[RespOK]) extends CommandWithReply[Nothing]
   final case class Discharge(owner: Author, replyTo: ActorRef[RespOK]) extends CommandOK
   val notOwned = Reason(2016, "section is not owned")

@@ -1,13 +1,13 @@
 package quizzly.author
 
 import akka.actor.typed.{Behavior, ActorRef}
-import akka.actor.typed.scaladsl.{Behaviors, ActorContext}
+import akka.actor.typed.scaladsl.{Behaviors, ActorContext, TimerScheduler}
 import akka.cluster.sharding.typed.scaladsl.{EntityTypeKey, EntityRef}
 import akka.persistence.typed.PersistenceId
 import akka.persistence.typed.scaladsl.*
 
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.util.{Failure, Success}
 
 import org.slf4j.*
@@ -21,56 +21,72 @@ object SectionEditEntity:
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("SectionEdit")
 
+  val inact = "Inactive"
+
+  extension (timer: TimerScheduler[Command])
+    def reset(period: Int) = 
+      println("timer reset")
+      timer.cancel(inact)
+      timer.startSingleTimer(inact, DischargeInactive, FiniteDuration(period, MINUTES))
+    
+
   def apply(id: SC, quizzes: String => EntityRef[Quiz.Command], config: QuizConfig)(using
       ExecutionContext
-  ): Behavior[Command] = Behaviors.setup { ctx =>
-    EventSourcedBehavior[Command, Event, Option[SectionEdit]](
-      PersistenceId.ofUniqueId(id),
-      None,
-      (state, cmd) =>
-        state match
-          case None =>
-            cmd match
-              case Create(title, owner, quizID, replyTo) =>
-                Effect.persist(Created(title, owner, quizID)).thenReply(replyTo)(_ => Resp.OK)
-              case c: CommandWithReply[_] =>
-                Effect.reply(c.replyTo)(Bad(Quiz.sectionNotFound.error()))
-              case _ =>
-                Effect.unhandled
+  ): Behavior[Command] = Behaviors.withTimers { timer =>
+    Behaviors.setup { ctx =>
+      EventSourcedBehavior[Command, Event, Option[SectionEdit]](
+        PersistenceId.ofUniqueId(id),
+        None,
+        (state, cmd) =>
+          state match
+            case None =>
+              cmd match
+                case Create(title, owner, quizID, replyTo) =>
+                  Effect.persist(Created(title, owner, quizID)).thenReply(replyTo){ _ => 
+                    timer.reset(config.inactivityMinutes)
+                    Resp.OK
+                  }
+                case c: CommandWithReply[_] =>
+                  Effect.reply(c.replyTo)(Bad(Quiz.sectionNotFound.error()))
+                case _ =>
+                  Effect.unhandled
 
-          case Some(edit) =>
-            cmd match
-              case c: Create =>
-                Effect.reply(c.replyTo)(Bad(alreadyExists.error()))
-              case c: GetOwner =>
-                Effect.reply(c.replyTo)(Good(edit.owner))
-              case c: CommandWithOwnerReply[_] =>
-                edit.owner match
-                  case Some(person) =>
-                    if c.owner != person then
-                      Effect.reply(c.replyTo)(Bad(notOwner.error()))
-                    else
-                      takeCommand(edit, cmd, quizzes, ctx)
-                  case _ =>
-                    cmd match
-                      case _: Own =>
-                        Effect.persist(Owned(c.owner)).thenReply(c.replyTo)(_ => Resp.OK)
-                      case _ =>
-                        Effect.reply(c.replyTo)(Bad(notOwned.error()))
-              case _ =>
-                takeCommand(edit, cmd, quizzes, ctx)
-      ,
-      (state, evt) =>
-        state match
-          case None =>
-            evt match
-              case Created(title, owner, quizID) =>
-                Some(SectionEdit(Some(owner), Section(id, title, List.empty), quizID, 0))
-              case _ =>
-                state
-          case Some(edit) =>
-            Some(takeEvent(edit, evt))
-    )
+            case Some(edit) =>
+              cmd match
+                case c: Create =>
+                  Effect.reply(c.replyTo)(Bad(alreadyExists.error()))
+                case c: GetOwner =>
+                  Effect.reply(c.replyTo)(Good(edit.owner))
+                case c: CommandWithOwnerReply[_] =>
+                  edit.owner match
+                    case Some(person) =>
+                      if c.owner != person then
+                        Effect.reply(c.replyTo)(Bad(notOwner.error()))
+                      else
+                        timer.reset(config.inactivityMinutes)
+                        takeCommand(edit, cmd, quizzes, ctx)
+                    case _ =>
+                      cmd match
+                        case _: Own =>
+                          timer.reset(config.inactivityMinutes)
+                          Effect.persist(Owned(c.owner)).thenReply(c.replyTo)(_ => Resp.OK)
+                        case _ =>
+                          Effect.reply(c.replyTo)(Bad(notOwned.error()))
+                case _ =>
+                  takeCommand(edit, cmd, quizzes, ctx)
+        ,
+        (state, evt) =>
+          state match
+            case None =>
+              evt match
+                case Created(title, owner, quizID) =>
+                  Some(SectionEdit(Some(owner), Section(id, title, List.empty), quizID, 0))
+                case _ =>
+                  state
+            case Some(edit) =>
+              Some(takeEvent(edit, evt))
+      )
+    }
   }
 
   def takeCommand(
@@ -82,7 +98,11 @@ object SectionEditEntity:
     cmd match
       case Update(_, title, replyTo) =>
         Effect.persist(Updated(title)).thenReply(replyTo)(_ => Resp.OK)
-      case Discharge(author, replyTo) =>
+      case DischargeInactive =>
+        println("disinac")
+        ctx.self ! InternalDischarge(ctx.spawnAnonymous(Behaviors.ignore[RespOK]))
+        Effect.none
+      case Discharge(_, replyTo) =>
         quizzes(edit.quizID)
           .ask(Quiz.SaveSection(edit.section, _))(2.seconds)
           .onComplete {

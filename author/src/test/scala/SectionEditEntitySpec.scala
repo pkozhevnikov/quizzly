@@ -2,7 +2,7 @@ package quizzly.author
 
 import akka.actor.typed.*
 import scaladsl.Behaviors
-import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
+import akka.actor.testkit.typed.scaladsl.{ScalaTestWithActorTestKit, TestProbe, ManualTime}
 import akka.persistence.testkit.scaladsl.{EventSourcedBehaviorTestKit as TestKit}
 import akka.cluster.sharding.typed.scaladsl.EntityRef
 import akka.cluster.sharding.typed.testkit.scaladsl.TestEntityRef
@@ -13,16 +13,19 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import com.typesafe.config.*
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.*
 
 object SectionEditEntitySpec:
   val config: Config = ConfigFactory
     .parseString("""
+      akka.scheduler.implementation = "akka.testkit.ExplicitlyTriggeredScheduler"
       akka.actor {
         serialization-bindings {
           "quizzly.author.CborSerializable" = jackson-cbor
         }
       }
       """)
+    //.withFallback(ManualTime.config)
     .withFallback(TestKit.config)
 
 class SectionEditEntitySpec
@@ -35,6 +38,8 @@ class SectionEditEntitySpec
   import SectionEdit.*
   import Resp.*
 
+  val manualTime = ManualTime()
+
   private var quizm = scala.collection.mutable.Map.empty[SC, EntityRef[Quiz.Command]]
   private def putQuiz(id: QuizID, beh: Behavior[Quiz.Command]) =
     quizm += (id -> TestEntityRef(QuizEntity.EntityKey, id, testKit.spawn(beh)))
@@ -46,7 +51,8 @@ class SectionEditEntitySpec
     SectionEditEntity(
       id,
       quizm(_),
-      QuizConfig(minAuthors = 2, minInspectors = 2, minTrialLength = 3, minTitleLength = 2)
+      QuizConfig(minAuthors = 2, minInspectors = 2, minTrialLength = 3, minTitleLength = 2,
+        inactivityMinutes = 1)
     )
   )
 
@@ -223,6 +229,25 @@ class SectionEditEntitySpec
         val result = kit.runCommand(GetOwner(_))
         result.reply shouldBe Good(Some(author1))
         result.hasNoEvents
+      }
+
+      "discharge after inactivity period" in {
+        val probe = testKit.createTestProbe[Quiz.Command]()
+        putQuiz("tq-1", Behaviors.receiveMessage {
+          case c: Quiz.SaveSection =>
+            println("sec saved")
+            c.replyTo ! Resp.OK
+            Behaviors.stopped
+        })
+        create
+        val result1 = kit.runCommand(Own(author2, _))
+        result1.reply shouldBe Bad(notOwner.error())
+        //println(s"curtime ${testKit.scheduler.currentTimeMs}")
+        //manualTime.expectNoMessageFor(50.seconds, probe)
+        //manualTime.timePasses(20.seconds)
+        //probe.expectMessageType[Quiz.SaveSection]
+        val result2 = kit.runCommand(Discharge(author1, _))
+        result2.reply shouldBe Bad(notOwned.error())
       }
 
     }

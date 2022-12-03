@@ -46,7 +46,8 @@ class QuizEntitySpec
     QuizEntity(
       id,
       sectionsm(_),
-      QuizConfig(minAuthors = 2, minInspectors = 2, minTrialLength = 3, minTitleLength = 2)
+      QuizConfig(minAuthors = 2, minInspectors = 2, minTrialLength = 3, minTitleLength = 2,
+        inactivityMinutes = 1)
     )
   )
 
