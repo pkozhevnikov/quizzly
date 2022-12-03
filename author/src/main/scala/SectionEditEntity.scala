@@ -135,8 +135,11 @@ object SectionEditEntity:
         Effect.none
       case InternalDischarge(replyTo) =>
         Effect.persist(Discharged).thenReply(replyTo)(_ => Resp.OK)
-      case NextItemSC(_, replyTo) =>
-        Effect.persist(SCIncrement).thenReply(replyTo)(s => Good(s.get.scCounter.toString))
+      case AddItem(_, replyTo) =>
+        val sc = edit.nextItemSC()
+        Effect
+          .persist(ItemSaved(Item(sc, "", Statement("", None), List.empty, false, List.empty)))
+          .thenReply(replyTo)(_ => Good(sc))
       case SaveItem(_, item, replyTo) =>
         Effect.persist(ItemSaved(item)).thenReply(replyTo)(_ => Resp.OK)
       case RemoveItem(_, sc, replyTo) =>
@@ -162,8 +165,6 @@ object SectionEditEntity:
         edit.copy(section = edit.section.copy(title = title))
       case Discharged =>
         edit.copy(owner = None)
-      case SCIncrement =>
-        edit.copy(scCounter = edit.scCounter + 1)
       case ItemSaved(item) =>
         val idx = edit.section.items.indexWhere(_.sc == item.sc)
         if idx == -1 then

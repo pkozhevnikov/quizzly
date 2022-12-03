@@ -3,7 +3,8 @@ package quizzly.author
 import akka.actor.typed.*
 
 case class SectionEdit(owner: Option[Author], section: Section, quizID: QuizID, scCounter: Int)
-    extends CborSerializable
+    extends CborSerializable:
+  def nextItemSC() = (section.items.map(_.sc).map(_.toInt).maxOption.getOrElse(0) + 1).toString
 object SectionEdit:
 
   sealed trait Command extends CborSerializable
@@ -33,9 +34,8 @@ object SectionEdit:
   final case class Updated(title: String) extends Event
   val notOwner = Reason(2012, "not an owner")
 
-  final case class NextItemSC(owner: Author, replyTo: ActorRef[Resp[SC]])
+  final case class AddItem(owner: Author, replyTo: ActorRef[Resp[SC]])
       extends CommandWithOwnerReply[SC]
-  case object SCIncrement extends Event
 
   final case class SaveItem(owner: Author, item: Item, replyTo: ActorRef[RespOK]) extends CommandOK
   val itemNotFound = Reason(2011, "item not found")

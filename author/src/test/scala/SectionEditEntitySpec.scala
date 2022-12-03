@@ -68,6 +68,8 @@ class SectionEditEntitySpec
   val author2 = Person("author2", "author2 name")
   val author3 = Person("author3", "author3 name")
 
+  val emptyItem = Item("", "", Statement("", None), List.empty, false, List.empty)
+
   val item = Item(
     "1",
     "item1",
@@ -105,7 +107,7 @@ class SectionEditEntitySpec
         rejected(
           Update(author1, "title", _),
           Own(author1, _),
-          NextItemSC(author1, _),
+          AddItem(author1, _),
           SaveItem(author1, item, _),
           RemoveItem(author1, "", _),
           MoveItem(author1, "", false, _),
@@ -160,16 +162,18 @@ class SectionEditEntitySpec
         result.stateOfType[Option[SectionEdit]].get.owner shouldBe None
       }
 
-      "return next item sc" in {
+      "add item" in {
         create
-        val result = kit.runCommand(NextItemSC(author1, _))
+        val result = kit.runCommand(AddItem(author1, _))
         result.reply shouldBe Good("1")
-        result.event shouldBe SCIncrement
-        result.stateOfType[Option[SectionEdit]].get.scCounter shouldBe 1
+        result.event shouldBe ItemSaved(emptyItem.copy(sc = "1"))
+        result.stateOfType[Option[SectionEdit]].get.section.items shouldBe
+          List(emptyItem.copy(sc = "1"))
       }
 
       "save item" in {
         create
+        kit.runCommand(AddItem(author1, _))
         val result = kit.runCommand(SaveItem(author1, item, _))
         result.reply shouldBe Resp.OK
         result.event shouldBe a[ItemSaved]
@@ -220,8 +224,10 @@ class SectionEditEntitySpec
 
       "move item" in {
         create
+        kit.runCommand(AddItem(author1, _))
         kit.runCommand(SaveItem(author1, item, _))
         val item2 = item.copy(sc = "2")
+        kit.runCommand(AddItem(author1, _))
         val result0 = kit.runCommand(SaveItem(author1, item2, _))
         result0.stateOfType[Option[SectionEdit]].get.section.items shouldBe List(item, item2)
 
@@ -308,7 +314,7 @@ class SectionEditEntitySpec
         }
         rejected(
           Update(author1, "title", _),
-          NextItemSC(author1, _),
+          AddItem(author1, _),
           SaveItem(author1, item, _),
           RemoveItem(author1, "", _),
           MoveItem(author1, "", false, _),
