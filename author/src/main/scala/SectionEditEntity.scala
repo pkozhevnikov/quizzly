@@ -42,6 +42,8 @@ object SectionEditEntity:
             cmd match
               case c: Create =>
                 Effect.reply(c.replyTo)(Bad(alreadyExists.error()))
+              case c: GetOwner =>
+                Effect.reply(c.replyTo)(Good(edit.owner))
               case c: CommandWithOwnerReply[_] =>
                 edit.owner match
                   case Some(person) =>
@@ -50,8 +52,13 @@ object SectionEditEntity:
                     else
                       takeCommand(edit, cmd, quizzes, ctx)
                   case _ =>
-                    takeCommand(edit, cmd, quizzes, ctx)
-              case _ => takeCommand(edit, cmd, quizzes, ctx)
+                    cmd match
+                      case _: Own =>
+                        Effect.persist(Owned(c.owner)).thenReply(c.replyTo)(_ => Resp.OK)
+                      case _ =>
+                        Effect.reply(c.replyTo)(Bad(notOwned.error()))
+              case _ =>
+                takeCommand(edit, cmd, quizzes, ctx)
       ,
       (state, evt) =>
         state match
@@ -71,43 +78,47 @@ object SectionEditEntity:
       cmd: Command,
       quizzes: String => EntityRef[Quiz.Command],
       ctx: ActorContext[Command]
-  )(using ExecutionContext): Effect[Event, Option[SectionEdit]] = cmd match
-    case Update(_, title, replyTo) =>
-      Effect.persist(Updated(title)).thenReply(replyTo)(_ => Resp.OK)
-    case Own(author, replyTo) => 
-      Effect.persist(Owned(author)).thenReply(replyTo)(_ => Resp.OK)
-    case Discharge(author, replyTo) =>
-      quizzes(edit.quizID).ask(Quiz.SaveSection(edit.section, _))(2.seconds).onComplete {
-        case Success(r) =>
-          r match
-            case Resp.OK =>
-              ctx.self ! InternalDischarge(replyTo)
-            case Bad(e) =>
-              replyTo ! Bad(e)
-        case Failure(ex) =>
-          log.error("quiz could not save section", ex)
-          replyTo ! Bad(Quiz.unprocessed(ex.getMessage).error())
-      }
-      Effect.none
-    case InternalDischarge(replyTo) =>
-      Effect.persist(Discharged).thenReply(replyTo)(_ => Resp.OK)
-    case NextItemSC(_, replyTo) =>
-      Effect.persist(SCIncrement).thenReply(replyTo)(s => Good(s.get.scCounter.toString))
-    case SaveItem(_, item, replyTo) =>
-      Effect.persist(ItemSaved(item)).thenReply(replyTo)(_ => Resp.OK)
-    case RemoveItem(_, sc, replyTo) =>
-      if !edit.section.items.exists(_.sc == sc) then
-        println(s"${edit.section.items.map(_.sc)} sc=$sc")
-        Effect.reply(replyTo)(Bad(itemNotFound.error() + sc))
-      else
-        Effect.persist(ItemRemoved(sc)).thenReply(replyTo)(_ => Resp.OK)
-    case MoveItem(_, sc, up, replyTo) =>
-      if edit.section.items.head.sc == sc || edit.section.items.last.sc == sc then
-        Effect.reply(replyTo)(Bad(cannotMove.error()))
-      else
-        Effect.persist(ItemMoved(sc, up)).thenReply(replyTo)(s => Good(s.get.section.items.map(_.sc)))
-      
-      
+  )(using ExecutionContext): Effect[Event, Option[SectionEdit]] =
+    cmd match
+      case Update(_, title, replyTo) =>
+        Effect.persist(Updated(title)).thenReply(replyTo)(_ => Resp.OK)
+      case Discharge(author, replyTo) =>
+        quizzes(edit.quizID)
+          .ask(Quiz.SaveSection(edit.section, _))(2.seconds)
+          .onComplete {
+            case Success(r) =>
+              r match
+                case Resp.OK =>
+                  ctx.self ! InternalDischarge(replyTo)
+                case Bad(e) =>
+                  replyTo ! Bad(e)
+            case Failure(ex) =>
+              log.error("quiz could not save section", ex)
+              replyTo ! Bad(Quiz.unprocessed(ex.getMessage).error())
+          }
+        Effect.none
+      case InternalDischarge(replyTo) =>
+        Effect.persist(Discharged).thenReply(replyTo)(_ => Resp.OK)
+      case NextItemSC(_, replyTo) =>
+        Effect.persist(SCIncrement).thenReply(replyTo)(s => Good(s.get.scCounter.toString))
+      case SaveItem(_, item, replyTo) =>
+        Effect.persist(ItemSaved(item)).thenReply(replyTo)(_ => Resp.OK)
+      case RemoveItem(_, sc, replyTo) =>
+        if !edit.section.items.exists(_.sc == sc) then
+          Effect.reply(replyTo)(Bad(itemNotFound.error() + sc))
+        else
+          Effect.persist(ItemRemoved(sc)).thenReply(replyTo)(_ => Resp.OK)
+      case MoveItem(_, sc, up, replyTo) =>
+        if edit.section.items.isEmpty || !edit.section.items.exists(_.sc == sc) then
+          Effect.reply(replyTo)(Bad(itemNotFound.error() + sc))
+        else if (up && edit.section.items.head.sc == sc) ||
+          (!up && edit.section.items.last.sc == sc)
+        then
+          Effect.reply(replyTo)(Bad(cannotMove.error()))
+        else
+          Effect
+            .persist(ItemMoved(sc, up))
+            .thenReply(replyTo)(s => Good(s.get.section.items.map(_.sc)))
 
   def takeEvent(edit: SectionEdit, evt: Event): SectionEdit =
     evt match
@@ -126,6 +137,25 @@ object SectionEditEntity:
           edit.copy(section = edit.section.copy(items = edit.section.items.updated(idx, item)))
       case ItemRemoved(sc) =>
         edit.copy(section = edit.section.copy(items = edit.section.items.filterNot(_.sc == sc)))
+      case ItemMoved(sc, up) =>
+        def move(seq: List[Item]): List[Item] =
+          seq match
+            case Nil =>
+              seq
+            case _ +: Nil =>
+              seq
+            case h +: t =>
+              if (
+                  if up then
+                    t.head
+                  else
+                    h
+                ).sc == sc
+              then
+                t.head +: (h +: t.tail)
+              else
+                h +: move(t)
+        edit.copy(section = edit.section.copy(items = move(edit.section.items)))
       case Owned(owner) =>
         edit.copy(owner = Some(owner))
 

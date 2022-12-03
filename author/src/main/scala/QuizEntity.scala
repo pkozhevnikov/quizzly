@@ -197,7 +197,8 @@ object QuizEntity:
               else if !composing.authors(owner) then
                 Effect.reply(replyTo)(Bad(notAuthor.error()))
               else
-                sections(sc).ask(SectionEdit.Own(owner, _))(2.seconds)
+                sections(sc)
+                  .ask(SectionEdit.Own(owner, _))(2.seconds)
                   .onComplete {
                     case Success(r: RespOK) =>
                       replyTo ! r

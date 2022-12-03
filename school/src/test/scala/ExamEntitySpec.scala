@@ -340,7 +340,7 @@ class ExamEntitySpec
     }
 
     "InProgress" must {
-      
+
       "be cancelled" in {
         val initial = init
         factKit.runCommand(Proceed)
@@ -393,13 +393,7 @@ class ExamEntitySpec
         val result = factKit.runCommand(Proceed)
         result.event shouldBe GoneEnded
         result.state shouldBe
-          Ended(
-            quiz,
-            pending.trialLengthMinutes,
-            pending.period,
-            pending.testees,
-            pending.host
-          )
+          Ended(quiz, pending.trialLengthMinutes, pending.period, pending.testees, pending.host)
       }
 
     }

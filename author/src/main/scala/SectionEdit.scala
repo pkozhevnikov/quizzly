@@ -11,7 +11,7 @@ object SectionEdit:
     val replyTo: ActorRef[Resp[R]]
   sealed trait CommandWithOwnerReply[R] extends CommandWithReply[R]:
     val owner: Author
-  
+
   type CommandOK = CommandWithOwnerReply[Nothing]
 
   sealed trait Event extends CborSerializable
@@ -33,14 +33,11 @@ object SectionEdit:
   final case class Updated(title: String) extends Event
   val notOwner = Reason(2012, "not an owner")
 
-  final case class NextItemSC(owner: Author, replyTo: ActorRef[Resp[SC]]) extends CommandWithOwnerReply[SC]
+  final case class NextItemSC(owner: Author, replyTo: ActorRef[Resp[SC]])
+      extends CommandWithOwnerReply[SC]
   case object SCIncrement extends Event
 
-  final case class SaveItem(
-      owner: Author,
-      item: Item,
-      replyTo: ActorRef[RespOK]
-  ) extends CommandOK
+  final case class SaveItem(owner: Author, item: Item, replyTo: ActorRef[RespOK]) extends CommandOK
   val itemNotFound = Reason(2011, "item not found")
   final case class ItemSaved(item: Item) extends Event
 

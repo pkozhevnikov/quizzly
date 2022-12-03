@@ -382,11 +382,13 @@ class QuizEntitySpec
 
       "reject add section if already exists" in {
         val defState = createComposing.stateOfType[Composing]
-        putSection("tq-1-1", Behaviors.receiveMessage {
-          case c: SectionEdit.Create =>
+        putSection(
+          "tq-1-1",
+          Behaviors.receiveMessage { case c: SectionEdit.Create =>
             c.replyTo ! Bad(SectionEdit.alreadyExists.error() + "tq-1-1")
             Behaviors.stopped
-        })
+          }
+        )
         val result = kit.runCommand(AddSection(section.title, author1, _))
         result.reply shouldBe Bad(SectionEdit.alreadyExists.error() + "tq-1-1")
         result.state shouldBe defState.copy(scCounter = 2)
@@ -781,4 +783,3 @@ class QuizEntitySpec
     }
 
   }
-
