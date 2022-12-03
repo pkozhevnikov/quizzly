@@ -25,7 +25,7 @@ object SectionEditEntitySpec:
         }
       }
       """)
-    //.withFallback(ManualTime.config)
+    // .withFallback(ManualTime.config)
     .withFallback(TestKit.config)
 
 class SectionEditEntitySpec
@@ -51,8 +51,13 @@ class SectionEditEntitySpec
     SectionEditEntity(
       id,
       quizm(_),
-      QuizConfig(minAuthors = 2, minInspectors = 2, minTrialLength = 3, minTitleLength = 2,
-        inactivityMinutes = 1)
+      QuizConfig(
+        minAuthors = 2,
+        minInspectors = 2,
+        minTrialLength = 3,
+        minTitleLength = 2,
+        inactivityMinutes = 1
+      )
     )
   )
 
@@ -84,6 +89,12 @@ class SectionEditEntitySpec
         result.reply shouldBe Resp.OK
         result.event shouldBe a[Created]
         result.state shouldBe Some(SectionEdit(Some(author1), section0, "tq-1", 0))
+      }
+
+      "reject create if short title" in {
+        val result = kit.runCommand(Create("x", author1, "t1-1", _))
+        result.reply shouldBe Bad(Quiz.tooShortTitle.error())
+        result.hasNoEvents
       }
 
       "reject other actions" in {
@@ -233,19 +244,22 @@ class SectionEditEntitySpec
 
       "discharge after inactivity period" in {
         val probe = testKit.createTestProbe[Quiz.Command]()
-        putQuiz("tq-1", Behaviors.receiveMessage {
-          case c: Quiz.SaveSection =>
-            println("sec saved")
-            c.replyTo ! Resp.OK
-            Behaviors.stopped
-        })
+        putQuiz(
+          "tq-1",
+          Behaviors.monitor(
+            probe.ref,
+            Behaviors.receiveMessage { case c: Quiz.SaveSection =>
+              c.replyTo ! Resp.OK
+              Behaviors.stopped
+            }
+          )
+        )
         create
         val result1 = kit.runCommand(Own(author2, _))
         result1.reply shouldBe Bad(notOwner.error())
-        //println(s"curtime ${testKit.scheduler.currentTimeMs}")
-        //manualTime.expectNoMessageFor(50.seconds, probe)
-        //manualTime.timePasses(20.seconds)
-        //probe.expectMessageType[Quiz.SaveSection]
+        manualTime.expectNoMessageFor(50.seconds, probe)
+        manualTime.timePasses(20.seconds)
+        probe.expectMessageType[Quiz.SaveSection]
         val result2 = kit.runCommand(Discharge(author1, _))
         result2.reply shouldBe Bad(notOwned.error())
       }

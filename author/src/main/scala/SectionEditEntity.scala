@@ -24,11 +24,10 @@ object SectionEditEntity:
   val inact = "Inactive"
 
   extension (timer: TimerScheduler[Command])
-    def reset(period: Int) = 
+    def reset(period: Int) =
       println("timer reset")
       timer.cancel(inact)
       timer.startSingleTimer(inact, DischargeInactive, FiniteDuration(period, MINUTES))
-    
 
   def apply(id: SC, quizzes: String => EntityRef[Quiz.Command], config: QuizConfig)(using
       ExecutionContext
@@ -42,10 +41,15 @@ object SectionEditEntity:
             case None =>
               cmd match
                 case Create(title, owner, quizID, replyTo) =>
-                  Effect.persist(Created(title, owner, quizID)).thenReply(replyTo){ _ => 
-                    timer.reset(config.inactivityMinutes)
-                    Resp.OK
-                  }
+                  if title.trim().length() < config.minTitleLength then
+                    Effect.reply(replyTo)(Bad(Quiz.tooShortTitle.error()))
+                  else
+                    Effect
+                      .persist(Created(title, owner, quizID))
+                      .thenReply(replyTo) { _ =>
+                        timer.reset(config.inactivityMinutes)
+                        Resp.OK
+                      }
                 case c: CommandWithReply[_] =>
                   Effect.reply(c.replyTo)(Bad(Quiz.sectionNotFound.error()))
                 case _ =>
@@ -99,8 +103,20 @@ object SectionEditEntity:
       case Update(_, title, replyTo) =>
         Effect.persist(Updated(title)).thenReply(replyTo)(_ => Resp.OK)
       case DischargeInactive =>
-        println("disinac")
-        ctx.self ! InternalDischarge(ctx.spawnAnonymous(Behaviors.ignore[RespOK]))
+        ctx.self !
+          Discharge(
+            edit.owner.get,
+            ctx.spawnAnonymous(
+              Behaviors.receiveMessage[RespOK] {
+                case Resp.OK =>
+                  log.debug("discharged as inactive {} {}", edit.section.sc, edit.owner.get)
+                  Behaviors.stopped
+                case Bad(e) =>
+                  log.error("cannot discharge: {}", e)
+                  Behaviors.stopped
+              }
+            )
+          )
         Effect.none
       case Discharge(_, replyTo) =>
         quizzes(edit.quizID)
