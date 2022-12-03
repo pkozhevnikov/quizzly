@@ -18,14 +18,13 @@ import scala.concurrent.duration.*
 object SectionEditEntitySpec:
   val config: Config = ConfigFactory
     .parseString("""
-      akka.scheduler.implementation = "akka.testkit.ExplicitlyTriggeredScheduler"
       akka.actor {
         serialization-bindings {
           "quizzly.author.CborSerializable" = jackson-cbor
         }
       }
       """)
-    // .withFallback(ManualTime.config)
+    .withFallback(ManualTime.config)
     .withFallback(TestKit.config)
 
 class SectionEditEntitySpec
