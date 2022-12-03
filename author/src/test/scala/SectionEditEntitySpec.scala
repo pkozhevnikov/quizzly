@@ -78,7 +78,7 @@ class SectionEditEntitySpec
     true,
     List(1)
   )
-  val section0 = Section("tq-1-1", "section title", List.empty)
+  val section0 = Section("tq-1-1", "section title", "section intro", List.empty)
   val section = section0.copy(items = List(item))
 
   "SectionEditEntity" when {
@@ -89,7 +89,7 @@ class SectionEditEntitySpec
         val result = kit.runCommand(Create(section.title, author1, "tq-1", _))
         result.reply shouldBe Resp.OK
         result.event shouldBe a[Created]
-        result.state shouldBe Some(SectionEdit(Some(author1), section0, "tq-1"))
+        result.state shouldBe Some(SectionEdit(Some(author1), section0.copy(intro = ""), "tq-1"))
       }
 
       "reject create if short title" in {
@@ -105,7 +105,7 @@ class SectionEditEntitySpec
         }
 
         rejected(
-          Update(author1, "title", _),
+          Update(author1, "title", "intro", _),
           Own(author1, _),
           AddItem(author1, _),
           SaveItem(author1, item, _),
@@ -137,15 +137,28 @@ class SectionEditEntitySpec
 
       "reject action by other author" in {
         create
-        rejectAuthor(Update(author2, "", _), Discharge(author2, _))
+        rejectAuthor(Update(author2, "", "", _), Discharge(author2, _))
       }
 
       "be updated" in {
         create
-        val result = kit.runCommand(Update(author1, "new title", _))
+        val result = kit.runCommand(Update(author1, "new title", "new intro", _))
         result.reply shouldBe Resp.OK
         result.state shouldBe
-          Some(SectionEdit(Some(author1), section0.copy(title = "new title"), "tq-1"))
+          Some(
+            SectionEdit(
+              Some(author1),
+              section0.copy(title = "new title", intro = "new intro"),
+              "tq-1"
+            )
+          )
+      }
+
+      "reject update if title short" in {
+        create
+        val result = kit.runCommand(Update(author1, "x", "y", _))
+        result.reply shouldBe Bad(Quiz.tooShortTitle.error())
+        result.hasNoEvents
       }
 
       "be discharged" in {
@@ -313,7 +326,7 @@ class SectionEditEntitySpec
           result.reply shouldBe Bad(notOwned.error())
         }
         rejected(
-          Update(author1, "title", _),
+          Update(author1, "title", "intro", _),
           AddItem(author1, _),
           SaveItem(author1, item, _),
           RemoveItem(author1, "", _),

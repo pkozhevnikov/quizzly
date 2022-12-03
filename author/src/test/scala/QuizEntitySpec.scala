@@ -81,7 +81,7 @@ class QuizEntitySpec
     true,
     List(1)
   )
-  val section = Section("tq-1-1", "section title", List(item))
+  val section = Section("tq-1-1", "section title", "section intro", List(item))
 
   def createComposing =
     val result = kit.runCommand(Create(id, title, intro, curator, authors, inspectors, lenMins, _))
@@ -414,10 +414,10 @@ class QuizEntitySpec
         val result = kit.runCommand(AddSection(section.title, author1, _))
         result.reply shouldBe Good("tq-1-1")
         result.events shouldBe
-          Seq(SCIncrement, SectionSaved(Section("tq-1-1", section.title, List.empty)))
+          Seq(SCIncrement, SectionSaved(Section("tq-1-1", section.title, "", List.empty)))
         result.state shouldBe
           defState
-            .copy(scCounter = 2, sections = List(Section("tq-1-1", section.title, List.empty)))
+            .copy(scCounter = 2, sections = List(Section("tq-1-1", section.title, "", List.empty)))
       }
 
       "save section" in {

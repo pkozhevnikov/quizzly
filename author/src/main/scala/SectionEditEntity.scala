@@ -45,7 +45,7 @@ object SectionEditEntity:
                     Effect.reply(replyTo)(Bad(Quiz.tooShortTitle.error()))
                   else
                     Effect
-                      .persist(Created(title, owner, quizID))
+                      .persist(Created(title.trim(), owner, quizID))
                       .thenReply(replyTo) { _ =>
                         timer.reset(config.inactivityMinutes)
                         Resp.OK
@@ -68,7 +68,7 @@ object SectionEditEntity:
                         Effect.reply(c.replyTo)(Bad(notOwner.error()))
                       else
                         timer.reset(config.inactivityMinutes)
-                        takeCommand(edit, cmd, quizzes, ctx)
+                        takeCommand(edit, cmd, quizzes, ctx, config)
                     case _ =>
                       cmd match
                         case _: Own =>
@@ -77,14 +77,14 @@ object SectionEditEntity:
                         case _ =>
                           Effect.reply(c.replyTo)(Bad(notOwned.error()))
                 case _ =>
-                  takeCommand(edit, cmd, quizzes, ctx)
+                  takeCommand(edit, cmd, quizzes, ctx, config)
         ,
         (state, evt) =>
           state match
             case None =>
               evt match
                 case Created(title, owner, quizID) =>
-                  Some(SectionEdit(Some(owner), Section(id, title, List.empty), quizID))
+                  Some(SectionEdit(Some(owner), Section(id, title, "", List.empty), quizID))
                 case _ =>
                   state
             case Some(edit) =>
@@ -97,11 +97,15 @@ object SectionEditEntity:
       edit: SectionEdit,
       cmd: Command,
       quizzes: String => EntityRef[Quiz.Command],
-      ctx: ActorContext[Command]
+      ctx: ActorContext[Command],
+      config: QuizConfig
   )(using ExecutionContext): Effect[Event, Option[SectionEdit]] =
     cmd match
-      case Update(_, title, replyTo) =>
-        Effect.persist(Updated(title)).thenReply(replyTo)(_ => Resp.OK)
+      case Update(_, title, intro, replyTo) =>
+        if title.trim().length < config.minTitleLength then
+          Effect.reply(replyTo)(Bad(Quiz.tooShortTitle.error()))
+        else
+          Effect.persist(Updated(title.trim(), intro)).thenReply(replyTo)(_ => Resp.OK)
       case DischargeInactive =>
         ctx.self !
           Discharge(
@@ -161,8 +165,8 @@ object SectionEditEntity:
 
   def takeEvent(edit: SectionEdit, evt: Event): SectionEdit =
     evt match
-      case Updated(title) =>
-        edit.copy(section = edit.section.copy(title = title))
+      case Updated(title, intro) =>
+        edit.copy(section = edit.section.copy(title = title, intro = intro))
       case Discharged =>
         edit.copy(owner = None)
       case ItemSaved(item) =>

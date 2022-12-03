@@ -142,7 +142,7 @@ object QuizEntity:
                     case Success(r) =>
                       r match
                         case Resp.OK =>
-                          ctx.self ! SaveSection(Section(sc, c.title, List.empty), c.replyTo)
+                          ctx.self ! SaveSection(Section(sc, c.title, "", List.empty), c.replyTo)
                         case Bad(e) =>
                           c.replyTo ! Bad(e)
                     case Failure(ex) =>

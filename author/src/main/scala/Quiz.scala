@@ -22,7 +22,8 @@ final case class Item(
     solutions: List[HintIdx]
 ) extends CborSerializable
 
-final case class Section(sc: SC, title: String, items: List[Item]) extends CborSerializable
+final case class Section(sc: SC, title: String, intro: String, items: List[Item])
+    extends CborSerializable
 
 sealed trait Quiz extends CborSerializable:
   def id: QuizID
