@@ -66,8 +66,11 @@ object QuizEntity:
                 case _ =>
                   Effect
                     .persist(Created(id, titl, intro, curator, auths, insps, length))
-                    .thenReply(replyTo) { case s: Composing =>
-                      Good(CreateDetails(s.authors, s.inspectors))
+                    .thenReply(replyTo) {
+                      case s: Composing =>
+                        Good(CreateDetails(s.authors, s.inspectors))
+                      case _ =>
+                        Bad(unprocessed("nonsence").error())
                     }
             case c: CommandWithReply[_] =>
               Effect
@@ -167,8 +170,11 @@ object QuizEntity:
                 else
                   Effect
                     .persist(SectionMoved(sc, up))
-                    .thenReply(replyTo) { case ns: Composing =>
-                      Good(ns.sections.map(_.sc))
+                    .thenReply(replyTo) {
+                      case ns: Composing =>
+                        Good(ns.sections.map(_.sc))
+                      case _ =>
+                        Bad(unprocessed("nonsence").error())
                     }
             case RemoveSection(sc, author, replyTo) =>
               if !composing.authors(author) then
@@ -313,24 +319,14 @@ object QuizEntity:
               else
                 composing.copy(sections = composing.sections :+ section)
             case SectionMoved(sc, up) =>
-              def move(list: List[Section]): List[Section] =
-                list match
-                  case Nil =>
-                    list
-                  case _ +: Nil =>
-                    list
-                  case h +: t =>
-                    if (
-                        if up then
-                          t.head
-                        else
-                          h
-                      ).sc == sc
-                    then
-                      t.head +: (h +: t.tail)
-                    else
-                      h +: move(t)
-              composing.copy(sections = move(composing.sections))
+              val l = composing.sections
+              val from = l.indexWhere(_.sc == sc)
+              val to =
+                if up then
+                  from - 1
+                else
+                  from + 1
+              composing.copy(sections = l.patch(from, List(), 1).patch(to, List(l(from)), 0))
             case SectionRemoved(sc) =>
               composing.copy(sections = composing.sections.filter(_.sc != sc))
             case _ => // final

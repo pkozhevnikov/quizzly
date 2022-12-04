@@ -112,7 +112,7 @@ object SectionEditEntity:
             edit.owner.get,
             ctx.spawnAnonymous(
               Behaviors.receiveMessage[RespOK] {
-                case Resp.OK =>
+                case Resp.OK | Good(_) =>
                   log.debug("discharged as inactive {} {}", edit.section.sc, edit.owner.get)
                   Behaviors.stopped
                 case Bad(e) =>
@@ -162,6 +162,8 @@ object SectionEditEntity:
           Effect
             .persist(ItemMoved(sc, up))
             .thenReply(replyTo)(s => Good(s.get.section.items.map(_.sc)))
+      case _ =>
+        Effect.unhandled
 
   def takeEvent(edit: SectionEdit, evt: Event): SectionEdit =
     evt match
@@ -179,24 +181,16 @@ object SectionEditEntity:
       case ItemRemoved(sc) =>
         edit.copy(section = edit.section.copy(items = edit.section.items.filterNot(_.sc == sc)))
       case ItemMoved(sc, up) =>
-        def move(seq: List[Item]): List[Item] =
-          seq match
-            case Nil =>
-              seq
-            case _ +: Nil =>
-              seq
-            case h +: t =>
-              if (
-                  if up then
-                    t.head
-                  else
-                    h
-                ).sc == sc
-              then
-                t.head +: (h +: t.tail)
-              else
-                h +: move(t)
-        edit.copy(section = edit.section.copy(items = move(edit.section.items)))
+        val l = edit.section.items
+        val from = l.indexWhere(_.sc == sc)
+        val to =
+          if up then
+            from - 1
+          else
+            from + 1
+        edit.copy(section =
+          edit.section.copy(items = l.patch(from, List(), 1).patch(to, List(l(from)), 0))
+        )
       case Owned(owner) =>
         edit.copy(owner = Some(owner))
 
