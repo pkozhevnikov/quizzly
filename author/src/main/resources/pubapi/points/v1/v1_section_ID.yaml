@@ -1,0 +1,110 @@
+put:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  summary: update section
+  description: |
+    Updates section
+  operationId: updatesection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+  -
+    in: body
+    name: section-main
+    required: true
+    schema:
+      $ref: /pubapi/schemas/update-section.yaml
+
+  responses:
+    204:
+      description: section updated
+    417:
+      description: error
+
+head:
+  tags:
+  - v1
+  summary: discharge section
+  description: |
+    Discharges section
+  operationId: dischargesection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+
+  responses:
+    204:
+      description: section discharged
+    417:
+      description: error
+
+delete:
+  tags:
+  - v1
+  summary: remove section
+  description: |
+    Removes section
+  operationId: removesection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+
+  responses:
+    204:
+      description: section removed
+    417:
+      description: error
+
+patch:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: move section
+  description: |
+    Moves section
+  operationId: movesection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+  -
+    in: query
+    name: up
+    required: true
+    description: move section up, true or false
+    type: string
+
+  responses:
+    200:
+      description: section moved, response is new order of section IDs
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/sc.yaml
+    417:
+      description: error
+
+
+definitions:
+  sc.yaml:
+    $ref: /pubapi/schemas/sc.yaml
+  update-section.yaml:
+    $ref: /pubapi/schemas/update-section.yaml

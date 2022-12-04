@@ -1,0 +1,9 @@
+type: object
+properties:
+  code:
+    type: integer
+  phrase:
+    type: string
+required:
+- code
+- phrase

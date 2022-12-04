@@ -1,0 +1,32 @@
+post:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  produces:
+  - application/json
+  summary: add section
+  description: |
+    Adds new section
+  operationId: addsection
+  parameters:
+  -
+    in: body
+    name: section-main
+    required: true
+    description: section main attributes
+    schema:
+      $ref: /pubapi/schemas/create-section.yaml
+
+  responses:
+    200:
+      description: section created, returns ID of new section
+      schema: 
+        $ref: /pubapi/schemas/sc.yaml
+
+
+definitions:
+  sc.yaml:
+    $ref: /pubapi/schemas/sc.yaml
+  create-section.yaml:
+    $ref: /pubapi/schemas/create-section.yaml

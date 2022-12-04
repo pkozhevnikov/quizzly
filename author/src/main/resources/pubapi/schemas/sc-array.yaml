@@ -1,0 +1,7 @@
+type: array
+items:
+  $ref: /pubapi/schemas/sc.yaml
+
+definitions:
+  sc.yaml:
+    $ref: /pubapi/schemas/sc.yaml

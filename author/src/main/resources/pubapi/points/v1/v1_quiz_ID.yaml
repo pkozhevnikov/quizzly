@@ -1,0 +1,122 @@
+put:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  summary: Update quiz
+  description: |
+    updates main quiz attributes
+  operationId: updatequiz
+  parameters:
+  -
+    in: body
+    name: quiz-main
+    required: true
+    schema:
+      $ref: /pubapi/schemas/update-quiz.yaml
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+
+  responses:
+    204:
+      description: normal response
+    417:
+      description: error
+
+post:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  produces:
+  - application/json
+  summary: add section
+  description: |
+    Adds new section
+  operationId: addsection
+  parameters:
+  -
+    in: body
+    name: section-main
+    required: true
+    description: section main attributes
+    schema:
+      $ref: /pubapi/schemas/create-section.yaml
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+
+  responses:
+    200:
+      description: section created, returns ID of new section
+      schema: 
+        $ref: /pubapi/schemas/sc.yaml
+
+head:
+  tags:
+  - v1
+  summary: own section
+  description: |
+    Authors owns section for work
+  operationId: ownsection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+  -
+    in: query
+    name: sectionId
+    required: true
+    description: section ID
+    type: string
+
+  responses:
+    204:
+      description: section owned
+    417:
+      description: error
+
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: get quiz
+  description: |
+    Get quiz
+  operationId: getquiz
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: normal response
+      schema: 
+        $ref: /pubapi/schemas/quiz.yaml
+    417:
+      description: error
+
+
+definitions:
+  sc.yaml:
+    $ref: /pubapi/schemas/sc.yaml
+  update-quiz.yaml:
+    $ref: /pubapi/schemas/update-quiz.yaml
+  quiz.yaml:
+    $ref: /pubapi/schemas/quiz.yaml
+  create-section.yaml:
+    $ref: /pubapi/schemas/create-section.yaml

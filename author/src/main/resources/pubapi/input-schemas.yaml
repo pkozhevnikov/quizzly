@@ -1,0 +1,14 @@
+baseResourcePath: /pubapi/schemas
+
+paths:
+
+  /v1/quiz:
+    post: /create-quiz.yaml
+  /v1/quiz/*:
+    put: /update-quiz.yaml
+    post: /create-section.yaml
+  /v1/section/*:
+    put: /update-section.yaml
+  /v1/section/*/items:
+    put: /item.yaml
+  /v1/section/*/items/*:

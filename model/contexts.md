@@ -9,6 +9,10 @@ Authoring Quizzes is a separate activity which doesn't depend on any other parts
 
 Implemented by module **`author`**.
 
+Application service provides public HTTP API, translates requests to commands and transmits them
+to entities. Quiz entity controls consistence of the state, but commands that may be processed
+by SectionEdit entity are sent to SectionEdit directly.
+
 See
 
  * [Quiz entity](../author/src/main/scala/QuizEntity.scala)

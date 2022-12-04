@@ -1,0 +1,21 @@
+type: object
+properties:
+  sc:
+    type: string
+  title:
+    type: string
+    minLength: 2
+  intro:
+    type: string
+  items:
+    type: array
+    items:
+      $ref: /pubapi/schemas/item.yaml
+required:
+- sc
+- title
+- items
+
+definitions:
+  item.yaml:
+    $ref: /pubapi/schemas/item.yaml

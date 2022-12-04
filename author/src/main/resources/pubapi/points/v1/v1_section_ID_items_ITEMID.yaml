@@ -1,0 +1,70 @@
+delete:
+  tags:
+  - v1
+  summary: remove item
+  description: |
+    Removes item
+  operationId: removeitem
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+  -
+    in: path
+    name: itemId
+    required: true
+    description: item ID
+    type: string
+
+  responses:
+    204:
+      description: item removed
+    417:
+      description: error
+
+patch:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: move item
+  description: |
+    Move item
+  operationId: moveitem
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+  -
+    in: path
+    name: itemId
+    required: true
+    description: item ID
+    type: string
+  -
+    in: query
+    name: up
+    required: true
+    description: move item up, true or false
+    type: string
+
+  responses:
+    200:
+      description: item moved, responses with new order of item IDs
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/sc.yaml
+    417:
+      description: error
+
+
+definitions:
+  sc.yaml:
+    $ref: /pubapi/schemas/sc.yaml

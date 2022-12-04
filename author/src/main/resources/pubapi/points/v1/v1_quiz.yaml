@@ -1,0 +1,57 @@
+post:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  produces:
+  - application/json
+  summary: Create new quiz
+  description: |
+    Creates new quiz
+  operationId: createQuiz
+  parameters:
+  -
+    in: body
+    name: quiz-main
+    required: true
+    description: main quiz params
+    schema:
+      $ref: /pubapi/schemas/create-quiz.yaml
+
+  responses:
+    200:
+      description: normal response
+      schema: 
+        $ref: /pubapi/schemas/create-details.yaml
+    417:
+      description: error response
+      schema: 
+        $ref: /pubapi/schemas/error.yaml
+
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: list quizzes
+  description: |
+    List quizzes
+  operationId: listquizzes
+  responses:
+    200:
+      description: normal response
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/quiz-listed.yaml
+
+
+definitions:
+  create-details.yaml:
+    $ref: /pubapi/schemas/create-details.yaml
+  error.yaml:
+    $ref: /pubapi/schemas/error.yaml
+  quiz-listed.yaml:
+    $ref: /pubapi/schemas/quiz-listed.yaml
+  create-quiz.yaml:
+    $ref: /pubapi/schemas/create-quiz.yaml

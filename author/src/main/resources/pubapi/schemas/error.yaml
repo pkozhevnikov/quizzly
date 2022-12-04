@@ -1,0 +1,15 @@
+type: object
+properties:
+  reason:
+    $ref: /pubapi/schemas/error-reason.yaml
+  clues:
+    type: array
+    items:
+      type: string
+required:
+- reason
+- clues
+
+definitions:
+  error-reason.yaml:
+    $ref: /pubapi/schemas/error-reason.yaml

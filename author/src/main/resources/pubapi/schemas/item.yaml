@@ -1,0 +1,29 @@
+type: object
+properties:
+  sc:
+    type: string
+  intro:
+    type: string
+  definition:
+    $ref: /pubapi/schemas/statement.yaml
+  hints:
+    type: array
+    items:
+      $ref: /pubapi/schemas/statement.yaml
+  hintsVisible:
+    type: boolean
+  solutions:
+    type: array
+    items:
+      type: integer
+      format: int32
+required:
+- sc
+- hints
+- intro
+- definition
+- hintsVisible
+
+definitions:
+  statement.yaml:
+    $ref: /pubapi/schemas/statement.yaml

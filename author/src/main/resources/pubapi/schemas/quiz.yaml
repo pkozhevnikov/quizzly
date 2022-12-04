@@ -1,0 +1,46 @@
+type: object
+properties:
+  id:
+    type: string
+  title:
+    type: string
+    minLength: 2
+  intro:
+    type: string
+  curator:
+    $ref: /pubapi/schemas/person.yaml
+  authors:
+    type: array
+    items:
+      $ref: /pubapi/schemas/person.yaml
+  inspectors:
+    type: array
+    items:
+      $ref: /pubapi/schemas/person.yaml
+  recommendedLength:
+    type: integer
+    format: int32
+  readinessSigns:
+    type: array
+    items:
+      $ref: /pubapi/schemas/person.yaml
+  approvals:
+    type: array
+    items:
+      $ref: /pubapi/schemas/person.yaml
+  disapprovals:
+    type: array
+    items:
+      $ref: /pubapi/schemas/person.yaml
+  obsolete:
+    type: boolean
+  sections:
+    type: array
+    items:
+      $ref: /pubapi/schemas/section.yaml
+
+definitions:
+  person.yaml:
+    $ref: /pubapi/schemas/person.yaml
+  section.yaml:
+    $ref: /pubapi/schemas/section.yaml

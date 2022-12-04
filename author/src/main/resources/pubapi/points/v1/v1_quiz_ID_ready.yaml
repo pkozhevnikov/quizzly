@@ -1,0 +1,42 @@
+head:
+  tags:
+  - v1
+  summary: set readiness sign
+  description: |
+    Set readiness sign
+  operationId: setready
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+
+  responses:
+    204:
+      description: sign set
+    417:
+      description: error
+
+delete:
+  tags:
+  - v1
+  summary: unset readiness sign
+  description: |
+    Unsets readiness sign
+  operationId: unsetreadysign
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+
+  responses:
+    204:
+      description: sign unset
+    417:
+      description: error
+

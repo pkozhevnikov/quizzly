@@ -1,0 +1,42 @@
+head:
+  tags:
+  - v1
+  summary: approve quiz
+  description: |
+    Inspector approves quiz
+  operationId: approvequiz
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+
+  responses:
+    204:
+      description: approved
+    417:
+      description: error
+
+delete:
+  tags:
+  - v1
+  summary: disapprove quiz
+  description: |
+    Inspector disapproves quiz
+  operationId: disapprove
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+
+  responses:
+    204:
+      description: quiz disapproved
+    417:
+      description: error
+

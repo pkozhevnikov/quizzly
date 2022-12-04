@@ -1,0 +1,29 @@
+type: object
+properties:
+  id:
+    type: string
+    minLength: 4
+  title:
+    type: string
+    minLength: 2
+  intro:
+    type: string
+  recommendedLength:
+    type: integer
+  authors:
+    type: array
+    minItems: 1
+    items:
+      type: string
+  inspectors:
+    type: array
+    minItems: 1
+    items:
+      type: string
+required:
+- recommendedLength
+- intro
+- inspectors
+- id
+- title
+- authors

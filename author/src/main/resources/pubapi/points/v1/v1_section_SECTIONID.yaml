@@ -1,0 +1,19 @@
+put:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  summary: update section
+  description: |
+    Updates section
+  operationId: updatesection
+  parameters:
+  -
+    in: path
+    name: sectionId
+    required: true
+    description: section ID
+    type: string
+
+  responses:
+
