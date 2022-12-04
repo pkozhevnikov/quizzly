@@ -1,4 +1,4 @@
-&id9080 !!rall.apiwzrd.model.ApiRoot
+&id19273 !!rall.apiwzrd.model.ApiRoot
 basePath: !!javafx.beans.property.SimpleStringProperty
   bean: null
   helper: null
@@ -117,7 +117,7 @@ schemas:
     valid: true
     value: ''
   properties: []
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -157,7 +157,7 @@ schemas:
         name: ''
         observable: null
         valid: false
-        value: &id9081 !!rall.apiwzrd.model.Schema
+        value: &id19274 !!rall.apiwzrd.model.Schema
           arrayType: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -296,7 +296,7 @@ schemas:
               observable: null
               valid: true
               value: false
-            schema: *id9081
+            schema: *id19274
             schemaLink: !!javafx.beans.property.SimpleObjectProperty
               bean: null
               helper: null
@@ -385,7 +385,7 @@ schemas:
               observable: null
               valid: true
               value: false
-            schema: *id9081
+            schema: *id19274
             schemaLink: !!javafx.beans.property.SimpleObjectProperty
               bean: null
               helper: null
@@ -425,7 +425,7 @@ schemas:
                   name: ''
                   observable: null
                   valid: false
-                  value: &id9082 !!rall.apiwzrd.model.Schema
+                  value: &id19275 !!rall.apiwzrd.model.Schema
                     arrayType: !!javafx.beans.property.SimpleObjectProperty
                       bean: null
                       helper: null
@@ -564,7 +564,7 @@ schemas:
                         observable: null
                         valid: true
                         value: false
-                      schema: *id9082
+                      schema: *id19275
                       schemaLink: !!javafx.beans.property.SimpleObjectProperty
                         bean: null
                         helper: null
@@ -653,7 +653,7 @@ schemas:
                         observable: null
                         valid: true
                         value: false
-                      schema: *id9082
+                      schema: *id19275
                       schemaLink: !!javafx.beans.property.SimpleObjectProperty
                         bean: null
                         helper: null
@@ -670,7 +670,7 @@ schemas:
                         observable: null
                         valid: false
                         value: !!rall.basic.swagger.enums.Type 'STRING'
-                    root: *id9080
+                    root: *id19273
                     schemaLink: !!javafx.beans.property.SimpleObjectProperty
                       bean: null
                       helper: null
@@ -767,7 +767,7 @@ schemas:
               observable: null
               valid: true
               value: false
-            schema: *id9081
+            schema: *id19274
             schemaLink: !!javafx.beans.property.SimpleObjectProperty
               bean: null
               helper: null
@@ -807,7 +807,7 @@ schemas:
                   name: ''
                   observable: null
                   valid: false
-                  value: &id9083 !!rall.apiwzrd.model.Schema
+                  value: &id19276 !!rall.apiwzrd.model.Schema
                     arrayType: !!javafx.beans.property.SimpleObjectProperty
                       bean: null
                       helper: null
@@ -946,7 +946,7 @@ schemas:
                         observable: null
                         valid: true
                         value: false
-                      schema: *id9083
+                      schema: *id19276
                       schemaLink: !!javafx.beans.property.SimpleObjectProperty
                         bean: null
                         helper: null
@@ -963,7 +963,7 @@ schemas:
                         observable: null
                         valid: false
                         value: !!rall.basic.swagger.enums.Type 'STRING'
-                    root: *id9080
+                    root: *id19273
                     schemaLink: !!javafx.beans.property.SimpleObjectProperty
                       bean: null
                       helper: null
@@ -1060,7 +1060,7 @@ schemas:
               observable: null
               valid: true
               value: false
-            schema: *id9081
+            schema: *id19274
             schemaLink: !!javafx.beans.property.SimpleObjectProperty
               bean: null
               helper: null
@@ -1149,7 +1149,7 @@ schemas:
               observable: null
               valid: true
               value: false
-            schema: *id9081
+            schema: *id19274
             schemaLink: !!javafx.beans.property.SimpleObjectProperty
               bean: null
               helper: null
@@ -1238,7 +1238,7 @@ schemas:
               observable: null
               valid: true
               value: false
-            schema: *id9081
+            schema: *id19274
             schemaLink: !!javafx.beans.property.SimpleObjectProperty
               bean: null
               helper: null
@@ -1327,7 +1327,7 @@ schemas:
               observable: null
               valid: true
               value: false
-            schema: *id9081
+            schema: *id19274
             schemaLink: !!javafx.beans.property.SimpleObjectProperty
               bean: null
               helper: null
@@ -1416,7 +1416,7 @@ schemas:
               observable: null
               valid: true
               value: false
-            schema: *id9081
+            schema: *id19274
             schemaLink: !!javafx.beans.property.SimpleObjectProperty
               bean: null
               helper: null
@@ -1505,7 +1505,7 @@ schemas:
               observable: null
               valid: true
               value: false
-            schema: *id9081
+            schema: *id19274
             schemaLink: !!javafx.beans.property.SimpleObjectProperty
               bean: null
               helper: null
@@ -1594,7 +1594,7 @@ schemas:
               observable: null
               valid: true
               value: false
-            schema: *id9081
+            schema: *id19274
             schemaLink: !!javafx.beans.property.SimpleObjectProperty
               bean: null
               helper: null
@@ -1611,7 +1611,7 @@ schemas:
               observable: null
               valid: false
               value: !!rall.basic.swagger.enums.Type 'STRING'
-          root: *id9080
+          root: *id19273
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -1636,10 +1636,10 @@ schemas:
     observable: null
     valid: true
     value: null
-- *id9081
-- *id9082
-- *id9083
-- &id9084
+- *id19274
+- *id19275
+- *id19276
+- &id19277
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -1778,7 +1778,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9084
+    schema: *id19277
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -1867,7 +1867,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9084
+    schema: *id19277
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -1884,7 +1884,7 @@ schemas:
       observable: null
       valid: false
       value: !!rall.basic.swagger.enums.Type 'STRING'
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -1901,7 +1901,7 @@ schemas:
     observable: null
     valid: true
     value: null
-- &id9085
+- &id19278
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -2040,7 +2040,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9085
+    schema: *id19278
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -2080,7 +2080,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9084
+          value: *id19277
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -2161,7 +2161,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9085
+    schema: *id19278
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -2201,7 +2201,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9084
+          value: *id19277
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -2210,7 +2210,7 @@ schemas:
       observable: null
       valid: true
       value: null
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -2227,7 +2227,7 @@ schemas:
     observable: null
     valid: true
     value: null
-- &id9086
+- &id19279
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -2366,7 +2366,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9086
+    schema: *id19279
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -2455,7 +2455,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9086
+    schema: *id19279
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -2544,7 +2544,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9086
+    schema: *id19279
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -2633,7 +2633,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9086
+    schema: *id19279
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -2722,7 +2722,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9086
+    schema: *id19279
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -2811,7 +2811,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9086
+    schema: *id19279
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -2828,7 +2828,7 @@ schemas:
       observable: null
       valid: false
       value: !!rall.basic.swagger.enums.Type 'STRING'
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -2845,7 +2845,7 @@ schemas:
     observable: null
     valid: true
     value: null
-- &id9087
+- &id19280
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -2984,7 +2984,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9087
+    schema: *id19280
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -3073,7 +3073,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9087
+    schema: *id19280
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -3090,7 +3090,7 @@ schemas:
       observable: null
       valid: false
       value: !!rall.basic.swagger.enums.Type 'STRING'
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -3107,7 +3107,7 @@ schemas:
     observable: null
     valid: true
     value: null
-- &id9088
+- &id19281
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -3246,7 +3246,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9088
+    schema: *id19281
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -3286,7 +3286,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9087
+          value: *id19280
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -3367,7 +3367,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9088
+    schema: *id19281
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -3384,7 +3384,7 @@ schemas:
       observable: null
       valid: false
       value: !!rall.basic.swagger.enums.Type 'STRING'
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -3401,7 +3401,7 @@ schemas:
     observable: null
     valid: true
     value: null
-- &id9089
+- &id19282
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -3540,7 +3540,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9089
+    schema: *id19282
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -3629,7 +3629,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9089
+    schema: *id19282
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -3718,7 +3718,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9089
+    schema: *id19282
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -3735,7 +3735,7 @@ schemas:
       observable: null
       valid: false
       value: !!rall.basic.swagger.enums.Type 'INTEGER'
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -3752,7 +3752,7 @@ schemas:
     observable: null
     valid: true
     value: null
-- &id9090
+- &id19283
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -3891,7 +3891,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9090
+    schema: *id19283
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -3908,7 +3908,7 @@ schemas:
       observable: null
       valid: false
       value: !!rall.basic.swagger.enums.Type 'STRING'
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -3925,7 +3925,7 @@ schemas:
     observable: null
     valid: true
     value: null
-- &id9091
+- &id19284
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -3992,7 +3992,7 @@ schemas:
     valid: true
     value: ''
   properties: []
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -4075,7 +4075,7 @@ schemas:
     valid: true
     value: ''
   properties: []
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -4115,7 +4115,7 @@ schemas:
         name: ''
         observable: null
         valid: false
-        value: *id9091
+        value: *id19284
   type: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -4124,7 +4124,7 @@ schemas:
     observable: null
     valid: true
     value: null
-- &id9092
+- &id19285
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -4263,7 +4263,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9092
+    schema: *id19285
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -4352,7 +4352,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9092
+    schema: *id19285
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -4369,7 +4369,7 @@ schemas:
       observable: null
       valid: false
       value: !!rall.basic.swagger.enums.Type 'STRING'
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -4386,7 +4386,7 @@ schemas:
     observable: null
     valid: true
     value: null
-- &id9093
+- &id19286
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -4525,7 +4525,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9093
+    schema: *id19286
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -4614,7 +4614,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9093
+    schema: *id19286
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -4703,7 +4703,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9093
+    schema: *id19286
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -4743,7 +4743,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9092
+          value: *id19285
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -4824,7 +4824,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9093
+    schema: *id19286
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -4864,7 +4864,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9092
+          value: *id19285
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -4945,7 +4945,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9093
+    schema: *id19286
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -5034,7 +5034,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9093
+    schema: *id19286
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -5051,7 +5051,7 @@ schemas:
       observable: null
       valid: false
       value: !!rall.basic.swagger.enums.Type 'INTEGER'
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -5068,7 +5068,7 @@ schemas:
     observable: null
     valid: true
     value: null
-- &id9094
+- &id19287
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -5207,7 +5207,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9094
+    schema: *id19287
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -5296,7 +5296,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9094
+    schema: *id19287
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -5383,9 +5383,9 @@ schemas:
       listener: null
       name: ''
       observable: null
-      valid: true
-      value: false
-    schema: *id9094
+      valid: false
+      value: true
+    schema: *id19287
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -5474,7 +5474,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9094
+    schema: *id19287
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -5514,7 +5514,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9093
+          value: *id19286
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -5523,7 +5523,7 @@ schemas:
       observable: null
       valid: true
       value: null
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -5540,7 +5540,7 @@ schemas:
     observable: null
     valid: true
     value: null
-- &id9095
+- &id19288
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -5679,7 +5679,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9095
+    schema: *id19288
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -5768,7 +5768,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9095
+    schema: *id19288
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -5857,7 +5857,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9095
+    schema: *id19288
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -5946,7 +5946,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9095
+    schema: *id19288
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -5986,7 +5986,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9084
+          value: *id19277
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6067,7 +6067,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9095
+    schema: *id19288
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6107,7 +6107,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9084
+          value: *id19277
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6188,7 +6188,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9095
+    schema: *id19288
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6228,7 +6228,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9084
+          value: *id19277
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6309,7 +6309,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9095
+    schema: *id19288
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6398,7 +6398,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9095
+    schema: *id19288
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6438,7 +6438,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9084
+          value: *id19277
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6519,7 +6519,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9095
+    schema: *id19288
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6559,7 +6559,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9084
+          value: *id19277
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6640,7 +6640,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9095
+    schema: *id19288
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6680,7 +6680,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9084
+          value: *id19277
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6761,7 +6761,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9095
+    schema: *id19288
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6850,7 +6850,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9095
+    schema: *id19288
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6890,7 +6890,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9094
+          value: *id19287
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -6899,7 +6899,7 @@ schemas:
       observable: null
       valid: true
       value: null
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -6916,7 +6916,7 @@ schemas:
     observable: null
     valid: true
     value: null
-- &id9096
+- &id19289
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -7055,7 +7055,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9096
+    schema: *id19289
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -7144,7 +7144,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9096
+    schema: *id19289
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -7233,7 +7233,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9096
+    schema: *id19289
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -7322,7 +7322,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9096
+    schema: *id19289
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -7362,7 +7362,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9084
+          value: *id19277
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -7443,7 +7443,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9096
+    schema: *id19289
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -7483,7 +7483,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9084
+          value: *id19277
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -7564,7 +7564,7 @@ schemas:
       observable: null
       valid: true
       value: false
-    schema: *id9096
+    schema: *id19289
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -7604,7 +7604,7 @@ schemas:
           name: ''
           observable: null
           valid: false
-          value: *id9084
+          value: *id19277
     type: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -7613,7 +7613,7 @@ schemas:
       observable: null
       valid: true
       value: null
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -7630,7 +7630,7 @@ schemas:
     observable: null
     valid: true
     value: null
-- &id9097
+- &id19290
   arrayType: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -7769,7 +7769,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9097
+    schema: *id19290
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -7858,7 +7858,7 @@ schemas:
       observable: null
       valid: false
       value: true
-    schema: *id9097
+    schema: *id19290
     schemaLink: !!javafx.beans.property.SimpleObjectProperty
       bean: null
       helper: null
@@ -7875,7 +7875,7 @@ schemas:
       observable: null
       valid: false
       value: !!rall.basic.swagger.enums.Type 'STRING'
-  root: *id9080
+  root: *id19273
   schemaLink: !!javafx.beans.property.SimpleObjectProperty
     bean: null
     helper: null
@@ -7896,7 +7896,7 @@ schemes:
 - !!rall.basic.swagger.enums.Scheme 'HTTP'
 - !!rall.basic.swagger.enums.Scheme 'HTTPS'
 sections:
-- &id9101
+- &id19294
   name: !!javafx.beans.property.SimpleStringProperty
     bean: null
     helper: null
@@ -7906,9 +7906,106 @@ sections:
     valid: false
     value: v1
   points:
-  - &id9099
+  - &id19291
     operations:
-      POST: &id9098
+      GET: &id19292
+        consumes: []
+        description: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: List quizzes
+        method: !!javafx.beans.property.SimpleObjectProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: true
+          value: !!rall.basic.swagger.enums.Method 'GET'
+        operationId: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: listquizzes
+        parameters: []
+        point: *id19291
+        produces:
+        - !!rall.basic.swagger.enums.MediaType 'JSON'
+        responses:
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: normal response
+          headers: []
+          operation: *id19292
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.apiwzrd.model.SchemaLink
+              array: !!javafx.beans.property.SimpleBooleanProperty
+                bean: null
+                helper: null
+                listener: null
+                name: ''
+                observable: null
+                valid: false
+                value: true
+              inline: !!javafx.beans.property.SimpleBooleanProperty
+                bean: null
+                helper: null
+                listener: null
+                name: ''
+                observable: null
+                valid: true
+                value: false
+              minItems: !!javafx.beans.property.SimpleIntegerProperty
+                bean: null
+                helper: null
+                listener: null
+                name: ''
+                observable: null
+                valid: true
+                value: 0
+              schema: !!javafx.beans.property.SimpleObjectProperty
+                bean: null
+                helper: null
+                listener: null
+                name: ''
+                observable: null
+                valid: false
+                value: *id19289
+          status: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Status 'OK'
+        summary: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: list quizzes
+      POST: &id19293
         consumes:
         - !!rall.basic.swagger.enums.MediaType 'JSON'
         description: !!javafx.beans.property.SimpleStringProperty
@@ -7968,7 +8065,7 @@ sections:
             observable: null
             valid: false
             value: quiz-main
-          operation: *id9098
+          operation: *id19293
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -8016,7 +8113,7 @@ sections:
                 name: ''
                 observable: null
                 valid: false
-                value: *id9086
+                value: *id19279
           type: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -8025,7 +8122,7 @@ sections:
             observable: null
             valid: false
             value: null
-        point: *id9099
+        point: *id19291
         produces:
         - !!rall.basic.swagger.enums.MediaType 'JSON'
         responses:
@@ -8038,7 +8135,7 @@ sections:
             valid: false
             value: normal response
           headers: []
-          operation: *id9098
+          operation: *id19293
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -8078,7 +8175,7 @@ sections:
                 name: ''
                 observable: null
                 valid: false
-                value: *id9085
+                value: *id19278
           status: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -8096,7 +8193,7 @@ sections:
             valid: false
             value: error response
           headers: []
-          operation: *id9098
+          operation: *id19293
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -8136,7 +8233,7 @@ sections:
                 name: ''
                 observable: null
                 valid: false
-                value: *id9088
+                value: *id19281
           status: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -8153,103 +8250,6 @@ sections:
           observable: null
           valid: false
           value: Create new quiz
-      GET: &id9100
-        consumes: []
-        description: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: List quizzes
-        method: !!javafx.beans.property.SimpleObjectProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: true
-          value: !!rall.basic.swagger.enums.Method 'GET'
-        operationId: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: listquizzes
-        parameters: []
-        point: *id9099
-        produces:
-        - !!rall.basic.swagger.enums.MediaType 'JSON'
-        responses:
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: normal response
-          headers: []
-          operation: *id9100
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.apiwzrd.model.SchemaLink
-              array: !!javafx.beans.property.SimpleBooleanProperty
-                bean: null
-                helper: null
-                listener: null
-                name: ''
-                observable: null
-                valid: false
-                value: true
-              inline: !!javafx.beans.property.SimpleBooleanProperty
-                bean: null
-                helper: null
-                listener: null
-                name: ''
-                observable: null
-                valid: true
-                value: false
-              minItems: !!javafx.beans.property.SimpleIntegerProperty
-                bean: null
-                helper: null
-                listener: null
-                name: ''
-                observable: null
-                valid: true
-                value: 0
-              schema: !!javafx.beans.property.SimpleObjectProperty
-                bean: null
-                helper: null
-                listener: null
-                name: ''
-                observable: null
-                valid: false
-                value: *id9096
-          status: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Status 'OK'
-        summary: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: list quizzes
     path: !!javafx.beans.property.SimpleStringProperty
       bean: null
       helper: null
@@ -8265,10 +8265,10 @@ sections:
       name: ''
       observable: null
       valid: false
-      value: *id9101
-  - &id9103
+      value: *id19294
+  - &id19296
     operations:
-      PUT: &id9102
+      PUT: &id19295
         consumes:
         - !!rall.basic.swagger.enums.MediaType 'JSON'
         description: !!javafx.beans.property.SimpleStringProperty
@@ -8328,7 +8328,7 @@ sections:
             observable: null
             valid: false
             value: quiz-main
-          operation: *id9102
+          operation: *id19295
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -8376,7 +8376,7 @@ sections:
                 name: ''
                 observable: null
                 valid: false
-                value: *id9089
+                value: *id19282
           type: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -8417,7 +8417,7 @@ sections:
             observable: null
             valid: false
             value: id
-          operation: *id9102
+          operation: *id19295
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -8442,7 +8442,7 @@ sections:
             observable: null
             valid: false
             value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9103
+        point: *id19296
         produces: []
         responses:
         - description: !!javafx.beans.property.SimpleStringProperty
@@ -8454,7 +8454,7 @@ sections:
             valid: false
             value: normal response
           headers: []
-          operation: *id9102
+          operation: *id19295
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -8480,7 +8480,7 @@ sections:
             valid: false
             value: error
           headers: []
-          operation: *id9102
+          operation: *id19295
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -8505,7 +8505,187 @@ sections:
           observable: null
           valid: false
           value: Update quiz
-      POST: &id9104
+      GET: &id19297
+        consumes: []
+        description: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: Get quiz
+        method: !!javafx.beans.property.SimpleObjectProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: true
+          value: !!rall.basic.swagger.enums.Method 'GET'
+        operationId: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: getquiz
+        parameters:
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          format: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          in: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.In 'PATH'
+          name: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: id
+          operation: *id19297
+          required: !!javafx.beans.property.SimpleBooleanProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: true
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          type: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Type 'STRING'
+        point: *id19296
+        produces:
+        - !!rall.basic.swagger.enums.MediaType 'JSON'
+        responses:
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: normal response
+          headers: []
+          operation: *id19297
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.apiwzrd.model.SchemaLink
+              array: !!javafx.beans.property.SimpleBooleanProperty
+                bean: null
+                helper: null
+                listener: null
+                name: ''
+                observable: null
+                valid: true
+                value: false
+              inline: !!javafx.beans.property.SimpleBooleanProperty
+                bean: null
+                helper: null
+                listener: null
+                name: ''
+                observable: null
+                valid: true
+                value: false
+              minItems: !!javafx.beans.property.SimpleIntegerProperty
+                bean: null
+                helper: null
+                listener: null
+                name: ''
+                observable: null
+                valid: true
+                value: 0
+              schema: !!javafx.beans.property.SimpleObjectProperty
+                bean: null
+                helper: null
+                listener: null
+                name: ''
+                observable: null
+                valid: false
+                value: *id19288
+          status: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Status 'OK'
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: error
+          headers: []
+          operation: *id19297
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          status: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Status 'EXPECTATION_FAILED'
+        summary: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: get quiz
+      POST: &id19298
         consumes:
         - !!rall.basic.swagger.enums.MediaType 'JSON'
         description: !!javafx.beans.property.SimpleStringProperty
@@ -8565,7 +8745,7 @@ sections:
             observable: null
             valid: false
             value: section-main
-          operation: *id9104
+          operation: *id19298
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -8613,7 +8793,7 @@ sections:
                 name: ''
                 observable: null
                 valid: false
-                value: *id9090
+                value: *id19283
           type: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -8654,7 +8834,7 @@ sections:
             observable: null
             valid: false
             value: id
-          operation: *id9104
+          operation: *id19298
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -8679,7 +8859,7 @@ sections:
             observable: null
             valid: false
             value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9103
+        point: *id19296
         produces:
         - !!rall.basic.swagger.enums.MediaType 'JSON'
         responses:
@@ -8692,7 +8872,7 @@ sections:
             valid: false
             value: section created, returns ID of new section
           headers: []
-          operation: *id9104
+          operation: *id19298
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -8732,7 +8912,7 @@ sections:
                 name: ''
                 observable: null
                 valid: false
-                value: *id9091
+                value: *id19284
           status: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -8749,7 +8929,7 @@ sections:
           observable: null
           valid: false
           value: add section
-      HEAD: &id9105
+      HEAD: &id19299
         consumes: []
         description: !!javafx.beans.property.SimpleStringProperty
           bean: null
@@ -8808,7 +8988,7 @@ sections:
             observable: null
             valid: false
             value: id
-          operation: *id9105
+          operation: *id19299
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -8864,8 +9044,8 @@ sections:
             name: ''
             observable: null
             valid: false
-            value: sectionId
-          operation: *id9105
+            value: sc
+          operation: *id19299
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -8890,7 +9070,7 @@ sections:
             observable: null
             valid: false
             value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9103
+        point: *id19296
         produces: []
         responses:
         - description: !!javafx.beans.property.SimpleStringProperty
@@ -8902,7 +9082,7 @@ sections:
             valid: false
             value: section owned
           headers: []
-          operation: *id9105
+          operation: *id19299
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -8928,7 +9108,7 @@ sections:
             valid: false
             value: error
           headers: []
-          operation: *id9105
+          operation: *id19299
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -8953,186 +9133,6 @@ sections:
           observable: null
           valid: false
           value: own section
-      GET: &id9106
-        consumes: []
-        description: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: Get quiz
-        method: !!javafx.beans.property.SimpleObjectProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: true
-          value: !!rall.basic.swagger.enums.Method 'GET'
-        operationId: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: getquiz
-        parameters:
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          format: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          in: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.In 'PATH'
-          name: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: id
-          operation: *id9106
-          required: !!javafx.beans.property.SimpleBooleanProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: true
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          type: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9103
-        produces:
-        - !!rall.basic.swagger.enums.MediaType 'JSON'
-        responses:
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: normal response
-          headers: []
-          operation: *id9106
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.apiwzrd.model.SchemaLink
-              array: !!javafx.beans.property.SimpleBooleanProperty
-                bean: null
-                helper: null
-                listener: null
-                name: ''
-                observable: null
-                valid: true
-                value: false
-              inline: !!javafx.beans.property.SimpleBooleanProperty
-                bean: null
-                helper: null
-                listener: null
-                name: ''
-                observable: null
-                valid: true
-                value: false
-              minItems: !!javafx.beans.property.SimpleIntegerProperty
-                bean: null
-                helper: null
-                listener: null
-                name: ''
-                observable: null
-                valid: true
-                value: 0
-              schema: !!javafx.beans.property.SimpleObjectProperty
-                bean: null
-                helper: null
-                listener: null
-                name: ''
-                observable: null
-                valid: false
-                value: *id9095
-          status: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Status 'OK'
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: error
-          headers: []
-          operation: *id9106
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          status: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Status 'EXPECTATION_FAILED'
-        summary: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: get quiz
     path: !!javafx.beans.property.SimpleStringProperty
       bean: null
       helper: null
@@ -9148,10 +9148,10 @@ sections:
       name: ''
       observable: null
       valid: false
-      value: *id9101
-  - &id9108
+      value: *id19294
+  - &id19301
     operations:
-      HEAD: &id9107
+      HEAD: &id19300
         consumes: []
         description: !!javafx.beans.property.SimpleStringProperty
           bean: null
@@ -9210,7 +9210,7 @@ sections:
             observable: null
             valid: false
             value: id
-          operation: *id9107
+          operation: *id19300
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -9235,7 +9235,7 @@ sections:
             observable: null
             valid: false
             value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9108
+        point: *id19301
         produces: []
         responses:
         - description: !!javafx.beans.property.SimpleStringProperty
@@ -9247,7 +9247,7 @@ sections:
             valid: false
             value: sign set
           headers: []
-          operation: *id9107
+          operation: *id19300
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -9273,7 +9273,7 @@ sections:
             valid: false
             value: error
           headers: []
-          operation: *id9107
+          operation: *id19300
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -9298,7 +9298,7 @@ sections:
           observable: null
           valid: false
           value: set readiness sign
-      DELETE: &id9109
+      DELETE: &id19302
         consumes: []
         description: !!javafx.beans.property.SimpleStringProperty
           bean: null
@@ -9357,7 +9357,7 @@ sections:
             observable: null
             valid: false
             value: id
-          operation: *id9109
+          operation: *id19302
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -9382,7 +9382,7 @@ sections:
             observable: null
             valid: false
             value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9108
+        point: *id19301
         produces: []
         responses:
         - description: !!javafx.beans.property.SimpleStringProperty
@@ -9394,7 +9394,7 @@ sections:
             valid: false
             value: sign unset
           headers: []
-          operation: *id9109
+          operation: *id19302
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -9420,7 +9420,7 @@ sections:
             valid: false
             value: error
           headers: []
-          operation: *id9109
+          operation: *id19302
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -9460,10 +9460,10 @@ sections:
       name: ''
       observable: null
       valid: false
-      value: *id9101
-  - &id9111
+      value: *id19294
+  - &id19304
     operations:
-      HEAD: &id9110
+      HEAD: &id19303
         consumes: []
         description: !!javafx.beans.property.SimpleStringProperty
           bean: null
@@ -9522,7 +9522,7 @@ sections:
             observable: null
             valid: false
             value: id
-          operation: *id9110
+          operation: *id19303
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -9547,7 +9547,7 @@ sections:
             observable: null
             valid: false
             value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9111
+        point: *id19304
         produces: []
         responses:
         - description: !!javafx.beans.property.SimpleStringProperty
@@ -9559,7 +9559,7 @@ sections:
             valid: false
             value: approved
           headers: []
-          operation: *id9110
+          operation: *id19303
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -9585,7 +9585,7 @@ sections:
             valid: false
             value: error
           headers: []
-          operation: *id9110
+          operation: *id19303
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -9610,7 +9610,7 @@ sections:
           observable: null
           valid: false
           value: approve quiz
-      DELETE: &id9112
+      DELETE: &id19305
         consumes: []
         description: !!javafx.beans.property.SimpleStringProperty
           bean: null
@@ -9669,7 +9669,7 @@ sections:
             observable: null
             valid: false
             value: id
-          operation: *id9112
+          operation: *id19305
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -9694,7 +9694,7 @@ sections:
             observable: null
             valid: false
             value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9111
+        point: *id19304
         produces: []
         responses:
         - description: !!javafx.beans.property.SimpleStringProperty
@@ -9706,7 +9706,7 @@ sections:
             valid: false
             value: quiz disapproved
           headers: []
-          operation: *id9112
+          operation: *id19305
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -9732,7 +9732,7 @@ sections:
             valid: false
             value: error
           headers: []
-          operation: *id9112
+          operation: *id19305
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -9772,10 +9772,10 @@ sections:
       name: ''
       observable: null
       valid: false
-      value: *id9101
-  - &id9114
+      value: *id19294
+  - &id19307
     operations:
-      PUT: &id9113
+      PUT: &id19306
         consumes:
         - !!rall.basic.swagger.enums.MediaType 'JSON'
         description: !!javafx.beans.property.SimpleStringProperty
@@ -9835,7 +9835,7 @@ sections:
             observable: null
             valid: false
             value: id
-          operation: *id9113
+          operation: *id19306
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -9892,7 +9892,7 @@ sections:
             observable: null
             valid: false
             value: section-main
-          operation: *id9113
+          operation: *id19306
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -9940,7 +9940,7 @@ sections:
                 name: ''
                 observable: null
                 valid: false
-                value: *id9097
+                value: *id19290
           type: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -9949,7 +9949,7 @@ sections:
             observable: null
             valid: false
             value: null
-        point: *id9114
+        point: *id19307
         produces: []
         responses:
         - description: !!javafx.beans.property.SimpleStringProperty
@@ -9961,7 +9961,7 @@ sections:
             valid: false
             value: section updated
           headers: []
-          operation: *id9113
+          operation: *id19306
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -9987,7 +9987,7 @@ sections:
             valid: false
             value: error
           headers: []
-          operation: *id9113
+          operation: *id19306
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -10012,301 +10012,7 @@ sections:
           observable: null
           valid: false
           value: update section
-      HEAD: &id9115
-        consumes: []
-        description: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: Discharges section
-        method: !!javafx.beans.property.SimpleObjectProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: true
-          value: !!rall.basic.swagger.enums.Method 'HEAD'
-        operationId: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: dischargesection
-        parameters:
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: section ID
-          format: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          in: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.In 'PATH'
-          name: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: id
-          operation: *id9115
-          required: !!javafx.beans.property.SimpleBooleanProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: true
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          type: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9114
-        produces: []
-        responses:
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: section discharged
-          headers: []
-          operation: *id9115
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          status: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Status 'NO_CONTENT'
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: error
-          headers: []
-          operation: *id9115
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          status: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Status 'EXPECTATION_FAILED'
-        summary: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: discharge section
-      DELETE: &id9116
-        consumes: []
-        description: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: Removes section
-        method: !!javafx.beans.property.SimpleObjectProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: true
-          value: !!rall.basic.swagger.enums.Method 'DELETE'
-        operationId: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: removesection
-        parameters:
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: section ID
-          format: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          in: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.In 'PATH'
-          name: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: id
-          operation: *id9116
-          required: !!javafx.beans.property.SimpleBooleanProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: true
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          type: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9114
-        produces: []
-        responses:
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: section removed
-          headers: []
-          operation: *id9116
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          status: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Status 'NO_CONTENT'
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: error
-          headers: []
-          operation: *id9116
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          status: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Status 'EXPECTATION_FAILED'
-        summary: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: remove section
-      PATCH: &id9117
+      PATCH: &id19308
         consumes: []
         description: !!javafx.beans.property.SimpleStringProperty
           bean: null
@@ -10365,7 +10071,7 @@ sections:
             observable: null
             valid: false
             value: id
-          operation: *id9117
+          operation: *id19308
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -10422,7 +10128,7 @@ sections:
             observable: null
             valid: false
             value: up
-          operation: *id9117
+          operation: *id19308
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -10447,7 +10153,64 @@ sections:
             observable: null
             valid: false
             value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9114
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: quiz ID
+          format: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          in: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.In 'QUERY'
+          name: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: qid
+          operation: *id19308
+          required: !!javafx.beans.property.SimpleBooleanProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: true
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          type: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Type 'STRING'
+        point: *id19307
         produces:
         - !!rall.basic.swagger.enums.MediaType 'JSON'
         responses:
@@ -10460,7 +10223,7 @@ sections:
             valid: false
             value: section moved, response is new order of section IDs
           headers: []
-          operation: *id9117
+          operation: *id19308
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -10500,7 +10263,7 @@ sections:
                 name: ''
                 observable: null
                 valid: false
-                value: *id9091
+                value: *id19284
           status: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -10518,7 +10281,7 @@ sections:
             valid: false
             value: error
           headers: []
-          operation: *id9117
+          operation: *id19308
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -10543,6 +10306,357 @@ sections:
           observable: null
           valid: false
           value: move section
+      HEAD: &id19309
+        consumes: []
+        description: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: Discharges section
+        method: !!javafx.beans.property.SimpleObjectProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: true
+          value: !!rall.basic.swagger.enums.Method 'HEAD'
+        operationId: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: dischargesection
+        parameters:
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: section ID
+          format: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          in: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.In 'PATH'
+          name: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: id
+          operation: *id19309
+          required: !!javafx.beans.property.SimpleBooleanProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: true
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          type: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Type 'STRING'
+        point: *id19307
+        produces: []
+        responses:
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: section discharged
+          headers: []
+          operation: *id19309
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          status: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Status 'NO_CONTENT'
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: error
+          headers: []
+          operation: *id19309
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          status: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Status 'EXPECTATION_FAILED'
+        summary: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: discharge section
+      DELETE: &id19310
+        consumes: []
+        description: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: Removes section
+        method: !!javafx.beans.property.SimpleObjectProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: true
+          value: !!rall.basic.swagger.enums.Method 'DELETE'
+        operationId: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: removesection
+        parameters:
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: section ID
+          format: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          in: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.In 'PATH'
+          name: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: id
+          operation: *id19310
+          required: !!javafx.beans.property.SimpleBooleanProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: true
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          type: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Type 'STRING'
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: quiz ID
+          format: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          in: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.In 'QUERY'
+          name: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: qid
+          operation: *id19310
+          required: !!javafx.beans.property.SimpleBooleanProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: true
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          type: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Type 'STRING'
+        point: *id19307
+        produces: []
+        responses:
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: section removed
+          headers: []
+          operation: *id19310
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          status: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Status 'NO_CONTENT'
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: error
+          headers: []
+          operation: *id19310
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          status: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Status 'EXPECTATION_FAILED'
+        summary: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: remove section
     path: !!javafx.beans.property.SimpleStringProperty
       bean: null
       helper: null
@@ -10558,10 +10672,10 @@ sections:
       name: ''
       observable: null
       valid: false
-      value: *id9101
-  - &id9119
+      value: *id19294
+  - &id19312
     operations:
-      PUT: &id9118
+      PUT: &id19311
         consumes:
         - !!rall.basic.swagger.enums.MediaType 'JSON'
         description: !!javafx.beans.property.SimpleStringProperty
@@ -10621,7 +10735,7 @@ sections:
             observable: null
             valid: false
             value: id
-          operation: *id9118
+          operation: *id19311
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -10678,7 +10792,7 @@ sections:
             observable: null
             valid: false
             value: data
-          operation: *id9118
+          operation: *id19311
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -10726,7 +10840,7 @@ sections:
                 name: ''
                 observable: null
                 valid: false
-                value: *id9093
+                value: *id19286
           type: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -10735,7 +10849,7 @@ sections:
             observable: null
             valid: false
             value: null
-        point: *id9119
+        point: *id19312
         produces: []
         responses:
         - description: !!javafx.beans.property.SimpleStringProperty
@@ -10747,7 +10861,7 @@ sections:
             valid: false
             value: item saved
           headers: []
-          operation: *id9118
+          operation: *id19311
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -10773,7 +10887,7 @@ sections:
             valid: false
             value: error
           headers: []
-          operation: *id9118
+          operation: *id19311
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -10798,7 +10912,7 @@ sections:
           observable: null
           valid: false
           value: save item
-      POST: &id9120
+      POST: &id19313
         consumes: []
         description: !!javafx.beans.property.SimpleStringProperty
           bean: null
@@ -10857,7 +10971,7 @@ sections:
             observable: null
             valid: false
             value: id
-          operation: *id9120
+          operation: *id19313
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -10882,7 +10996,7 @@ sections:
             observable: null
             valid: false
             value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9119
+        point: *id19312
         produces: []
         responses:
         - description: !!javafx.beans.property.SimpleStringProperty
@@ -10894,7 +11008,7 @@ sections:
             valid: false
             value: item added, responses with ID of new item
           headers: []
-          operation: *id9120
+          operation: *id19313
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -10934,7 +11048,7 @@ sections:
                 name: ''
                 observable: null
                 valid: false
-                value: *id9091
+                value: *id19284
           status: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -10952,7 +11066,7 @@ sections:
             valid: false
             value: error
           headers: []
-          operation: *id9120
+          operation: *id19313
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -10992,214 +11106,10 @@ sections:
       name: ''
       observable: null
       valid: false
-      value: *id9101
-  - &id9122
+      value: *id19294
+  - &id19315
     operations:
-      DELETE: &id9121
-        consumes: []
-        description: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: Removes item
-        method: !!javafx.beans.property.SimpleObjectProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: true
-          value: !!rall.basic.swagger.enums.Method 'DELETE'
-        operationId: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: removeitem
-        parameters:
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: section ID
-          format: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          in: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.In 'PATH'
-          name: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: id
-          operation: *id9121
-          required: !!javafx.beans.property.SimpleBooleanProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: true
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          type: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Type 'STRING'
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: item ID
-          format: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          in: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.In 'PATH'
-          name: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: itemId
-          operation: *id9121
-          required: !!javafx.beans.property.SimpleBooleanProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: true
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          type: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9122
-        produces: []
-        responses:
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: item removed
-          headers: []
-          operation: *id9121
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          status: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Status 'NO_CONTENT'
-        - description: !!javafx.beans.property.SimpleStringProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: error
-          headers: []
-          operation: *id9121
-          schemaLink: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: true
-            value: null
-          status: !!javafx.beans.property.SimpleObjectProperty
-            bean: null
-            helper: null
-            listener: null
-            name: ''
-            observable: null
-            valid: false
-            value: !!rall.basic.swagger.enums.Status 'EXPECTATION_FAILED'
-        summary: !!javafx.beans.property.SimpleStringProperty
-          bean: null
-          helper: null
-          listener: null
-          name: ''
-          observable: null
-          valid: false
-          value: remove item
-      PATCH: &id9123
+      PATCH: &id19314
         consumes: []
         description: !!javafx.beans.property.SimpleStringProperty
           bean: null
@@ -11258,7 +11168,7 @@ sections:
             observable: null
             valid: false
             value: id
-          operation: *id9123
+          operation: *id19314
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -11315,7 +11225,7 @@ sections:
             observable: null
             valid: false
             value: itemId
-          operation: *id9123
+          operation: *id19314
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -11372,7 +11282,7 @@ sections:
             observable: null
             valid: false
             value: up
-          operation: *id9123
+          operation: *id19314
           required: !!javafx.beans.property.SimpleBooleanProperty
             bean: null
             helper: null
@@ -11397,7 +11307,7 @@ sections:
             observable: null
             valid: false
             value: !!rall.basic.swagger.enums.Type 'STRING'
-        point: *id9122
+        point: *id19315
         produces:
         - !!rall.basic.swagger.enums.MediaType 'JSON'
         responses:
@@ -11410,7 +11320,7 @@ sections:
             valid: false
             value: item moved, responses with new order of item IDs
           headers: []
-          operation: *id9123
+          operation: *id19314
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -11450,7 +11360,7 @@ sections:
                 name: ''
                 observable: null
                 valid: false
-                value: *id9091
+                value: *id19284
           status: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -11468,7 +11378,7 @@ sections:
             valid: false
             value: error
           headers: []
-          operation: *id9123
+          operation: *id19314
           schemaLink: !!javafx.beans.property.SimpleObjectProperty
             bean: null
             helper: null
@@ -11493,6 +11403,210 @@ sections:
           observable: null
           valid: false
           value: move item
+      DELETE: &id19316
+        consumes: []
+        description: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: Removes item
+        method: !!javafx.beans.property.SimpleObjectProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: true
+          value: !!rall.basic.swagger.enums.Method 'DELETE'
+        operationId: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: removeitem
+        parameters:
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: section ID
+          format: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          in: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.In 'PATH'
+          name: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: id
+          operation: *id19316
+          required: !!javafx.beans.property.SimpleBooleanProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: true
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          type: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Type 'STRING'
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: item ID
+          format: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          in: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.In 'PATH'
+          name: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: itemId
+          operation: *id19316
+          required: !!javafx.beans.property.SimpleBooleanProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: true
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          type: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Type 'STRING'
+        point: *id19315
+        produces: []
+        responses:
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: item removed
+          headers: []
+          operation: *id19316
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          status: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Status 'NO_CONTENT'
+        - description: !!javafx.beans.property.SimpleStringProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: error
+          headers: []
+          operation: *id19316
+          schemaLink: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: true
+            value: null
+          status: !!javafx.beans.property.SimpleObjectProperty
+            bean: null
+            helper: null
+            listener: null
+            name: ''
+            observable: null
+            valid: false
+            value: !!rall.basic.swagger.enums.Status 'EXPECTATION_FAILED'
+        summary: !!javafx.beans.property.SimpleStringProperty
+          bean: null
+          helper: null
+          listener: null
+          name: ''
+          observable: null
+          valid: false
+          value: remove item
     path: !!javafx.beans.property.SimpleStringProperty
       bean: null
       helper: null
@@ -11508,8 +11622,8 @@ sections:
       name: ''
       observable: null
       valid: false
-      value: *id9101
-  root: *id9080
+      value: *id19294
+  root: *id19273
   segment: !!javafx.beans.property.SimpleStringProperty
     bean: null
     helper: null

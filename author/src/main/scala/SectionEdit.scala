@@ -30,7 +30,7 @@ object SectionEdit:
   final case class GetOwner(replyTo: ActorRef[Resp[Option[Author]]])
       extends CommandWithReply[Option[Author]]
 
-  final case class Update(owner: Author, intro: String, title: String, replyTo: ActorRef[RespOK])
+  final case class Update(owner: Author, title: String, intro: String, replyTo: ActorRef[RespOK])
       extends CommandOK
   final case class Updated(title: String, intro: String) extends Event
   val notOwner = Reason(2012, "not an owner")

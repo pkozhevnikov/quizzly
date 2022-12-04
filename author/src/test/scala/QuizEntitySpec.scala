@@ -124,7 +124,7 @@ class QuizEntitySpec
 
       "reject any command except create" in {
         rejected(quizNotFound.error() + id, Blank(id))(
-          Update("", "", 0, _),
+          Update("", "", 0, author1, _),
           AddInspector(inspector1, _),
           AddAuthor(author1, _),
           RemoveInspector(inspector1, _),
@@ -226,7 +226,7 @@ class QuizEntitySpec
 
       "be updated" in {
         createComposing
-        val update = kit.runCommand(Update("new title", "new intro", 70, _))
+        val update = kit.runCommand(Update("new title", "new intro", 70, author1, _))
         update.reply shouldBe Resp.OK
         update.state shouldBe
           Composing(id, "new title", "new intro", curator, authors, inspectors, 70)
@@ -234,16 +234,16 @@ class QuizEntitySpec
 
       "reject update if title short" in {
         val defState = createComposing.state
-        val update = kit.runCommand(Update("x", intro, lenMins, _))
+        val update = kit.runCommand(Update("x", intro, lenMins, author1, _))
         update.reply shouldBe Bad(tooShortTitle.error())
         update.state shouldBe defState
       }
 
       "reject update if length short" in {
         val defState = createComposing.state
-        val update1 = kit.runCommand(Update(title, intro, -1, _))
+        val update1 = kit.runCommand(Update(title, intro, -1, author1, _))
         update1.reply shouldBe Bad(tooShortLength.error())
-        val update2 = kit.runCommand(Update(title, intro, 1, _))
+        val update2 = kit.runCommand(Update(title, intro, 1, author1, _))
         update2.reply shouldBe Bad(tooShortLength.error())
         update2.state shouldBe defState
       }
@@ -726,7 +726,7 @@ class QuizEntitySpec
       "reject other actions" in {
         val review = createComposing.stateOfType[Composing].signForReview.state
         rejected(onReview.error(), review)(
-          Update("", "", 1, _),
+          Update("", "", 1, author1, _),
           AddSection("", author1, _),
           OwnSection("sc", author1, _),
           SaveSection(section, _),
@@ -771,7 +771,7 @@ class QuizEntitySpec
       "reject other actions" in {
         val released = makeReleased.state
         rejected(quizReleased.error(), released)(
-          Update("", "", 1, _),
+          Update("", "", 1, author1, _),
           AddAuthor(author1, _),
           RemoveAuthor(author1, _),
           AddInspector(inspector1, _),

@@ -4,14 +4,19 @@
 
 Authoring Quizzes is a separate activity which doesn't depend on any other parts.
 
+ * `Main` - application service
  * `Quiz` - entity and root
  * `SectionEdit` - entity
+ * `Read` - read side component
 
 Implemented by module **`author`**.
 
 Application service provides public HTTP API, translates requests to commands and transmits them
-to entities. Quiz entity controls consistence of the state, but commands that may be processed
+to entities. Quiz entity controls consistence of the Quiz state, but commands that may be processed
 by SectionEdit entity are sent to SectionEdit directly.
+
+Read side component listens to changes of Quizzes and registers them in the Quiz list. Application 
+service redirects requests for quiz list to the Read side.
 
 See
 

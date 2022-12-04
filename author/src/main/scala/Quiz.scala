@@ -86,6 +86,7 @@ object Quiz:
       title: String,
       intro: String,
       recommendedLength: Int,
+      author: Author,
       replyTo: ActorRef[RespOK]
   ) extends CommandOK
   final case class Updated(title: String, intro: String, recommendedLength: Int) extends Event
