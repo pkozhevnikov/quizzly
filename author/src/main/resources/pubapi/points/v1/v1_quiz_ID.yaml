@@ -27,6 +27,30 @@ put:
     417:
       description: error
 
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: get quiz
+  description: |
+    Get quiz
+  operationId: getquiz
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: normal response
+      schema: 
+        $ref: /pubapi/schemas/quiz.yaml
+    417:
+      description: error
+
 post:
   tags:
   - v1
@@ -75,7 +99,7 @@ head:
     type: string
   -
     in: query
-    name: sectionId
+    name: sc
     required: true
     description: section ID
     type: string
@@ -83,30 +107,6 @@ head:
   responses:
     204:
       description: section owned
-    417:
-      description: error
-
-get:
-  tags:
-  - v1
-  produces:
-  - application/json
-  summary: get quiz
-  description: |
-    Get quiz
-  operationId: getquiz
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    type: string
-
-  responses:
-    200:
-      description: normal response
-      schema: 
-        $ref: /pubapi/schemas/quiz.yaml
     417:
       description: error
 

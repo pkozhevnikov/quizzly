@@ -12,3 +12,5 @@ paths:
   /v1/section/*/items:
     put: /item.yaml
   /v1/section/*/items/*:
+  /v1/quiz/*/authors/*:
+  /v1/quiz/*/inspectors/*:

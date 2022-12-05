@@ -13,4 +13,4 @@ case class QuizListed(
 
 trait Read:
 
-  def getList(): Future[QuizListed]
+  def getList(): Future[List[QuizListed]]

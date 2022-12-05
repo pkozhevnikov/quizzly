@@ -1,0 +1,21 @@
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: get officials list
+  description: |
+    Returns list of officials
+  operationId: getpersonlist
+  responses:
+    200:
+      description: normal response
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/person.yaml
+
+
+definitions:
+  person.yaml:
+    $ref: /pubapi/schemas/person.yaml

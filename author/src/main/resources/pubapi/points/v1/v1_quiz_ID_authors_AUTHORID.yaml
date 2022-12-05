@@ -1,0 +1,54 @@
+patch:
+  tags:
+  - v1
+  summary: add author
+  description: |
+    Adds an author
+  operationId: addauthor
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+  -
+    in: path
+    name: authorId
+    required: true
+    description: author ID
+    type: string
+
+  responses:
+    204:
+      description: author added
+    417:
+      description: error
+
+delete:
+  tags:
+  - v1
+  summary: remove author
+  description: |
+    Removes an author
+  operationId: removeauthor
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+  -
+    in: path
+    name: authorId
+    required: true
+    description: author ID
+    type: string
+
+  responses:
+    204:
+      description: author removed
+    417:
+      description: error
+

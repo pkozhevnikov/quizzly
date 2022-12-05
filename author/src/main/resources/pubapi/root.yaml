@@ -35,3 +35,9 @@ paths:
     $ref: points/v1/v1_section_ID_items.yaml
   /v1/section/{id}/items/{itemId}:
     $ref: points/v1/v1_section_ID_items_ITEMID.yaml
+  /v1/quiz/{id}/authors/{authorId}:
+    $ref: points/v1/v1_quiz_ID_authors_AUTHORID.yaml
+  /v1/quiz/{id}/inspectors/{inspectorId}:
+    $ref: points/v1/v1_quiz_ID_inspectors_INSPECTORID.yaml
+  /v1/staff:
+    $ref: points/v1/v1_staff.yaml

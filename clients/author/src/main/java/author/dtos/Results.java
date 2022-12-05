@@ -17,17 +17,22 @@ public class Results {
         }
     }
 
+    public static class listquizzes {
+        public static final Result normalresponse = new Result(true, Status.OK, "normal response");
+    }
+
     public static class createQuiz {
         public static final Result normalresponse = new Result(true, Status.OK, "normal response");
         public static final Result errorresponse = new Result(false, Status.EXPECTATION_FAILED, "error response");
     }
 
-    public static class listquizzes {
-        public static final Result normalresponse = new Result(true, Status.OK, "normal response");
-    }
-
     public static class updatequiz {
         public static final Result normalresponse = new Result(true, Status.NO_CONTENT, "normal response");
+        public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
+    }
+
+    public static class getquiz {
+        public static final Result normalresponse = new Result(true, Status.OK, "normal response");
         public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
     }
 
@@ -37,11 +42,6 @@ public class Results {
 
     public static class ownsection {
         public static final Result sectionowned = new Result(true, Status.NO_CONTENT, "section owned");
-        public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
-    }
-
-    public static class getquiz {
-        public static final Result normalresponse = new Result(true, Status.OK, "normal response");
         public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
     }
 
@@ -70,6 +70,11 @@ public class Results {
         public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
     }
 
+    public static class movesection {
+        public static final Result sectionmovedresponseisneworderofsectionids = new Result(true, Status.OK, "section moved, response is new order of section IDs");
+        public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
+    }
+
     public static class dischargesection {
         public static final Result sectiondischarged = new Result(true, Status.NO_CONTENT, "section discharged");
         public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
@@ -77,11 +82,6 @@ public class Results {
 
     public static class removesection {
         public static final Result sectionremoved = new Result(true, Status.NO_CONTENT, "section removed");
-        public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
-    }
-
-    public static class movesection {
-        public static final Result sectionmovedresponseisneworderofsectionids = new Result(true, Status.OK, "section moved, response is new order of section IDs");
         public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
     }
 
@@ -95,14 +95,38 @@ public class Results {
         public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
     }
 
+    public static class moveitem {
+        public static final Result itemmovedresponseswithneworderofitemids = new Result(true, Status.OK, "item moved, responses with new order of item IDs");
+        public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
+    }
+
     public static class removeitem {
         public static final Result itemremoved = new Result(true, Status.NO_CONTENT, "item removed");
         public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
     }
 
-    public static class moveitem {
-        public static final Result itemmovedresponseswithneworderofitemids = new Result(true, Status.OK, "item moved, responses with new order of item IDs");
+    public static class addauthor {
+        public static final Result authoradded = new Result(true, Status.NO_CONTENT, "author added");
         public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
+    }
+
+    public static class removeauthor {
+        public static final Result authorremoved = new Result(true, Status.NO_CONTENT, "author removed");
+        public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
+    }
+
+    public static class addinspector {
+        public static final Result inspectoradded = new Result(true, Status.NO_CONTENT, "inspector added");
+        public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
+    }
+
+    public static class removeinspector {
+        public static final Result inspectorremoved = new Result(true, Status.NO_CONTENT, "inspector removed");
+        public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
+    }
+
+    public static class getpersonlist {
+        public static final Result normalresponse = new Result(true, Status.OK, "normal response");
     }
 
 }

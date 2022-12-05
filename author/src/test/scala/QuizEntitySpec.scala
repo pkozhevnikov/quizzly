@@ -701,11 +701,25 @@ class QuizEntitySpec
         rejected(inspector1)
       }
 
+      "reject add author if caller is not curator" in {
+        reviewState
+        val result = kit.runCommand(AddAuthor(inspector1, author1, _))
+        result.reply shouldBe Bad(notCurator.error())
+        result.hasNoEvents shouldBe true
+      }
+
       "reject remove author if min authors exceeds" in {
         val review = reviewState
         val result = kit.runCommand(RemoveAuthor(curator, author1, _))
         result.reply shouldBe Bad(notEnoughAuthors.error())
         result.state shouldBe review
+      }
+
+      "reject remove author if caller is not curator" in {
+        reviewState
+        val result = kit.runCommand(RemoveAuthor(inspector1, author1, _))
+        result.reply shouldBe Bad(notCurator.error())
+        result.hasNoEvents shouldBe true
       }
 
       "remove author" in {
@@ -744,11 +758,25 @@ class QuizEntitySpec
         rejected(curator)
       }
 
+      "reject add inspector if caller is not curator" in {
+        reviewState
+        val result = kit.runCommand(AddInspector(author1, inspector1, _))
+        result.reply shouldBe Bad(notCurator.error())
+        result.hasNoEvents shouldBe true
+      }
+
       "reject remove inspector if min inspectors exceeds" in {
         val review = reviewState
         val result = kit.runCommand(RemoveInspector(curator, inspector1, _))
         result.reply shouldBe Bad(notEnoughInspectors.error())
         result.state shouldBe review
+      }
+
+      "reject remove inspector if caller is not curator" in {
+        reviewState
+        val result = kit.runCommand(RemoveInspector(author1, inspector1, _))
+        result.reply shouldBe Bad(notCurator.error())
+        result.hasNoEvents shouldBe true
       }
 
       "remove inspector" in {

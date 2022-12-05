@@ -4,24 +4,29 @@ import rall.basic.swagger.enums.Method;
 
 public enum Operation {
 
-    createQuiz("v1", "v1", "quiz", Method.POST, "Create new quiz"),
     listquizzes("v1", "v1", "quiz", Method.GET, "list quizzes"),
+    createQuiz("v1", "v1", "quiz", Method.POST, "Create new quiz"),
     updatequiz("v1", "v1", "quiz/{id}", Method.PUT, "Update quiz"),
+    getquiz("v1", "v1", "quiz/{id}", Method.GET, "get quiz"),
     addsection("v1", "v1", "quiz/{id}", Method.POST, "add section"),
     ownsection("v1", "v1", "quiz/{id}", Method.HEAD, "own section"),
-    getquiz("v1", "v1", "quiz/{id}", Method.GET, "get quiz"),
     setready("v1", "v1", "quiz/{id}/ready", Method.HEAD, "set readiness sign"),
     unsetreadysign("v1", "v1", "quiz/{id}/ready", Method.DELETE, "unset readiness sign"),
     approvequiz("v1", "v1", "quiz/{id}/resolve", Method.HEAD, "approve quiz"),
     disapprove("v1", "v1", "quiz/{id}/resolve", Method.DELETE, "disapprove quiz"),
     updatesection("v1", "v1", "section/{id}", Method.PUT, "update section"),
+    movesection("v1", "v1", "section/{id}", Method.PATCH, "move section"),
     dischargesection("v1", "v1", "section/{id}", Method.HEAD, "discharge section"),
     removesection("v1", "v1", "section/{id}", Method.DELETE, "remove section"),
-    movesection("v1", "v1", "section/{id}", Method.PATCH, "move section"),
     saveitem("v1", "v1", "section/{id}/items", Method.PUT, "save item"),
     additem("v1", "v1", "section/{id}/items", Method.POST, "add item"),
-    removeitem("v1", "v1", "section/{id}/items/{itemId}", Method.DELETE, "remove item"),
     moveitem("v1", "v1", "section/{id}/items/{itemId}", Method.PATCH, "move item"),
+    removeitem("v1", "v1", "section/{id}/items/{itemId}", Method.DELETE, "remove item"),
+    addauthor("v1", "v1", "quiz/{id}/authors/{authorId}", Method.PATCH, "add author"),
+    removeauthor("v1", "v1", "quiz/{id}/authors/{authorId}", Method.DELETE, "remove author"),
+    addinspector("v1", "v1", "quiz/{id}/inspectors/{inspectorId}", Method.PATCH, "add inspector"),
+    removeinspector("v1", "v1", "quiz/{id}/inspectors/{inspectorId}", Method.DELETE, "remove inspector"),
+    getpersonlist("v1", "v1", "staff", Method.GET, "get officials list"),
     ;
 
     protected Method method;

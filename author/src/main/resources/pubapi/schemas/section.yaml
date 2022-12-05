@@ -13,6 +13,7 @@ properties:
       $ref: /pubapi/schemas/item.yaml
 required:
 - sc
+- intro
 - title
 - items
 

@@ -14,7 +14,9 @@ val commonDependencies = Seq(
   "com.typesafe.akka" %% "akka-persistence-typed" % AkkaVersion,
   "com.typesafe.akka" %% "akka-persistence-testkit" % AkkaVersion % Test,
   "com.typesafe.akka" %% "akka-serialization-jackson" % AkkaVersion,
-  "com.typesafe.akka" %% "akka-cluster-sharding-typed" % AkkaVersion
+  "com.typesafe.akka" %% "akka-cluster-sharding-typed" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-stream-testkit" % AkkaVersion,
+  ("com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion).cross(CrossVersion.for3Use2_13)
 )
 
 lazy val author = project.settings(
