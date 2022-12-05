@@ -282,6 +282,20 @@ class SectionEditEntitySpec
         result2.reply shouldBe Bad(notOwned.error())
       }
 
+      "reject ping i not owner" in {
+        create
+        val result = kit.runCommand(Ping(author2, _))
+        result.reply shouldBe(Bad(notOwner.error()))
+        result.hasNoEvents shouldBe true
+      }
+
+      "respond on ping" in {
+        create
+        val result = kit.runCommand(Ping(author1, _))
+        result.reply shouldBe Resp.OK
+        result.hasNoEvents shouldBe true
+      }
+
     }
 
     "is not owned" must {

@@ -101,6 +101,8 @@ object SectionEditEntity:
       config: QuizConfig
   )(using ExecutionContext): Effect[Event, Option[SectionEdit]] =
     cmd match
+      case Ping(_, replyTo) =>
+        Effect.reply(replyTo)(Resp.OK)
       case Update(_, title, intro, replyTo) =>
         if title.trim().length < config.minTitleLength then
           Effect.reply(replyTo)(Bad(Quiz.tooShortTitle.error()))
