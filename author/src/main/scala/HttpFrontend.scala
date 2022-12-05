@@ -149,4 +149,3 @@ object HttpFrontend extends JsonFormats:
 
   private def performQuiz(id: String, cmd: ActorRef[Resp[_]] => Quiz.Command): Route = ???
   private def performSection(sc: String, cmd: ActorRef[Resp[_]] => SectionEdit.Command): Route = ???
-

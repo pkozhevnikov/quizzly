@@ -285,7 +285,7 @@ class SectionEditEntitySpec
       "reject ping i not owner" in {
         create
         val result = kit.runCommand(Ping(author2, _))
-        result.reply shouldBe(Bad(notOwner.error()))
+        result.reply shouldBe (Bad(notOwner.error()))
         result.hasNoEvents shouldBe true
       }
 

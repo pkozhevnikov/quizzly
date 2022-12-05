@@ -91,17 +91,23 @@ object Quiz:
   ) extends CommandOK
   final case class Updated(title: String, intro: String, recommendedLength: Int) extends Event
 
-  final case class AddInspector(inspector: Inspector, replyTo: ActorRef[RespOK]) extends CommandOK
+  final case class AddInspector(curator: Curator, inspector: Inspector, replyTo: ActorRef[RespOK])
+      extends CommandOK
   val alreadyOnList = Reason(2015, "already on list")
   final case class InspectorAdded(inspector: Inspector) extends Event
-  final case class AddAuthor(author: Author, replyTo: ActorRef[RespOK]) extends CommandOK
+  final case class AddAuthor(curator: Curator, author: Author, replyTo: ActorRef[RespOK])
+      extends CommandOK
   final case class AuthorAdded(author: Author) extends Event
 
-  final case class RemoveInspector(inspector: Inspector, replyTo: ActorRef[RespOK])
-      extends CommandOK
+  final case class RemoveInspector(
+      curator: Curator,
+      inspector: Inspector,
+      replyTo: ActorRef[RespOK]
+  ) extends CommandOK
   final case class InspectorRemoved(inspector: Inspector) extends Event
   val notOnList = Reason(2017, "not on list")
-  final case class RemoveAuthor(author: Author, replyTo: ActorRef[RespOK]) extends CommandOK
+  final case class RemoveAuthor(curator: Curator, author: Author, replyTo: ActorRef[RespOK])
+      extends CommandOK
   final case class AuthorRemoved(author: Author) extends Event
 
   final case class AddSection(
@@ -162,6 +168,7 @@ object Quiz:
   final case class Resolve(inspector: Inspector, approval: Boolean, replyTo: ActorRef[RespOK])
       extends CommandOK
   val notInspector = Reason(2005, "not an inspector")
+  val notCurator = Reason(2028, "not a curator")
   val isComposing = Reason(2018, "quiz is composing")
   final case class Resolved(inspector: Inspector, approval: Boolean) extends Event
   case object GoneReleased extends Event
@@ -178,7 +185,7 @@ object Quiz:
       obsolete: Boolean
   ) extends Quiz
 
-  final case class SetObsolete(replyTo: ActorRef[RespOK]) extends CommandOK
+  final case class SetObsolete(curator: Curator, replyTo: ActorRef[RespOK]) extends CommandOK
   val alreadyObsolete = Reason(2021, "quiz already obsolete")
   val quizReleased = Reason(2022, "quiz released")
   case object GotObsolete extends Event

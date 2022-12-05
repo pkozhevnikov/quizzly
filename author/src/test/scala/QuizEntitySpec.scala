@@ -125,10 +125,10 @@ class QuizEntitySpec
       "reject any command except create" in {
         rejected(quizNotFound.error() + id, Blank(id))(
           Update("", "", 0, author1, _),
-          AddInspector(inspector1, _),
-          AddAuthor(author1, _),
-          RemoveInspector(inspector1, _),
-          RemoveAuthor(author1, _),
+          AddInspector(curator, inspector1, _),
+          AddAuthor(curator, author1, _),
+          RemoveInspector(curator, inspector1, _),
+          RemoveAuthor(curator, author1, _),
           AddSection("", author1, _),
           OwnSection("sc", author1, _),
           SaveSection(section, _),
@@ -136,7 +136,7 @@ class QuizEntitySpec
           RemoveSection("sc", author1, _),
           SetReadySign(author1, _),
           Resolve(inspector1, false, _),
-          SetObsolete(_)
+          SetObsolete(curator, _)
         )
       }
 
@@ -248,18 +248,35 @@ class QuizEntitySpec
         update2.state shouldBe defState
       }
 
+      "reject update if not author" in {
+        createComposing
+        val result = kit.runCommand(Update("xyz", "", 50, curator, _))
+        result.reply shouldBe Bad(notAuthor.error())
+        result.hasNoEvents shouldBe true
+        val result2 = kit.runCommand(Update("xyz", "", 50, inspector1, _))
+        result2.reply shouldBe Bad(notAuthor.error())
+        result2.hasNoEvents shouldBe true
+      }
+
       "add an author" in {
         val defState = createComposing.stateOfType[Composing]
         val author = Person("new-auth", "new author name")
-        val insert = kit.runCommand(AddAuthor(author, _))
+        val insert = kit.runCommand(AddAuthor(curator, author, _))
         insert.reply shouldBe Resp.OK
         insert.state shouldBe defState.copy(authors = defState.authors + author)
+      }
+
+      "reject add author if caller is not curator" in {
+        createComposing
+        val result = kit.runCommand(AddAuthor(inspector1, author1, _))
+        result.reply shouldBe Bad(notCurator.error())
+        result.hasNoEvents shouldBe true
       }
 
       "reject add author if already listed" in {
         val defState = createComposing.state
         def check(person: Person) =
-          val insert = kit.runCommand(AddAuthor(person, _))
+          val insert = kit.runCommand(AddAuthor(curator, person, _))
           insert.reply shouldBe Bad(alreadyOnList.error())
           insert.state shouldBe defState
         check(author1)
@@ -267,10 +284,17 @@ class QuizEntitySpec
         check(curator)
       }
 
+      "reject add inspector if caller is not curator" in {
+        createComposing
+        val result = kit.runCommand(AddInspector(author1, inspector1, _))
+        result.reply shouldBe Bad(notCurator.error())
+        result.hasNoEvents shouldBe true
+      }
+
       "add an inspector" in {
         val defState = createComposing.stateOfType[Composing]
         val inspector = Person("new-insp", "new inspector name")
-        val insert = kit.runCommand(AddInspector(inspector, _))
+        val insert = kit.runCommand(AddInspector(curator, inspector, _))
         insert.reply shouldBe Resp.OK
         insert.state shouldBe defState.copy(inspectors = defState.inspectors + inspector)
       }
@@ -278,7 +302,7 @@ class QuizEntitySpec
       "reject add inspector if already listed" in {
         val defState = createComposing.state
         def check(person: Person) =
-          val insert = kit.runCommand(AddInspector(person, _))
+          val insert = kit.runCommand(AddInspector(curator, person, _))
           insert.reply shouldBe Bad(alreadyOnList.error())
           insert.state shouldBe defState
         check(author1)
@@ -288,10 +312,10 @@ class QuizEntitySpec
 
       "remove author" in {
         val defState = createComposing.stateOfType[Composing]
-        kit.runCommand(AddAuthor(author3, _))
+        kit.runCommand(AddAuthor(curator, author3, _))
         val signed = kit.runCommand(SetReadySign(author1, _)).stateOfType[Composing]
         signed.readinessSigns shouldBe Set(author1)
-        val remove = kit.runCommand(RemoveAuthor(author1, _))
+        val remove = kit.runCommand(RemoveAuthor(curator, author1, _))
         remove.reply shouldBe Resp.OK
         remove.state shouldBe
           defState.copy(authors = defState.authors + author3 - author1, readinessSigns = Set.empty)
@@ -312,22 +336,29 @@ class QuizEntitySpec
 
       "reject remove author if min authors exceeds" in {
         val composing = createComposing.stateOfType[Composing]
-        val result = kit.runCommand(RemoveAuthor(author1, _))
+        val result = kit.runCommand(RemoveAuthor(curator, author1, _))
         result.reply shouldBe Bad(notEnoughAuthors.error())
         result.state shouldBe composing
       }
 
       "reject remove author if not listed" in {
         val defState = createComposing.state
-        val remove = kit.runCommand(RemoveAuthor(Person("not-exists", "the name"), _))
+        val remove = kit.runCommand(RemoveAuthor(curator, Person("not-exists", "the name"), _))
         remove.reply shouldBe Bad(notOnList.error())
         remove.state shouldBe defState
       }
 
+      "reject remove author if caller is not curator" in {
+        createComposing
+        val result = kit.runCommand(RemoveAuthor(inspector1, author1, _))
+        result.reply shouldBe Bad(notCurator.error())
+        result.hasNoEvents shouldBe true
+      }
+
       "remove inspector" in {
         val defState = createComposing.stateOfType[Composing]
-        kit.runCommand(AddInspector(inspector3, _))
-        val remove = kit.runCommand(RemoveInspector(inspector1, _))
+        kit.runCommand(AddInspector(curator, inspector3, _))
+        val remove = kit.runCommand(RemoveInspector(curator, inspector1, _))
         remove.reply shouldBe Resp.OK
         remove.state shouldBe
           defState.copy(inspectors = defState.inspectors + inspector3 - inspector1)
@@ -335,16 +366,23 @@ class QuizEntitySpec
 
       "reject remove inspector if not listed" in {
         val defState = createComposing.state
-        val remove = kit.runCommand(RemoveInspector(Person("not-exists", "the name"), _))
+        val remove = kit.runCommand(RemoveInspector(curator, Person("not-exists", "the name"), _))
         remove.reply shouldBe Bad(notOnList.error())
         remove.state shouldBe defState
       }
 
       "reject remove inspector if min inspectors exceeds" in {
         val composing = createComposing.state
-        val result = kit.runCommand(RemoveInspector(inspector1, _))
+        val result = kit.runCommand(RemoveInspector(curator, inspector1, _))
         result.reply shouldBe Bad(notEnoughInspectors.error())
         result.state shouldBe composing
+      }
+
+      "reject remove inspector if caller is not curator" in {
+        createComposing
+        val result = kit.runCommand(RemoveInspector(author1, inspector1, _))
+        result.reply shouldBe Bad(notCurator.error())
+        result.hasNoEvents shouldBe true
       }
 
       "reject set ready sign if not an author" in {
@@ -366,7 +404,10 @@ class QuizEntitySpec
 
       "reject other actions" in {
         val composing = createComposing.stateOfType[Composing]
-        rejected(isComposing.error(), composing)(Resolve(inspector1, true, _), SetObsolete(_))
+        rejected(isComposing.error(), composing)(
+          Resolve(inspector1, true, _),
+          SetObsolete(curator, _)
+        )
       }
 
       "reject add section if not author" in {
@@ -580,7 +621,7 @@ class QuizEntitySpec
 
       "reject set ready sign" in {
         createComposing.stateOfType[Composing].signForReview
-        kit.runCommand(AddAuthor(author3, _))
+        kit.runCommand(AddAuthor(curator, author3, _))
         val failed = kit.runCommand(SetReadySign(author3, _))
         failed.reply shouldBe Bad(onReview.error())
         failed.stateOfType[Review].composing.readinessSigns should not contain author3
@@ -642,7 +683,7 @@ class QuizEntitySpec
 
       "add author" in {
         val review = reviewState
-        val result = kit.runCommand(AddAuthor(author3, _))
+        val result = kit.runCommand(AddAuthor(curator, author3, _))
         result.reply shouldBe Resp.OK
         result.state shouldBe
           review
@@ -652,7 +693,7 @@ class QuizEntitySpec
       "reject add author if listed" in {
         val review = reviewState
         def rejected(p: Person) =
-          val result = kit.runCommand(AddAuthor(p, _))
+          val result = kit.runCommand(AddAuthor(curator, p, _))
           result.reply shouldBe Bad(alreadyOnList.error())
           result.state shouldBe review
         rejected(curator)
@@ -662,16 +703,16 @@ class QuizEntitySpec
 
       "reject remove author if min authors exceeds" in {
         val review = reviewState
-        val result = kit.runCommand(RemoveAuthor(author1, _))
+        val result = kit.runCommand(RemoveAuthor(curator, author1, _))
         result.reply shouldBe Bad(notEnoughAuthors.error())
         result.state shouldBe review
       }
 
       "remove author" in {
         createComposing
-        val composing = kit.runCommand(AddAuthor(author3, _)).stateOfType[Composing]
+        val composing = kit.runCommand(AddAuthor(curator, author3, _)).stateOfType[Composing]
         composing.signForReview
-        val remove = kit.runCommand(RemoveAuthor(author3, _))
+        val remove = kit.runCommand(RemoveAuthor(curator, author3, _))
         remove.reply shouldBe Resp.OK
         remove.state shouldBe
           Review(
@@ -686,7 +727,7 @@ class QuizEntitySpec
 
       "add inspector" in {
         val review = reviewState
-        val result = kit.runCommand(AddInspector(inspector3, _))
+        val result = kit.runCommand(AddInspector(curator, inspector3, _))
         result.reply shouldBe Resp.OK
         result.stateOfType[Review].composing.inspectors should contain allOf
           (inspector1, inspector2, inspector3)
@@ -695,7 +736,7 @@ class QuizEntitySpec
       "reject add inspector if listed" in {
         val review = reviewState
         def rejected(p: Person) =
-          val result = kit.runCommand(AddInspector(p, _))
+          val result = kit.runCommand(AddInspector(curator, p, _))
           result.reply shouldBe Bad(alreadyOnList.error())
           result.state shouldBe review
         rejected(author1)
@@ -705,18 +746,18 @@ class QuizEntitySpec
 
       "reject remove inspector if min inspectors exceeds" in {
         val review = reviewState
-        val result = kit.runCommand(RemoveInspector(inspector1, _))
+        val result = kit.runCommand(RemoveInspector(curator, inspector1, _))
         result.reply shouldBe Bad(notEnoughInspectors.error())
         result.state shouldBe review
       }
 
       "remove inspector" in {
         reviewState
-        kit.runCommand(AddInspector(inspector3, _))
+        kit.runCommand(AddInspector(curator, inspector3, _))
         val resolve = kit.runCommand(Resolve(inspector2, true, _))
         resolve.reply shouldBe Resp.OK
         resolve.stateOfType[Review].approvals shouldBe Set(inspector2)
-        val remove = kit.runCommand(RemoveInspector(inspector2, _))
+        val remove = kit.runCommand(RemoveInspector(curator, inspector2, _))
         remove.reply shouldBe Resp.OK
         val review = remove.stateOfType[Review]
         review.composing.inspectors should contain allOf (inspector1, inspector3)
@@ -732,7 +773,7 @@ class QuizEntitySpec
           SaveSection(section, _),
           MoveSection("sc", false, author1, _),
           RemoveSection("sc", author1, _),
-          SetObsolete(_)
+          SetObsolete(curator, _)
         )
       }
 
@@ -746,17 +787,17 @@ class QuizEntitySpec
       "set obsolete" in {
         val release = makeReleased
         release.stateOfType[Released].obsolete shouldBe false
-        val result = kit.runCommand(SetObsolete(_))
+        val result = kit.runCommand(SetObsolete(curator, _))
         result.reply shouldBe Resp.OK
         result.stateOfType[Released].obsolete shouldBe true
       }
 
       "reject set obsolete if already set" in {
         makeReleased
-        val result = kit.runCommand(SetObsolete(_))
+        val result = kit.runCommand(SetObsolete(curator, _))
         result.reply shouldBe Resp.OK
         result.stateOfType[Released].obsolete shouldBe true
-        val result2 = kit.runCommand(SetObsolete(_))
+        val result2 = kit.runCommand(SetObsolete(curator, _))
         result2.reply shouldBe Bad(alreadyObsolete.error())
         result2.stateOfType[Released].obsolete shouldBe true
       }
@@ -772,10 +813,10 @@ class QuizEntitySpec
         val released = makeReleased.state
         rejected(quizReleased.error(), released)(
           Update("", "", 1, author1, _),
-          AddAuthor(author1, _),
-          RemoveAuthor(author1, _),
-          AddInspector(inspector1, _),
-          RemoveInspector(inspector1, _),
+          AddAuthor(curator, author1, _),
+          RemoveAuthor(curator, author1, _),
+          AddInspector(curator, inspector1, _),
+          RemoveInspector(curator, inspector1, _),
           SetReadySign(author1, _),
           Resolve(inspector1, true, _),
           AddSection("", author1, _),

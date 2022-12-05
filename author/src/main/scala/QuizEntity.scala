@@ -83,7 +83,9 @@ object QuizEntity:
             case c: Create =>
               Effect.reply(c.replyTo)(Bad(quizAlreadyExists.error() + c.id))
             case c: Update =>
-              if c.title.trim.length < config.minTitleLength then
+              if !composing.authors(c.author) then
+                Effect.reply(c.replyTo)(Bad(notAuthor.error()))
+              else if c.title.trim.length < config.minTitleLength then
                 Effect.reply(c.replyTo)(Bad(tooShortTitle.error()))
               else if c.recommendedLength < config.minTrialLength then
                 Effect.reply(c.replyTo)(Bad(tooShortLength.error()))
@@ -92,28 +94,36 @@ object QuizEntity:
                   .persist(Updated(c.title.trim, c.intro, c.recommendedLength))
                   .thenReply(c.replyTo)(_ => Resp.OK)
             case c: AddAuthor =>
-              if composing.curator == c.author || composing.authors(c.author) ||
+              if composing.curator != c.curator then
+                Effect.reply(c.replyTo)(Bad(notCurator.error()))
+              else if composing.curator == c.author || composing.authors(c.author) ||
                 composing.inspectors(c.author)
               then
                 Effect.reply(c.replyTo)(Bad(alreadyOnList.error()))
               else
                 Effect.persist(AuthorAdded(c.author)).thenReply(c.replyTo)(_ => Resp.OK)
             case c: RemoveAuthor =>
-              if !composing.authors(c.author) then
+              if composing.curator != c.curator then
+                Effect.reply(c.replyTo)(Bad(notCurator.error()))
+              else if !composing.authors(c.author) then
                 Effect.reply(c.replyTo)(Bad(notOnList.error()))
               else if composing.authors.size == config.minAuthors then
                 Effect.reply(c.replyTo)(Bad(notEnoughAuthors.error()))
               else
                 Effect.persist(AuthorRemoved(c.author)).thenReply(c.replyTo)(_ => Resp.OK)
             case c: AddInspector =>
-              if composing.curator == c.inspector || composing.authors(c.inspector) ||
+              if composing.curator != c.curator then
+                Effect.reply(c.replyTo)(Bad(notCurator.error()))
+              else if composing.curator == c.inspector || composing.authors(c.inspector) ||
                 composing.inspectors(c.inspector)
               then
                 Effect.reply(c.replyTo)(Bad(alreadyOnList.error()))
               else
                 Effect.persist(InspectorAdded(c.inspector)).thenReply(c.replyTo)(_ => Resp.OK)
             case c: RemoveInspector =>
-              if !composing.inspectors(c.inspector) then
+              if composing.curator != c.curator then
+                Effect.reply(c.replyTo)(Bad(notCurator.error()))
+              else if !composing.inspectors(c.inspector) then
                 Effect.reply(c.replyTo)(Bad(notOnList.error()))
               else if composing.inspectors.size == config.minInspectors then
                 Effect.reply(c.replyTo)(Bad(notEnoughInspectors.error()))
@@ -220,27 +230,35 @@ object QuizEntity:
           cmd match
             case c: Create =>
               Effect.reply(c.replyTo)(Bad(quizAlreadyExists.error() + c.id))
-            case AddAuthor(author, replyTo) =>
-              if review.composing.curator == author || review.composing.authors(author) ||
+            case AddAuthor(curator, author, replyTo) =>
+              if review.composing.curator != curator then
+                Effect.reply(replyTo)(Bad(notCurator.error()))
+              else if review.composing.curator == author || review.composing.authors(author) ||
                 review.composing.inspectors(author)
               then
                 Effect.reply(replyTo)(Bad(alreadyOnList.error()))
               else
                 Effect.persist(AuthorAdded(author)).thenReply(replyTo)(_ => Resp.OK)
-            case RemoveAuthor(author, replyTo) =>
-              if review.composing.authors.size == config.minAuthors then
+            case RemoveAuthor(curator, author, replyTo) =>
+              if review.composing.curator != curator then
+                Effect.reply(replyTo)(Bad(notCurator.error()))
+              else if review.composing.authors.size == config.minAuthors then
                 Effect.reply(replyTo)(Bad(notEnoughAuthors.error()))
               else
                 Effect.persist(AuthorRemoved(author)).thenReply(replyTo)(_ => Resp.OK)
-            case AddInspector(inspector, replyTo) =>
-              if review.composing.curator == inspector || review.composing.authors(inspector) ||
-                review.composing.inspectors(inspector)
+            case AddInspector(curator, inspector, replyTo) =>
+              if review.composing.curator != curator then
+                Effect.reply(replyTo)(Bad(notCurator.error()))
+              else if review.composing.curator == inspector ||
+                review.composing.authors(inspector) || review.composing.inspectors(inspector)
               then
                 Effect.reply(replyTo)(Bad(alreadyOnList.error()))
               else
                 Effect.persist(InspectorAdded(inspector)).thenReply(replyTo)(_ => Resp.OK)
-            case RemoveInspector(inspector, replyTo) =>
-              if review.composing.inspectors.size == config.minInspectors then
+            case RemoveInspector(curator, inspector, replyTo) =>
+              if review.composing.curator != curator then
+                Effect.reply(replyTo)(Bad(notCurator.error()))
+              else if review.composing.inspectors.size == config.minInspectors then
                 Effect.reply(replyTo)(Bad(notEnoughInspectors.error()))
               else
                 Effect.persist(InspectorRemoved(inspector)).thenReply(replyTo)(_ => Resp.OK)
