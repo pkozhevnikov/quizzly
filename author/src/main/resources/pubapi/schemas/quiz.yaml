@@ -38,9 +38,13 @@ properties:
     type: array
     items:
       $ref: /pubapi/schemas/section.yaml
+  state:
+    $ref: /pubapi/schemas/quiz-state.yaml
 
 definitions:
   person.yaml:
     $ref: /pubapi/schemas/person.yaml
   section.yaml:
     $ref: /pubapi/schemas/section.yaml
+  quiz-state.yaml:
+    $ref: /pubapi/schemas/quiz-state.yaml

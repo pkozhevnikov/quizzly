@@ -82,6 +82,8 @@ post:
       description: section created, returns ID of new section
       schema: 
         $ref: /pubapi/schemas/sc.yaml
+    417:
+      description: error
 
 head:
   tags:

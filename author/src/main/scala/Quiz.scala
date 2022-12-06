@@ -30,6 +30,11 @@ sealed trait Quiz extends CborSerializable:
 
 object Quiz:
 
+  enum State:
+    case COMPOSING,
+      REVIEW,
+      RELEASED
+
   final case class Blank(id: QuizID) extends Quiz
 
   sealed trait Command extends CborSerializable

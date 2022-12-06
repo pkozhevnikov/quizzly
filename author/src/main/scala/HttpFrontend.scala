@@ -28,11 +28,43 @@ case class CreateQuiz(
 case class CreateSection(title: String)
 case class UpdateQuiz(title: String, intro: String, recommendedLength: Int)
 case class UpdateSection(title: String, intro: String)
+case class FullQuiz(
+    id: String,
+    title: String,
+    intro: String,
+    curator: Curator,
+    authors: Set[Author],
+    inspectors: Set[Inspector],
+    recommendedLength: Int,
+    readinessSigns: Set[Author],
+    approvals: Set[Inspector],
+    disapprovals: Set[Inspector],
+    obsolete: Boolean,
+    sections: List[Section],
+    state: Quiz.State
+)
 
 trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
   given RootJsonFormat[Person] = jsonFormat2(Person.apply)
   given RootJsonFormat[CreateQuiz] = jsonFormat6(CreateQuiz.apply)
-  given RootJsonFormat[QuizListed] = jsonFormat6(QuizListed.apply)
+  given RootJsonFormat[Quiz.State] =
+    new:
+      def write(s: Quiz.State) = JsString(s.toString)
+      def read(n: JsValue) =
+        n match
+          case JsString("COMPOSING") =>
+            Quiz.State.COMPOSING
+          case JsString("REVIEW") =>
+            Quiz.State.REVIEW
+          case JsString("RELEASED") =>
+            Quiz.State.RELEASED
+          case x =>
+            throw DeserializationException(s"unknown value $x")
+  given RootJsonFormat[QuizListed] = jsonFormat7(QuizListed.apply)
+  given RootJsonFormat[Statement] = jsonFormat2(Statement.apply)
+  given RootJsonFormat[Item] = jsonFormat6(Item.apply)
+  given RootJsonFormat[Section] = jsonFormat4(Section.apply)
+  given RootJsonFormat[FullQuiz] = jsonFormat13(FullQuiz.apply)
   given RootJsonFormat[CreateSection] = jsonFormat1(CreateSection.apply)
   given RootJsonFormat[UpdateQuiz] = jsonFormat3(UpdateQuiz.apply)
   given RootJsonFormat[UpdateSection] = jsonFormat2(UpdateSection.apply)
@@ -201,4 +233,3 @@ object HttpFrontend extends JsonFormats:
     }
 
   // format: on
-

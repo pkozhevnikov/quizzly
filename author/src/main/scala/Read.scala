@@ -8,7 +8,8 @@ case class QuizListed(
     obsolete: Boolean,
     curator: Person,
     authors: Set[Person],
-    inspectors: Set[Person]
+    inspectors: Set[Person],
+    state: Quiz.State
 )
 
 trait Read:

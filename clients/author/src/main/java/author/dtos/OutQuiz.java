@@ -1,6 +1,7 @@
 package author.dtos;
 
 import author.dtos.OutPerson;
+import author.dtos.OutQuizState;
 import author.dtos.OutSection;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,6 +22,7 @@ public class OutQuiz {
     public final Set<OutPerson> disapprovals;
     public final Boolean obsolete;
     public final List<OutSection> sections;
+    public final OutQuizState state;
 
     @JsonCreator
     public OutQuiz(
@@ -35,19 +37,21 @@ public class OutQuiz {
         @JsonProperty("approvals") Set<OutPerson> approvals,
         @JsonProperty("disapprovals") Set<OutPerson> disapprovals,
         @JsonProperty("obsolete") Boolean obsolete,
-        @JsonProperty("sections") List<OutSection> sections
+        @JsonProperty("sections") List<OutSection> sections,
+        @JsonProperty("state") OutQuizState state
     ) {
         this.recommendedLength = recommendedLength;
+        this.obsolete = obsolete;
+        this.readinessSigns = readinessSigns;
+        this.title = title;
+        this.sections = sections;
         this.curator = curator;
         this.disapprovals = disapprovals;
         this.intro = intro;
         this.inspectors = inspectors;
         this.approvals = approvals;
-        this.obsolete = obsolete;
-        this.readinessSigns = readinessSigns;
         this.id = id;
-        this.title = title;
-        this.sections = sections;
+        this.state = state;
         this.authors = authors;
     }
 

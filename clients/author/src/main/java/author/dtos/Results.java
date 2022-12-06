@@ -38,6 +38,7 @@ public class Results {
 
     public static class addsection {
         public static final Result sectioncreatedreturnsidofnewsection = new Result(true, Status.OK, "section created, returns ID of new section");
+        public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
     }
 
     public static class ownsection {

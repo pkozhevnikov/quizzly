@@ -43,3 +43,9 @@ properties:
       required:
       - name
       - id
+  state:
+    type: string
+    enum: 
+    - COMPOSING
+    - REVIEW
+    - RELEASED
