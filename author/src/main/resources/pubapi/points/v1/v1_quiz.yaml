@@ -1,20 +1,3 @@
-get:
-  tags:
-  - v1
-  produces:
-  - application/json
-  summary: list quizzes
-  description: |
-    List quizzes
-  operationId: listquizzes
-  responses:
-    200:
-      description: normal response
-      schema: 
-        type: array
-        items:
-          $ref: /pubapi/schemas/quiz-listed.yaml
-
 post:
   tags:
   - v1
@@ -40,10 +23,27 @@ post:
       description: normal response
       schema: 
         $ref: /pubapi/schemas/create-details.yaml
-    417:
+    422:
       description: error response
       schema: 
         $ref: /pubapi/schemas/error.yaml
+
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: list quizzes
+  description: |
+    List quizzes
+  operationId: listquizzes
+  responses:
+    200:
+      description: normal response
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/quiz-listed.yaml
 
 
 definitions:

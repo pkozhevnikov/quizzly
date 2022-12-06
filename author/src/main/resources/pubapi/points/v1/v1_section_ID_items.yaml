@@ -25,7 +25,7 @@ put:
   responses:
     204:
       description: item saved
-    417:
+    422:
       description: error
 
 post:
@@ -48,7 +48,7 @@ post:
       description: item added, responses with ID of new item
       schema: 
         $ref: /pubapi/schemas/sc.yaml
-    417:
+    422:
       description: error
 
 

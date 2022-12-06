@@ -5,7 +5,7 @@ info:
   description: |
     Authoring online tests
     
-    Response with status `417` means the request didn't pass validation.
+    Response with status `422` means the request didn't pass validation.
     For body of response see `POST /v1/quiz`
 host: ${http.host}:${http.port}
 basePath: /

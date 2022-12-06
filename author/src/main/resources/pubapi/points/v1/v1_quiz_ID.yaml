@@ -24,31 +24,7 @@ put:
   responses:
     204:
       description: normal response
-    417:
-      description: error
-
-get:
-  tags:
-  - v1
-  produces:
-  - application/json
-  summary: get quiz
-  description: |
-    Get quiz
-  operationId: getquiz
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    type: string
-
-  responses:
-    200:
-      description: normal response
-      schema: 
-        $ref: /pubapi/schemas/full-quiz.yaml
-    417:
+    422:
       description: error
 
 post:
@@ -82,7 +58,52 @@ post:
       description: section created, returns ID of new section
       schema: 
         $ref: /pubapi/schemas/sc.yaml
-    417:
+    422:
+      description: error
+
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: get quiz
+  description: |
+    Get quiz
+  operationId: getquiz
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: normal response
+      schema: 
+        $ref: /pubapi/schemas/full-quiz.yaml
+    422:
+      description: error
+
+delete:
+  tags:
+  - v1
+  summary: set quiz obsolete
+  description: |
+    Sets quiz obsolete
+  operationId: setobsolete
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+
+  responses:
+    204:
+      description: quiz set obsolete
+    422:
       description: error
 
 head:
@@ -109,28 +130,7 @@ head:
   responses:
     204:
       description: section owned
-    417:
-      description: error
-
-delete:
-  tags:
-  - v1
-  summary: set quiz obsolete
-  description: |
-    Sets quiz obsolete
-  operationId: setobsolete
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: quiz ID
-    type: string
-
-  responses:
-    204:
-      description: quiz set obsolete
-    417:
+    422:
       description: error
 
 

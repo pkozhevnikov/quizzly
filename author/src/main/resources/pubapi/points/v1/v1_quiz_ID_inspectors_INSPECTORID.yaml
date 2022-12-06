@@ -1,30 +1,3 @@
-head:
-  tags:
-  - v1
-  summary: add inspector
-  description: |
-    Adds an inspector
-  operationId: addinspector
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: quiz ID
-    type: string
-  -
-    in: path
-    name: inspectorId
-    required: true
-    description: inspector ID
-    type: string
-
-  responses:
-    204:
-      description: inspector added
-    417:
-      description: error
-
 delete:
   tags:
   - v1
@@ -49,6 +22,33 @@ delete:
   responses:
     204:
       description: inspector removed
-    417:
+    422:
+      description: error
+
+head:
+  tags:
+  - v1
+  summary: add inspector
+  description: |
+    Adds an inspector
+  operationId: addinspector
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+  -
+    in: path
+    name: inspectorId
+    required: true
+    description: inspector ID
+    type: string
+
+  responses:
+    204:
+      description: inspector added
+    422:
       description: error
 

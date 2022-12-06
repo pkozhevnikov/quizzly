@@ -24,7 +24,7 @@ put:
   responses:
     204:
       description: section updated
-    417:
+    422:
       description: error
 
 patch:
@@ -63,28 +63,7 @@ patch:
         type: array
         items:
           $ref: /pubapi/schemas/sc.yaml
-    417:
-      description: error
-
-head:
-  tags:
-  - v1
-  summary: discharge section
-  description: |
-    Discharges section
-  operationId: dischargesection
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: section ID
-    type: string
-
-  responses:
-    204:
-      description: section discharged
-    417:
+    422:
       description: error
 
 delete:
@@ -111,7 +90,28 @@ delete:
   responses:
     204:
       description: section removed
-    417:
+    422:
+      description: error
+
+head:
+  tags:
+  - v1
+  summary: discharge section
+  description: |
+    Discharges section
+  operationId: dischargesection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+
+  responses:
+    204:
+      description: section discharged
+    422:
       description: error
 
 

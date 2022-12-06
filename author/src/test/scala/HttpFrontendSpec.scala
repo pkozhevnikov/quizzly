@@ -100,6 +100,24 @@ class HttpFrontendSpec
         TestEntityRef(QuizEntity.EntityKey, id, testKit.spawn(beh))
       def section(id: SC) = emptySect(id)
 
+  def sect[R](expectedId: SC, resp: Resp[R]) =
+    new EntityAware:
+      val beh = Behaviors.receiveMessage[SectionEdit.Command] {
+        case c: SectionEdit.CommandWithReply[R] =>
+          c.replyTo ! resp
+          Behaviors.stopped
+      }
+      def quiz(id: QuizID) = emptyQuiz(id)
+      def section(id: SC) =
+        id shouldBe expectedId
+        TestEntityRef(SectionEditEntity.EntityKey, id, testKit.spawn(beh))
+  def sect(expectedId: SC, beh: Behavior[SectionEdit.Command]) =
+    new EntityAware:
+      def quiz(id: QuizID) = emptyQuiz(id)
+      def section(id: SC) =
+        id shouldBe expectedId
+        TestEntityRef(SectionEditEntity.EntityKey, id, testKit.spawn(beh))
+
   val quizList = List(
     QuizListed("q1", "quiz1", false, p1, Set(p1, p2), Set(p3, p4), Quiz.State.COMPOSING)
   )
@@ -116,6 +134,7 @@ class HttpFrontendSpec
     Put(s"/v1/$path", content) ~> addHeader("pl", personId)
   def patch[C](path: String, personId: PersonID, content: C)(using ToEntityMarshaller[C]) =
     Patch(s"/v1/$path", content) ~> addHeader("pl", personId)
+  def patch(path: String, personId: PersonID) = Patch(s"/v1/$path") ~> addHeader("pl", personId)
 
   def stdquiz[R](expectedId: QuizID, resp: Resp[R]) = HttpFrontend(
     read,
@@ -125,6 +144,12 @@ class HttpFrontendSpec
   def spcquiz(expectedId: QuizID, beh: Behavior[Quiz.Command]) = HttpFrontend(
     read,
     quiz(expectedId, beh),
+    auth
+  )
+  def stdsect[R](expectedId: SC, resp: Resp[R]) = HttpFrontend(read, sect(expectedId, resp), auth)
+  def spcsect(expectedId: SC, beh: Behavior[SectionEdit.Command]) = HttpFrontend(
+    read,
+    sect(expectedId: SC, beh),
     auth
   )
 
@@ -172,7 +197,7 @@ class HttpFrontendSpec
       "not create quiz with bad input" in {
         post("quiz", p2.id, create) ~> stdquiz("q1", Bad(Quiz.tooShortTitle.error())) ~>
           check {
-            status shouldBe StatusCodes.ExpectationFailed
+            status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe Quiz.tooShortTitle.error()
           }
       }
@@ -202,7 +227,7 @@ class HttpFrontendSpec
       "not return full quiz with error" in {
         get("quiz/q1", p1.id) ~> stdquiz("q1", Bad(Quiz.notMember.error())) ~>
           check {
-            status shouldBe StatusCodes.ExpectationFailed
+            status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe Quiz.notMember.error()
           }
       }
@@ -230,7 +255,7 @@ class HttpFrontendSpec
         val err = Quiz.quizNotFound.error() + "q1"
         put("quiz/q1", p1.id, updt) ~> stdquiz("q1", Bad(err)) ~>
           check {
-            status shouldBe StatusCodes.ExpectationFailed
+            status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
           }
       }
@@ -259,7 +284,7 @@ class HttpFrontendSpec
         val err = Quiz.tooShortTitle.error()
         post("quiz/q1", p2.id, addsec) ~> stdquiz("q1", Bad(err)) ~>
           check {
-            status shouldBe StatusCodes.ExpectationFailed
+            status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
           }
       }
@@ -286,14 +311,25 @@ class HttpFrontendSpec
         val err = Quiz.sectionNotFound.error() + "qx-1"
         head("quiz/qx?sc=qx-1", p3.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
-            status shouldBe StatusCodes.ExpectationFailed
+            status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
           }
       }
     }
     "DELETE" should {
       "set obsolete" in {
-        delete("quiz/qx", p3.id) ~> stdquiz("qx", Resp.OK) ~>
+        val route = spcquiz(
+          "qx",
+          Behaviors.receiveMessage {
+            case Quiz.SetObsolete(`p3`, replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        delete("quiz/qx", p3.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
@@ -302,7 +338,7 @@ class HttpFrontendSpec
         val err = Quiz.quizNotFound.error()
         delete("quiz/qx", p3.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
-            status shouldBe StatusCodes.ExpectationFailed
+            status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
           }
       }
@@ -312,7 +348,18 @@ class HttpFrontendSpec
   "quiz/{id}/ready" when {
     "DELETE" should {
       "unset readiness sign" in {
-        delete("quiz/qx/ready", p4.id) ~> stdquiz("qx", Resp.OK) ~>
+        val route = spcquiz(
+          "qx",
+          Behaviors.receiveMessage {
+            case Quiz.UnsetReadySign(`p4`, replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        delete("quiz/qx/ready", p4.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
@@ -321,14 +368,25 @@ class HttpFrontendSpec
         val err = Quiz.notAuthor.error()
         delete("quiz/qx/ready", p4.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
-            status shouldBe StatusCodes.ExpectationFailed
+            status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
           }
       }
     }
     "HEAD" should {
       "set readiness sign" in {
-        head("quiz/qx/ready", p4.id) ~> stdquiz("qx", Resp.OK) ~>
+        val route = spcquiz(
+          "qx",
+          Behaviors.receiveMessage {
+            case Quiz.SetReadySign(`p4`, replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        head("quiz/qx/ready", p4.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
@@ -337,7 +395,7 @@ class HttpFrontendSpec
         val err = Quiz.notAuthor.error()
         head("quiz/qx/ready", p4.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
-            status shouldBe StatusCodes.ExpectationFailed
+            status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
           }
       }
@@ -347,7 +405,18 @@ class HttpFrontendSpec
   "quiz/{id}/resolve" when {
     "HEAD" should {
       "approve" in {
-        delete("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Resp.OK) ~>
+        val route = spcquiz(
+          "qx",
+          Behaviors.receiveMessage {
+            case Quiz.Resolve(`p4`, true, replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        delete("quiz/qx/resolve", p4.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
@@ -356,14 +425,25 @@ class HttpFrontendSpec
         val err = Quiz.notAuthor.error()
         delete("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
-            status shouldBe StatusCodes.ExpectationFailed
+            status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
           }
       }
     }
     "DELETE" should {
       "disapprove" in {
-        head("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Resp.OK) ~>
+        val route = spcquiz(
+          "qx",
+          Behaviors.receiveMessage {
+            case Quiz.Resolve(`p4`, false, replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        head("quiz/qx/resolve", p4.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
@@ -372,7 +452,359 @@ class HttpFrontendSpec
         val err = Quiz.notAuthor.error()
         head("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
-            status shouldBe StatusCodes.ExpectationFailed
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+  }
+
+  "quiz/{id}/authors" when {
+    "HEAD" should {
+      "add author" in {
+        val route = spcquiz(
+          "qx",
+          Behaviors.receiveMessage {
+            case Quiz.AddAuthor(`p1`, `p2`, replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        head("quiz/qx/authors", p1.id) ~> route ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not add author with error" in {
+        val err = Quiz.quizNotFound.error()
+        head("quiz/qx/authors", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+    "DELETE" should {
+      "remove author" in {
+        val route = spcquiz(
+          "qx",
+          Behaviors.receiveMessage {
+            case Quiz.RemoveAuthor(`p1`, `p2`, replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        delete("quiz/qx/authors", p1.id) ~> route ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not remove author with error" in {
+        val err = Quiz.quizNotFound.error()
+        delete("quiz/qx/authors", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+  }
+
+  "quiz/{id}/inspectors" when {
+    "HEAD" should {
+      "add inspector" in {
+        val route = spcquiz(
+          "qx",
+          Behaviors.receiveMessage {
+            case Quiz.AddInspector(`p1`, `p2`, replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        head("quiz/qx/inspectors", p1.id) ~> route ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not add inspector with error" in {
+        val err = Quiz.quizNotFound.error()
+        head("quiz/qx/inspectors", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+    "DELETE" should {
+      "remove inspector" in {
+        val route = spcquiz(
+          "qx",
+          Behaviors.receiveMessage {
+            case Quiz.RemoveInspector(`p1`, `p2`, replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        delete("quiz/qx/inspectors", p1.id) ~> route ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not remove inspector with error" in {
+        val err = Quiz.quizNotFound.error()
+        delete("quiz/qx/inspectors", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+  }
+
+  "section/{id}" when {
+    "PUT" should {
+      "update section" in {
+        val route = spcsect(
+          "sx",
+          Behaviors.receiveMessage {
+            case SectionEdit.Update(`p2`, "new title", "new intro", replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        put("section/sx", p2.id, UpdateSection("new title", "new intro")) ~> route ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not update section with error" in {
+        val err = SectionEdit.notOwned.error()
+        put("section/sx", p2.id, UpdateSection("", "")) ~> stdsect("sx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+    "PATCH" should {
+      def checkMove(up: Boolean) =
+        val route = spcquiz(
+          "qx",
+          Behaviors.receiveMessage {
+            case Quiz.MoveSection("sx", `up`, `p3`, replyTo) =>
+              replyTo ! Good(List("s1", "sx", "s2"))
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        patch(s"section/sx?up=$up&qid=qx", p3.id) ~> route ->
+          check {
+            status shouldBe StatusCodes.OK
+            responseAs[List[String]] shouldBe List("s1", "sx", "s2")
+          }
+      "move section up" in {
+        checkMove(true)
+      }
+      "move section down" in {
+        checkMove(false)
+      }
+      "not move section with error" in {
+        val err = Quiz.sectionNotFound.error()
+        patch("section/sx?up=true&qid=qx", p3.id) ~> stdquiz("qx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+    "DELETE" should {
+      "remove section" in {
+        val route = spcquiz(
+          "qx",
+          Behaviors.receiveMessage {
+            case Quiz.RemoveSection("sx", `p4`, replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        delete("section/sx?qid=qx", p4.id) ~> route ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not remove section with error" in {
+        val err = Quiz.sectionNotFound.error()
+        delete("section/sx?qid=qx", p4.id) ~> stdquiz("qx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+    "HEAD" should {
+      "discharge section" in {
+        val route = spcsect(
+          "sx",
+          Behaviors.receiveMessage {
+            case SectionEdit.Discharge(`p3`, replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        head("section/sx", p3.id) ~> route ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not discharge section with error" in {
+        val err = SectionEdit.notOwned.error()
+        head("section/sx", p3.id) ~> stdsect("sx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+  }
+
+  "section/{id}/items" when {
+    "PUT" should {
+      val item = Item("1", "", Statement("", None), List.empty, false, List.empty)
+      "save item" in {
+        val route = spcsect(
+          "sx",
+          Behaviors.receiveMessage {
+            case SectionEdit.SaveItem(`p2`, `item`, replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        put("section/sx/items", p2.id, item) ~> route ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not save item with error" in {
+        val err = SectionEdit.itemNotFound.error()
+        put("section/sx/items", p2.id, item) ~> stdsect("sx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+    "PATCH" should {
+      "add item" in {
+        val route = spcsect(
+          "sx",
+          Behaviors.receiveMessage {
+            case SectionEdit.AddItem(`p3`, replyTo) =>
+              replyTo ! Good("1")
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        patch("section/sx/items", p3.id) ~> route ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not add item with error" in {
+        val err = SectionEdit.notOwned.error()
+        patch("section/sx/items", p3.id) ~> stdsect("sx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+  }
+
+  "section/{id}/items/{itemId}" when {
+    "PATCH" should {
+      def moveItem(up: Boolean) =
+        val route = spcsect(
+          "sx",
+          Behaviors.receiveMessage {
+            case SectionEdit.MoveItem(`p4`, "1", `up`, replyTo) =>
+              replyTo ! Good(List("1", "2", "3"))
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        patch("section/sx/items/1", p4.id) ~> route ~>
+          check {
+            status shouldBe StatusCodes.OK
+            responseAs[List[String]] shouldBe List("1", "2", "3")
+          }
+      "move item up" in {
+        moveItem(true)
+      }
+      "move item down" in {
+        moveItem(false)
+      }
+      "not move item with error" in {
+        val err = SectionEdit.itemNotFound.error()
+        patch("section/sx/items/1", p4.id) ~> stdsect("sx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+    "DELETE" should {
+      "remove item" in {
+        val route = spcsect(
+          "sx",
+          Behaviors.receiveMessage {
+            case SectionEdit.RemoveItem(`p2`, "3", replyTo) =>
+              replyTo ! Resp.OK
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        delete("section/sx/items/3", p2.id) ~> route ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not remove item with error" in {
+        val err = SectionEdit.itemNotFound.error()
+        delete("section/sx/items/3", p2.id) ~> stdsect("sx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
           }
       }
