@@ -80,7 +80,30 @@ object QuizEntity:
 
         case composing: Composing =>
           cmd match
-            
+            case Get(person, replyTo) =>
+              val all = composing.authors ++ composing.inspectors + composing.curator
+              if !all(person) then
+                Effect.reply(replyTo)(Bad(notMember.error()))
+              else
+                Effect.reply(replyTo)(
+                  Good(
+                    FullQuiz(
+                      composing.id,
+                      composing.title,
+                      composing.intro,
+                      composing.curator,
+                      composing.authors,
+                      composing.inspectors,
+                      composing.recommendedLength,
+                      composing.readinessSigns,
+                      Set.empty,
+                      Set.empty,
+                      false,
+                      composing.sections,
+                      State.COMPOSING
+                    )
+                  )
+                )
             case c: Create =>
               Effect.reply(c.replyTo)(Bad(quizAlreadyExists.error() + c.id))
             case c: Update =>
@@ -229,6 +252,31 @@ object QuizEntity:
 
         case review: Review =>
           cmd match
+            case Get(person, replyTo) =>
+              val all =
+                review.composing.authors ++ review.composing.inspectors + review.composing.curator
+              if !all(person) then
+                Effect.reply(replyTo)(Bad(notMember.error()))
+              else
+                Effect.reply(replyTo)(
+                  Good(
+                    FullQuiz(
+                      review.composing.id,
+                      review.composing.title,
+                      review.composing.intro,
+                      review.composing.curator,
+                      review.composing.authors,
+                      review.composing.inspectors,
+                      review.composing.recommendedLength,
+                      review.composing.readinessSigns,
+                      review.approvals,
+                      review.disapprovals,
+                      false,
+                      review.composing.sections,
+                      State.REVIEW
+                    )
+                  )
+                )
             case c: Create =>
               Effect.reply(c.replyTo)(Bad(quizAlreadyExists.error() + c.id))
             case AddAuthor(curator, author, replyTo) =>
@@ -281,6 +329,30 @@ object QuizEntity:
 
         case released: Released =>
           cmd match
+            case Get(person, replyTo) =>
+              val all = released.authors ++ released.inspectors + released.curator
+              if !all(person) then
+                Effect.reply(replyTo)(Bad(notMember.error()))
+              else
+                Effect.reply(replyTo)(
+                  Good(
+                    FullQuiz(
+                      released.id,
+                      released.title,
+                      released.intro,
+                      released.curator,
+                      released.authors,
+                      released.inspectors,
+                      released.recommendedLength,
+                      Set.empty,
+                      Set.empty,
+                      Set.empty,
+                      released.obsolete,
+                      released.sections,
+                      State.RELEASED
+                    )
+                  )
+                )
             case c: Create =>
               Effect.reply(c.replyTo)(Bad(quizAlreadyExists.error() + c.id))
             case c: SetObsolete =>

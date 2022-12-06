@@ -208,7 +208,7 @@ class QuizEntitySpec
         val result = kit.runCommand(Get(curator, _))
         result.hasNoEvents shouldBe true
         result.reply shouldBe Good(FullQuiz(defState.id, defState.title, defState.intro, curator,
-          authors, inspectors, lenMins, Set.empty, Set.empty, Set.empty, false, List(section),
+          authors, inspectors, lenMins, Set.empty, Set.empty, Set.empty, false, List.empty,
           State.COMPOSING))
       }
 
@@ -649,7 +649,7 @@ class QuizEntitySpec
         result.hasNoEvents shouldBe true
         result.reply shouldBe Good(FullQuiz(defState.composing.id, defState.composing.title, 
           defState.composing.intro, curator,
-          authors, inspectors, lenMins, authors, Set.empty, Set.empty, false, List(section),
+          authors, inspectors, lenMins, authors, Set.empty, Set.empty, false, List.empty,
           State.REVIEW))
       }
 
@@ -860,7 +860,7 @@ class QuizEntitySpec
         result.hasNoEvents shouldBe true
         result.reply shouldBe Good(FullQuiz(defState.id, defState.title, 
           defState.intro, curator,
-          authors, inspectors, lenMins, Set.empty, Set.empty, Set.empty, true, List(section),
+          authors, inspectors, lenMins, Set.empty, Set.empty, Set.empty, true, List.empty,
           State.RELEASED))
       }
 

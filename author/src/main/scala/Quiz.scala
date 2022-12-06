@@ -60,7 +60,8 @@ object Quiz:
 
   sealed trait Event extends CborSerializable
 
-  final case class Get(person: Person, replyTo: ActorRef[Resp[FullQuiz]]) extends CommandWithReply[FullQuiz]
+  final case class Get(person: Person, replyTo: ActorRef[Resp[FullQuiz]])
+      extends CommandWithReply[FullQuiz]
 
   final case class Create(
       id: QuizID,
