@@ -28,21 +28,6 @@ case class CreateQuiz(
 case class CreateSection(title: String)
 case class UpdateQuiz(title: String, intro: String, recommendedLength: Int)
 case class UpdateSection(title: String, intro: String)
-case class FullQuiz(
-    id: String,
-    title: String,
-    intro: String,
-    curator: Curator,
-    authors: Set[Author],
-    inspectors: Set[Inspector],
-    recommendedLength: Int,
-    readinessSigns: Set[Author],
-    approvals: Set[Inspector],
-    disapprovals: Set[Inspector],
-    obsolete: Boolean,
-    sections: List[Section],
-    state: Quiz.State
-)
 
 trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
   given RootJsonFormat[Person] = jsonFormat2(Person.apply)
@@ -177,7 +162,7 @@ object HttpFrontend extends JsonFormats:
                   }
                 }~
                 get {
-                  complete("not implemented yet")
+                  onQuiz(quizID)(Quiz.Get(person, _))
                 }
               }~
               path("ready") {

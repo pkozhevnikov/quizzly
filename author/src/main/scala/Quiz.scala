@@ -25,6 +25,22 @@ final case class Item(
 final case class Section(sc: SC, title: String, intro: String, items: List[Item])
     extends CborSerializable
 
+case class FullQuiz(
+    id: String,
+    title: String,
+    intro: String,
+    curator: Curator,
+    authors: Set[Author],
+    inspectors: Set[Inspector],
+    recommendedLength: Int,
+    readinessSigns: Set[Author],
+    approvals: Set[Inspector],
+    disapprovals: Set[Inspector],
+    obsolete: Boolean,
+    sections: List[Section],
+    state: Quiz.State
+)
+
 sealed trait Quiz extends CborSerializable:
   def id: QuizID
 
@@ -43,6 +59,8 @@ object Quiz:
   type CommandOK = CommandWithReply[Nothing]
 
   sealed trait Event extends CborSerializable
+
+  final case class Get(person: Person, replyTo: ActorRef[Resp[FullQuiz]]) extends CommandWithReply[FullQuiz]
 
   final case class Create(
       id: QuizID,
@@ -174,6 +192,7 @@ object Quiz:
       extends CommandOK
   val notInspector = Reason(2005, "not an inspector")
   val notCurator = Reason(2028, "not a curator")
+  val notMember = Reason(2030, "none of curator, author or inspector")
   val isComposing = Reason(2018, "quiz is composing")
   final case class Resolved(inspector: Inspector, approval: Boolean) extends Event
   case object GoneReleased extends Event

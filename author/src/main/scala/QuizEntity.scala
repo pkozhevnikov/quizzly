@@ -80,6 +80,7 @@ object QuizEntity:
 
         case composing: Composing =>
           cmd match
+            
             case c: Create =>
               Effect.reply(c.replyTo)(Bad(quizAlreadyExists.error() + c.id))
             case c: Update =>

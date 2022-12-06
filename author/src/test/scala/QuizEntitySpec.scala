@@ -136,7 +136,8 @@ class QuizEntitySpec
           RemoveSection("sc", author1, _),
           SetReadySign(author1, _),
           Resolve(inspector1, false, _),
-          SetObsolete(curator, _)
+          SetObsolete(curator, _),
+          Get(curator, _)
         )
       }
 
@@ -194,6 +195,22 @@ class QuizEntitySpec
     }
 
     "Composing" must {
+
+      "reject get if not member" in {
+        createComposing
+        val result = kit.runCommand(Get(Person("xyz", "not member"), _))
+        result.reply shouldBe Bad(notMember.error())
+        result.hasNoEvents shouldBe true
+      }
+
+      "return full view" in {
+        val defState = createComposing.stateOfType[Composing]
+        val result = kit.runCommand(Get(curator, _))
+        result.hasNoEvents shouldBe true
+        result.reply shouldBe Good(FullQuiz(defState.id, defState.title, defState.intro, curator,
+          authors, inspectors, lenMins, Set.empty, Set.empty, Set.empty, false, List(section),
+          State.COMPOSING))
+      }
 
       "reject creation if already exists" in {
         val defState = createComposing.stateOfType[Composing]
@@ -619,6 +636,23 @@ class QuizEntitySpec
 
     "Review" must {
 
+      "reject get if not member" in {
+        createComposing.stateOfType[Composing].signForReview
+        val result = kit.runCommand(Get(Person("xyz", "not member"), _))
+        result.reply shouldBe Bad(notMember.error())
+        result.hasNoEvents shouldBe true
+      }
+
+      "return full view" in {
+        val defState = createComposing.stateOfType[Composing].signForReview.stateOfType[Review]
+        val result = kit.runCommand(Get(curator, _))
+        result.hasNoEvents shouldBe true
+        result.reply shouldBe Good(FullQuiz(defState.composing.id, defState.composing.title, 
+          defState.composing.intro, curator,
+          authors, inspectors, lenMins, authors, Set.empty, Set.empty, false, List(section),
+          State.REVIEW))
+      }
+
       "reject set ready sign" in {
         createComposing.stateOfType[Composing].signForReview
         kit.runCommand(AddAuthor(curator, author3, _))
@@ -811,6 +845,24 @@ class QuizEntitySpec
 
       def makeReleased =
         createComposing.stateOfType[Composing].signForReview.stateOfType[Review].resolveForReleased
+
+      "reject get if not member" in {
+        makeReleased
+        val result = kit.runCommand(Get(Person("xyz", "not member"), _))
+        result.reply shouldBe Bad(notMember.error())
+        result.hasNoEvents shouldBe true
+      }
+
+      "return full view" in {
+        makeReleased
+        val defState = kit.runCommand(SetObsolete(curator, _)).stateOfType[Released]
+        val result = kit.runCommand(Get(curator, _))
+        result.hasNoEvents shouldBe true
+        result.reply shouldBe Good(FullQuiz(defState.id, defState.title, 
+          defState.intro, curator,
+          authors, inspectors, lenMins, Set.empty, Set.empty, Set.empty, true, List(section),
+          State.RELEASED))
+      }
 
       "set obsolete" in {
         val release = makeReleased
