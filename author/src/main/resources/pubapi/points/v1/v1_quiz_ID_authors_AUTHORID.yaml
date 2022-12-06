@@ -1,4 +1,4 @@
-patch:
+head:
   tags:
   - v1
   summary: add author

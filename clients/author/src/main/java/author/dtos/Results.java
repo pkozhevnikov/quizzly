@@ -46,6 +46,11 @@ public class Results {
         public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
     }
 
+    public static class setobsolete {
+        public static final Result quizsetobsolete = new Result(true, Status.NO_CONTENT, "quiz set obsolete");
+        public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");
+    }
+
     public static class setready {
         public static final Result signset = new Result(true, Status.NO_CONTENT, "sign set");
         public static final Result error = new Result(false, Status.EXPECTATION_FAILED, "error");

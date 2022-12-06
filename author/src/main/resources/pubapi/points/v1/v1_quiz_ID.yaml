@@ -47,7 +47,7 @@ get:
     200:
       description: normal response
       schema: 
-        $ref: /pubapi/schemas/quiz.yaml
+        $ref: /pubapi/schemas/full-quiz.yaml
     417:
       description: error
 
@@ -112,13 +112,34 @@ head:
     417:
       description: error
 
+delete:
+  tags:
+  - v1
+  summary: set quiz obsolete
+  description: |
+    Sets quiz obsolete
+  operationId: setobsolete
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+
+  responses:
+    204:
+      description: quiz set obsolete
+    417:
+      description: error
+
 
 definitions:
+  full-quiz.yaml:
+    $ref: /pubapi/schemas/full-quiz.yaml
   sc.yaml:
     $ref: /pubapi/schemas/sc.yaml
   update-quiz.yaml:
     $ref: /pubapi/schemas/update-quiz.yaml
-  quiz.yaml:
-    $ref: /pubapi/schemas/quiz.yaml
   create-section.yaml:
     $ref: /pubapi/schemas/create-section.yaml

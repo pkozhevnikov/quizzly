@@ -291,4 +291,90 @@ class HttpFrontendSpec
           }
       }
     }
+    "DELETE" should {
+      "set obsolete" in {
+        delete("quiz/qx", p3.id) ~> stdquiz("qx", Resp.OK) ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not set obsolete with error" in {
+        val err = Quiz.quizNotFound.error()
+        delete("quiz/qx", p3.id) ~> stdquiz("qx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.ExpectationFailed
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+  }
+
+  "quiz/{id}/ready" when {
+    "DELETE" should {
+      "unset readiness sign" in {
+        delete("quiz/qx/ready", p4.id) ~> stdquiz("qx", Resp.OK) ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not unset readiness sign with error" in {
+        val err = Quiz.notAuthor.error()
+        delete("quiz/qx/ready", p4.id) ~> stdquiz("qx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.ExpectationFailed
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+    "HEAD" should {
+      "set readiness sign" in {
+        head("quiz/qx/ready", p4.id) ~> stdquiz("qx", Resp.OK) ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not set readiness sign with error" in {
+        val err = Quiz.notAuthor.error()
+        head("quiz/qx/ready", p4.id) ~> stdquiz("qx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.ExpectationFailed
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+  }
+
+  "quiz/{id}/resolve" when {
+    "HEAD" should {
+      "approve" in {
+        delete("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Resp.OK) ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not approve with error" in {
+        val err = Quiz.notAuthor.error()
+        delete("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.ExpectationFailed
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+    "DELETE" should {
+      "disapprove" in {
+        head("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Resp.OK) ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
+      }
+      "not disapprove with error" in {
+        val err = Quiz.notAuthor.error()
+        head("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.ExpectationFailed
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
   }
