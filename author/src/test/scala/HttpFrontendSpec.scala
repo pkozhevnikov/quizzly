@@ -199,6 +199,13 @@ class HttpFrontendSpec
             responseAs[FullQuiz] shouldBe fullquiz
           }
       }
+      "not return full quiz with error" in {
+        get("quiz/q1", p1.id) ~> stdquiz("q1", Bad(Quiz.notMember.error())) ~>
+          check {
+            status shouldBe StatusCodes.ExpectationFailed
+            responseAs[Error] shouldBe Quiz.notMember.error()
+          }
+      }
     }
     "PUT" should {
       val updt = UpdateQuiz("q1 title+", "q1 intro+", 55)

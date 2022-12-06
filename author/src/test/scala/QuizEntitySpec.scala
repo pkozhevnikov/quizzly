@@ -207,9 +207,24 @@ class QuizEntitySpec
         val defState = createComposing.stateOfType[Composing]
         val result = kit.runCommand(Get(curator, _))
         result.hasNoEvents shouldBe true
-        result.reply shouldBe Good(FullQuiz(defState.id, defState.title, defState.intro, curator,
-          authors, inspectors, lenMins, Set.empty, Set.empty, Set.empty, false, List.empty,
-          State.COMPOSING))
+        result.reply shouldBe
+          Good(
+            FullQuiz(
+              defState.id,
+              defState.title,
+              defState.intro,
+              curator,
+              authors,
+              inspectors,
+              lenMins,
+              Set.empty,
+              Set.empty,
+              Set.empty,
+              false,
+              List.empty,
+              State.COMPOSING
+            )
+          )
       }
 
       "reject creation if already exists" in {
@@ -647,10 +662,24 @@ class QuizEntitySpec
         val defState = createComposing.stateOfType[Composing].signForReview.stateOfType[Review]
         val result = kit.runCommand(Get(curator, _))
         result.hasNoEvents shouldBe true
-        result.reply shouldBe Good(FullQuiz(defState.composing.id, defState.composing.title, 
-          defState.composing.intro, curator,
-          authors, inspectors, lenMins, authors, Set.empty, Set.empty, false, List.empty,
-          State.REVIEW))
+        result.reply shouldBe
+          Good(
+            FullQuiz(
+              defState.composing.id,
+              defState.composing.title,
+              defState.composing.intro,
+              curator,
+              authors,
+              inspectors,
+              lenMins,
+              authors,
+              Set.empty,
+              Set.empty,
+              false,
+              List.empty,
+              State.REVIEW
+            )
+          )
       }
 
       "reject set ready sign" in {
@@ -858,10 +887,24 @@ class QuizEntitySpec
         val defState = kit.runCommand(SetObsolete(curator, _)).stateOfType[Released]
         val result = kit.runCommand(Get(curator, _))
         result.hasNoEvents shouldBe true
-        result.reply shouldBe Good(FullQuiz(defState.id, defState.title, 
-          defState.intro, curator,
-          authors, inspectors, lenMins, Set.empty, Set.empty, Set.empty, true, List.empty,
-          State.RELEASED))
+        result.reply shouldBe
+          Good(
+            FullQuiz(
+              defState.id,
+              defState.title,
+              defState.intro,
+              curator,
+              authors,
+              inspectors,
+              lenMins,
+              Set.empty,
+              Set.empty,
+              Set.empty,
+              true,
+              List.empty,
+              State.RELEASED
+            )
+          )
       }
 
       "set obsolete" in {

@@ -87,6 +87,7 @@ object HttpFrontend extends JsonFormats:
           case s: String => complete(s)
           case c: Quiz.CreateDetails => complete(c)
           case l: List[String] => complete(Source(l))
+          case f: FullQuiz => complete(f)
           case _ => complete(StatusCodes.BadRequest, s"cannot serialize $r")
         case Success(Resp.Bad(e)) => complete(StatusCodes.ExpectationFailed, e)
         case Failure(ex) => complete(StatusCodes.InternalServerError, ex.getMessage)
