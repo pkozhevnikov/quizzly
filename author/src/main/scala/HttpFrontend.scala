@@ -28,6 +28,7 @@ case class CreateQuiz(
 case class CreateSection(title: String)
 case class UpdateQuiz(title: String, intro: String, recommendedLength: Int)
 case class UpdateSection(title: String, intro: String)
+case class StrList(list: List[String])
 
 trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
   given RootJsonFormat[Person] = jsonFormat2(Person.apply)
@@ -56,6 +57,7 @@ trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
   given RootJsonFormat[Reason] = jsonFormat2(Reason.apply)
   given RootJsonFormat[Error] = jsonFormat2(Error.apply)
   given RootJsonFormat[Quiz.CreateDetails] = jsonFormat2(Quiz.CreateDetails.apply)
+  given RootJsonFormat[StrList] = jsonFormat1(StrList.apply)
 
   given JsonEntityStreamingSupport = EntityStreamingSupport.json()
 
@@ -67,9 +69,11 @@ trait Auth:
   def authenticate(request: HttpRequest): Future[Person]
   def getPersons: Future[Set[Person]]
   def getPersons(ids: Set[PersonID]): Future[Set[Person]]
+  def getPerson(id: PersonID): Future[Option[Person]]
 
 object HttpFrontend extends JsonFormats:
 
+  val log = org.slf4j.LoggerFactory.getLogger("HttpFrontend")
   
   // format: off
   def apply(read: Read, entities: EntityAware, authService: Auth) (using ActorSystem[_], ExecutionContext)=
@@ -86,7 +90,8 @@ object HttpFrontend extends JsonFormats:
         case Success(Resp.Good(r)) => r match
           case s: String => complete(s)
           case c: Quiz.CreateDetails => complete(c)
-          case l: List[String] => complete(Source(l))
+          case l: List[?] => 
+            complete(StrList(l.map(_.toString)))
           case f: FullQuiz => complete(f)
           case _ => complete(StatusCodes.BadRequest, s"cannot serialize $r")
         case Success(Resp.Bad(e)) => complete(StatusCodes.UnprocessableEntity, e)
@@ -137,7 +142,7 @@ object HttpFrontend extends JsonFormats:
                 }
               }
             }~
-            path(Segment) { quizID =>
+            pathPrefix(Segment) { quizID =>
               pathEnd {
                 post {
                   entity(as[CreateSection]) { cs =>
@@ -164,6 +169,9 @@ object HttpFrontend extends JsonFormats:
                 }~
                 get {
                   onQuiz(quizID)(Quiz.Get(person, _))
+                }~
+                delete {
+                  onQuiz(quizID)(Quiz.SetObsolete(person, _))
                 }
               }~
               path("ready") {
@@ -181,10 +189,62 @@ object HttpFrontend extends JsonFormats:
                 head {
                   onQuiz(quizID)(Quiz.Resolve(person, true, _))
                 }
+              }~
+              path("authors" / Segment) { authorId =>
+                head {
+                  onComplete(authService.getPerson(authorId)) {
+                    case Success(o) => o match
+                      case Some(author) =>
+                        onQuiz(quizID)(Quiz.AddAuthor(person, author, _))
+                      case None =>
+                        complete(StatusCodes.UnprocessableEntity, Quiz.personNotFound.error() + authorId)
+                    case Failure(ex) =>
+                      log.error("could not retrieve person from auth", ex)
+                      complete(StatusCodes.InternalServerError, Quiz.unprocessed(ex.getMessage))
+                  }
+                }~
+                delete {
+                  onComplete(authService.getPerson(authorId)) {
+                    case Success(o) => o match
+                      case Some(author) =>
+                        onQuiz(quizID)(Quiz.RemoveAuthor(person, author, _))
+                      case None =>
+                        complete(StatusCodes.UnprocessableEntity, Quiz.personNotFound.error() + authorId)
+                    case Failure(ex) =>
+                      log.error("could not retrieve person from auth", ex)
+                      complete(StatusCodes.InternalServerError, Quiz.unprocessed(ex.getMessage))
+                  }
+                }
+              }~
+              path("inspectors" / Segment) { inspectorId =>
+                head {
+                  onComplete(authService.getPerson(inspectorId)) {
+                    case Success(o) => o match
+                      case Some(inspector) =>
+                        onQuiz(quizID)(Quiz.AddInspector(person, inspector, _))
+                      case None =>
+                        complete(StatusCodes.UnprocessableEntity, Quiz.personNotFound.error() + inspectorId)
+                    case Failure(ex) =>
+                      log.error("could not retrieve person from auth", ex)
+                      complete(StatusCodes.InternalServerError, Quiz.unprocessed(ex.getMessage))
+                  }
+                }~
+                delete {
+                  onComplete(authService.getPerson(inspectorId)) {
+                    case Success(o) => o match
+                      case Some(inspector) =>
+                        onQuiz(quizID)(Quiz.RemoveInspector(person, inspector, _))
+                      case None =>
+                        complete(StatusCodes.UnprocessableEntity, Quiz.personNotFound.error() + inspectorId)
+                    case Failure(ex) =>
+                      log.error("could not retrieve person from auth", ex)
+                      complete(StatusCodes.InternalServerError, Quiz.unprocessed(ex.getMessage))
+                  }
+                }
               }
             }
           }~
-          path("section" / Segment) { sc =>
+          pathPrefix("section" / Segment) { sc =>
             pathEnd {
               put {
                 entity(as[UpdateSection]) { us =>
@@ -204,15 +264,25 @@ object HttpFrontend extends JsonFormats:
               head {
                 onSection(sc)(SectionEdit.Discharge(person, _))
               }
-            }
-            /*
+            }~
             path("items") {
-              perform()
+              patch {
+                onSection(sc)(SectionEdit.AddItem(person, _))
+              }~
+              put { entity(as[Item]) { item =>
+                onSection(sc)(SectionEdit.SaveItem(person, item, _))
+              }}
             }~
             path("items" / Segment) { itemID =>
-              perform()
+              delete {
+                onSection(sc)(SectionEdit.RemoveItem(person, itemID, _))
+              }~
+              patch { 
+                parameter("up".as[Boolean]) { up =>
+                  onSection(sc)(SectionEdit.MoveItem(person, itemID, up, _))
+                }
+              }
             }
-            */
           }
         }
       }

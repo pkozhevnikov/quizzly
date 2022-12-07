@@ -82,6 +82,7 @@ object Quiz:
   val quizNotFound = Reason(2010, "quiz not found")
   val tooShortLength = Reason(2011, "too short recommended trial length")
   def unprocessed(msg: String) = Reason(5000, msg)
+  val personNotFound = Reason(2060, "person not found")
 
   final case class Created(
       id: QuizID,

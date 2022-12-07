@@ -26,18 +26,13 @@ public class Results {
         public static final Result normalresponse = new Result(true, Status.OK, "normal response");
     }
 
-    public static class updatequiz {
-        public static final Result normalresponse = new Result(true, Status.NO_CONTENT, "normal response");
-        public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
-    }
-
     public static class addsection {
         public static final Result sectioncreatedreturnsidofnewsection = new Result(true, Status.OK, "section created, returns ID of new section");
         public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
     }
 
-    public static class getquiz {
-        public static final Result normalresponse = new Result(true, Status.OK, "normal response");
+    public static class updatequiz {
+        public static final Result normalresponse = new Result(true, Status.NO_CONTENT, "normal response");
         public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
     }
 
@@ -48,6 +43,11 @@ public class Results {
 
     public static class ownsection {
         public static final Result sectionowned = new Result(true, Status.NO_CONTENT, "section owned");
+        public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
+    }
+
+    public static class getquiz {
+        public static final Result normalresponse = new Result(true, Status.OK, "normal response");
         public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
     }
 
@@ -71,13 +71,13 @@ public class Results {
         public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
     }
 
-    public static class updatesection {
-        public static final Result sectionupdated = new Result(true, Status.NO_CONTENT, "section updated");
+    public static class movesection {
+        public static final Result sectionmovedresponseisneworderofsectionids = new Result(true, Status.OK, "section moved, response is new order of section IDs");
         public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
     }
 
-    public static class movesection {
-        public static final Result sectionmovedresponseisneworderofsectionids = new Result(true, Status.OK, "section moved, response is new order of section IDs");
+    public static class updatesection {
+        public static final Result sectionupdated = new Result(true, Status.NO_CONTENT, "section updated");
         public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
     }
 
@@ -91,13 +91,13 @@ public class Results {
         public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
     }
 
-    public static class saveitem {
-        public static final Result itemsaved = new Result(true, Status.NO_CONTENT, "item saved");
+    public static class additem {
+        public static final Result itemaddedresponseswithidofnewitem = new Result(true, Status.OK, "item added, responses with ID of new item");
         public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
     }
 
-    public static class additem {
-        public static final Result itemaddedresponseswithidofnewitem = new Result(true, Status.OK, "item added, responses with ID of new item");
+    public static class saveitem {
+        public static final Result itemsaved = new Result(true, Status.NO_CONTENT, "item saved");
         public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
     }
 

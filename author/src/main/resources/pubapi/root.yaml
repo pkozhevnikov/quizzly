@@ -25,6 +25,10 @@ paths:
     $ref: points/v1/v1_quiz.yaml
   /v1/quiz/{id}:
     $ref: points/v1/v1_quiz_ID.yaml
+  /v1/quiz/{id}/authors/{authorId}:
+    $ref: points/v1/v1_quiz_ID_authors_AUTHORID.yaml
+  /v1/quiz/{id}/inspectors/{inspectorId}:
+    $ref: points/v1/v1_quiz_ID_inspectors_INSPECTORID.yaml
   /v1/quiz/{id}/ready:
     $ref: points/v1/v1_quiz_ID_ready.yaml
   /v1/quiz/{id}/resolve:
@@ -35,9 +39,5 @@ paths:
     $ref: points/v1/v1_section_ID_items.yaml
   /v1/section/{id}/items/{itemId}:
     $ref: points/v1/v1_section_ID_items_ITEMID.yaml
-  /v1/quiz/{id}/authors/{authorId}:
-    $ref: points/v1/v1_quiz_ID_authors_AUTHORID.yaml
-  /v1/quiz/{id}/inspectors/{inspectorId}:
-    $ref: points/v1/v1_quiz_ID_inspectors_INSPECTORID.yaml
   /v1/staff:
     $ref: points/v1/v1_staff.yaml

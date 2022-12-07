@@ -72,6 +72,7 @@ class HttpFrontendSpec
       Future(persons(pl))
     def getPersons = Future(persons.values.toSet)
     def getPersons(ids: Set[PersonID]) = Future(persons.filter((k, v) => ids(k)).values.toSet)
+    def getPerson(id: PersonID) = Future(persons.get(id))
 
   val emptyQuiz =
     (id: String) => TestEntityRef(QuizEntity.EntityKey, id, testKit.spawn(Behaviors.empty))
@@ -416,14 +417,14 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        delete("quiz/qx/resolve", p4.id) ~> route ~>
+        head("quiz/qx/resolve", p4.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "not approve with error" in {
         val err = Quiz.notAuthor.error()
-        delete("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Bad(err)) ~>
+        head("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -443,14 +444,14 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        head("quiz/qx/resolve", p4.id) ~> route ~>
+        delete("quiz/qx/resolve", p4.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "not disapprove with error" in {
         val err = Quiz.notAuthor.error()
-        head("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Bad(err)) ~>
+        delete("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -459,7 +460,7 @@ class HttpFrontendSpec
     }
   }
 
-  "quiz/{id}/authors" when {
+  "quiz/{id}/authors/{authorId}" when {
     "HEAD" should {
       "add author" in {
         val route = spcquiz(
@@ -473,14 +474,22 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        head("quiz/qx/authors", p1.id) ~> route ~>
+        head("quiz/qx/authors/p2", p1.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "not add author with error" in {
         val err = Quiz.quizNotFound.error()
-        head("quiz/qx/authors", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+        head("quiz/qx/authors/p2", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+      "not add author person not found" in {
+        val err = Quiz.personNotFound.error() + "p9"
+        head("quiz/qx/authors/p9", p1.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -500,14 +509,14 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        delete("quiz/qx/authors", p1.id) ~> route ~>
+        delete("quiz/qx/authors/p2", p1.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "not remove author with error" in {
         val err = Quiz.quizNotFound.error()
-        delete("quiz/qx/authors", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+        delete("quiz/qx/authors/p2", p1.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -516,7 +525,7 @@ class HttpFrontendSpec
     }
   }
 
-  "quiz/{id}/inspectors" when {
+  "quiz/{id}/inspectors/{inspectorId}" when {
     "HEAD" should {
       "add inspector" in {
         val route = spcquiz(
@@ -530,14 +539,22 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        head("quiz/qx/inspectors", p1.id) ~> route ~>
+        head("quiz/qx/inspectors/p2", p1.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "not add inspector with error" in {
         val err = Quiz.quizNotFound.error()
-        head("quiz/qx/inspectors", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+        head("quiz/qx/inspectors/p2", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+      "not add inspector person not found" in {
+        val err = Quiz.personNotFound.error() + "p9"
+        head("quiz/qx/inspectors/p9", p1.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -557,14 +574,14 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        delete("quiz/qx/inspectors", p1.id) ~> route ~>
+        delete("quiz/qx/inspectors/p2", p1.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "not remove inspector with error" in {
         val err = Quiz.quizNotFound.error()
-        delete("quiz/qx/inspectors", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+        delete("quiz/qx/inspectors/p2", p1.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -614,10 +631,10 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        patch(s"section/sx?up=$up&qid=qx", p3.id) ~> route ->
+        patch(s"section/sx?up=$up&qid=qx", p3.id) ~> route ~>
           check {
             status shouldBe StatusCodes.OK
-            responseAs[List[String]] shouldBe List("s1", "sx", "s2")
+            responseAs[StrList] shouldBe StrList(List("s1", "sx", "s2"))
           }
       "move section up" in {
         checkMove(true)
@@ -734,7 +751,8 @@ class HttpFrontendSpec
         )
         patch("section/sx/items", p3.id) ~> route ~>
           check {
-            status shouldBe StatusCodes.NoContent
+            status shouldBe StatusCodes.OK
+            responseAs[String] shouldBe "1"
           }
       }
       "not add item with error" in {
@@ -762,10 +780,10 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        patch("section/sx/items/1", p4.id) ~> route ~>
+        patch(s"section/sx/items/1?up=$up", p4.id) ~> route ~>
           check {
             status shouldBe StatusCodes.OK
-            responseAs[List[String]] shouldBe List("1", "2", "3")
+            responseAs[StrList] shouldBe StrList(List("1", "2", "3"))
           }
       "move item up" in {
         moveItem(true)
@@ -775,7 +793,7 @@ class HttpFrontendSpec
       }
       "not move item with error" in {
         val err = SectionEdit.itemNotFound.error()
-        patch("section/sx/items/1", p4.id) ~> stdsect("sx", Bad(err)) ~>
+        patch("section/sx/items/1?up=true", p4.id) ~> stdsect("sx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
