@@ -2,13 +2,12 @@ package quizzly.author
 
 import akka.actor.typed.*
 import scaladsl.Behaviors
-import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.persistence.testkit.scaladsl.{EventSourcedBehaviorTestKit as TestKit}
 import akka.cluster.sharding.typed.scaladsl.EntityRef
 import akka.cluster.sharding.typed.testkit.scaladsl.TestEntityRef
 
 import org.scalatest.*
-import org.scalatest.wordspec.AnyWordSpecLike
 
 import com.typesafe.config.*
 
@@ -25,10 +24,10 @@ object QuizEntitySpec:
       """)
     .withFallback(TestKit.config)
 
-class QuizEntitySpec
-    extends ScalaTestWithActorTestKit(QuizEntitySpec.config),
-      AnyWordSpecLike,
-      BeforeAndAfterEach:
+class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, BeforeAndAfterEach:
+
+  val testKit = ActorTestKit(QuizEntitySpec.config)
+  val system = testKit.system
 
   val id = "tq-1"
 

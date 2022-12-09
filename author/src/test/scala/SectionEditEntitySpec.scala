@@ -2,13 +2,12 @@ package quizzly.author
 
 import akka.actor.typed.*
 import scaladsl.Behaviors
-import akka.actor.testkit.typed.scaladsl.{ScalaTestWithActorTestKit, TestProbe, ManualTime}
+import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe, ManualTime}
 import akka.persistence.testkit.scaladsl.{EventSourcedBehaviorTestKit as TestKit}
 import akka.cluster.sharding.typed.scaladsl.EntityRef
 import akka.cluster.sharding.typed.testkit.scaladsl.TestEntityRef
 
 import org.scalatest.*
-import org.scalatest.wordspec.AnyWordSpecLike
 
 import com.typesafe.config.*
 
@@ -28,9 +27,12 @@ object SectionEditEntitySpec:
     .withFallback(TestKit.config)
 
 class SectionEditEntitySpec
-    extends ScalaTestWithActorTestKit(SectionEditEntitySpec.config),
-      AnyWordSpecLike,
+    extends wordspec.AnyWordSpec,
+      matchers.should.Matchers,
       BeforeAndAfterEach:
+
+  val testKit = ActorTestKit(SectionEditEntitySpec.config)
+  implicit val system: ActorSystem[?] = testKit.system
 
   val id = "tq-1-1"
 

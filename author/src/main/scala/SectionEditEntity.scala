@@ -25,7 +25,6 @@ object SectionEditEntity:
 
   extension (timer: TimerScheduler[Command])
     def reset(period: Int) =
-      println("timer reset")
       timer.cancel(inact)
       timer.startSingleTimer(inact, DischargeInactive, FiniteDuration(period, MINUTES))
 

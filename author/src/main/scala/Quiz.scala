@@ -46,6 +46,10 @@ sealed trait Quiz extends CborSerializable:
 
 object Quiz:
 
+  object Tags:
+    val Single = "quizzes"
+    val All = Vector("quiz-1", "quiz-2", "quiz-3")
+
   enum State:
     case COMPOSING,
       REVIEW,
