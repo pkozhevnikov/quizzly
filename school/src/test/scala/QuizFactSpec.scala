@@ -1,12 +1,11 @@
 package quizzly.school
 
 import akka.actor.typed.ActorRef
-import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.persistence.testkit.scaladsl.{EventSourcedBehaviorTestKit as TestKit}
 import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit.*
 
 import org.scalatest.*
-import org.scalatest.wordspec.AnyWordSpecLike
 
 import com.typesafe.config.*
 
@@ -21,17 +20,16 @@ object QuizFactSpec:
       """)
     .withFallback(TestKit.config)
 
-class QuizFactSpec
-    extends ScalaTestWithActorTestKit(QuizFactSpec.config),
-      AnyWordSpecLike,
-      BeforeAndAfterEach:
+class QuizFactSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, BeforeAndAfterEach:
+
+  val testKit = ActorTestKit(QuizFactSpec.config)
 
   val id = "fact-1"
 
   import QuizFact.*
 
   private val kit = TestKit[Command, Event, Option[Fact]](
-    system,
+    testKit.system,
     QuizFact(id, ExamConfig(24, (1, 2)))
   )
 

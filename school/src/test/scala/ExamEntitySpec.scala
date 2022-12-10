@@ -14,7 +14,6 @@ import scala.concurrent.duration.*
 import scala.concurrent.ExecutionContext
 
 import org.scalatest.*
-import org.scalatest.wordspec.AnyWordSpecLike
 
 import com.typesafe.config.*
 
@@ -30,12 +29,13 @@ object ExamEntitySpec:
     .withFallback(TestKit.config)
 
 class ExamEntitySpec
-    extends ScalaTestWithActorTestKit(ExamEntitySpec.config),
-      AnyWordSpecLike,
+    extends wordspec.AnyWordSpec,
+      matchers.should.Matchers,
       BeforeAndAfterEach,
       BeforeAndAfterAll:
 
-  given ExecutionContext = system.executionContext
+  val testKit = ActorTestKit(ExamEntitySpec.config)
+  given ExecutionContext = testKit.system.executionContext
 
   val id = "exam-1"
 
@@ -47,7 +47,7 @@ class ExamEntitySpec
   given (() => Instant) = () => Instant.parse("2022-11-01T00:00:00Z")
 
   private val factKit = TestKit[Command, Event, Quiz](
-    system,
+    testKit.system,
     ExamEntity(
       id,
       factm(_),
