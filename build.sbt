@@ -30,9 +30,13 @@ val commonDependencies = Seq(
         .cross(CrossVersion.for3Use2_13),
   ("com.lightbend.akka" %% "akka-projection-core" % AkkaProjectionVersion)
         .cross(CrossVersion.for3Use2_13),
+  ("com.lightbend.akka" %% "akka-projection-jdbc" % AkkaProjectionVersion)
+        .cross(CrossVersion.for3Use2_13),
   ("com.lightbend.akka" %% "akka-projection-testkit" % AkkaProjectionVersion % Test)
         .cross(CrossVersion.for3Use2_13),
   ("com.lightbend.akka" %% "akka-projection-eventsourced" % AkkaProjectionVersion)
+        .cross(CrossVersion.for3Use2_13),
+  ("org.scalikejdbc" %% "scalikejdbc" % "3.5.0")
         .cross(CrossVersion.for3Use2_13),
   "com.h2database" % "h2" % "2.1.212",
   "com.zaxxer" % "HikariCP" % "5.0.1",

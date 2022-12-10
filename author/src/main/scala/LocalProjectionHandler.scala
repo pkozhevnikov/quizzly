@@ -2,17 +2,15 @@ package quizzly.author
 
 import akka.projection.*
 import eventsourced.EventEnvelope
-import scaladsl.Handler
+import jdbc.JdbcSession
 
 import scala.concurrent.{Future, ExecutionContext}
 
-import akka.Done
-
-trait LocalProjectionHandler(using ExecutionContext) extends Handler[EventEnvelope[Quiz.Event]]:
+trait LocalProjectionHandler extends JdbcHandler[EventEnvelope[Quiz.Event], ScalikeJdbcSession]:
 
   import Quiz.*
 
-  override final def process(envelope: EventEnvelope[Quiz.Event]) =
+  override final def process(session: ScalikeJdbcSession, envelope: EventEnvelope[Quiz.Event]) =
     val id = envelope.persistenceId
     envelope.event match
       case e: Created =>
@@ -37,13 +35,12 @@ trait LocalProjectionHandler(using ExecutionContext) extends Handler[EventEnvelo
         setObsolete(id)
 
       case _ =>
-        Future(Done)
 
-  protected def register(event: Created, status: State): Future[Done]
-  protected def update(id: QuizID, event: Updated): Future[Done]
-  protected def addAuthor(id: QuizID, author: Author): Future[Done]
-  protected def addInspector(id: QuizID, inspector: Inspector): Future[Done]
-  protected def removeAuthor(id: QuizID, author: Author): Future[Done]
-  protected def removeInspector(id: QuizID, inspector: Inspector): Future[Done]
-  protected def changeStatus(id: QuizID, status: State): Future[Done]
-  protected def setObsolete(id: QuizID): Future[Done]
+  protected def register(event: Created, status: State): Unit
+  protected def update(id: QuizID, event: Updated): Unit
+  protected def addAuthor(id: QuizID, author: Author): Unit
+  protected def addInspector(id: QuizID, inspector: Inspector): Unit
+  protected def removeAuthor(id: QuizID, author: Author): Unit
+  protected def removeInspector(id: QuizID, inspector: Inspector): Unit
+  protected def changeStatus(id: QuizID, status: State): Unit
+  protected def setObsolete(id: QuizID): Unit
