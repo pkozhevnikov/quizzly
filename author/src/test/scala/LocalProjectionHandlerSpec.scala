@@ -63,30 +63,6 @@ class LocalProjectionHandlerSpec extends wordspec.AnyWordSpec, matchers.should.M
     SQL(create).execute.apply()
   }
 
-  val pub = java.util.concurrent.SubmissionPublisher[EventEnvelope[Quiz.Event]]()
-  val eventSource: Source[EventEnvelope[Quiz.Event], akka.NotUsed] = JavaFlowSupport
-    .Source
-    .fromPublisher(pub)
-  val eventProvider = TestSourceProvider(eventSource, _.offset)
-
-  val projection = JdbcProjection.exactlyOnce(
-    ProjectionId("testlocal", Quiz.Tags.Single),
-    eventProvider,
-    () => ScalikeJdbcSession(),
-    () => LocalProjectionHandler()
-  )
-
-  pub.subscribe(
-    new java.util.concurrent.Flow.Subscriber[EventEnvelope[Quiz.Event]]() {
-      def onComplete() = println("complete")
-      def onError(ex: Throwable) = println(s"error $ex")
-      def onNext(e: EventEnvelope[Quiz.Event]) = println(s"next $e")
-      def onSubscribe(sub: java.util.concurrent.Flow.Subscription) = println(s"onsub $sub")
-    }
-  )
-
-  // testKit.spawn(ProjectionBehavior(projection))
-
   var _seq = -1
   def seq() =
     _seq = _seq + 1
