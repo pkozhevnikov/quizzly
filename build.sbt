@@ -18,6 +18,8 @@ val commonDependencies = Seq(
         .cross(CrossVersion.for3Use2_13),
   ("com.typesafe.akka" %% "akka-persistence-typed" % AkkaVersion)
         .cross(CrossVersion.for3Use2_13),
+  ("com.lightbend.akka" %% "akka-persistence-jdbc" % "5.2.0")
+        .cross(CrossVersion.for3Use2_13),
   ("com.typesafe.akka" %% "akka-persistence-testkit" % AkkaVersion % Test)
         .cross(CrossVersion.for3Use2_13),
   ("com.typesafe.akka" %% "akka-serialization-jackson" % AkkaVersion)
@@ -39,9 +41,7 @@ val commonDependencies = Seq(
   ("org.scalikejdbc" %% "scalikejdbc" % "3.5.0")
         .cross(CrossVersion.for3Use2_13),
   "com.h2database" % "h2" % "2.1.212",
-  "com.zaxxer" % "HikariCP" % "5.0.1",
-  ("com.typesafe.slick" %% "slick" % SlickVersion)
-        .cross(CrossVersion.for3Use2_13)
+  "com.zaxxer" % "HikariCP" % "5.0.1"
 )
 
 lazy val author = project.settings(

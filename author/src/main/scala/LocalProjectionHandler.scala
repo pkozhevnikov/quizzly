@@ -2,45 +2,81 @@ package quizzly.author
 
 import akka.projection.*
 import eventsourced.EventEnvelope
-import jdbc.JdbcSession
+import jdbc.scaladsl.JdbcHandler
 
 import scala.concurrent.{Future, ExecutionContext}
 
-trait LocalProjectionHandler extends JdbcHandler[EventEnvelope[Quiz.Event], ScalikeJdbcSession]:
+import scalikejdbc.*
+
+class LocalProjectionHandler extends JdbcHandler[EventEnvelope[Quiz.Event], ScalikeJdbcSession]:
 
   import Quiz.*
+
+  val insMember = "insert into member (id,role,person_id,name) values (?,?,?,?)"
+  val delMember = "delete from member where id=? and person_id=?"
 
   override final def process(session: ScalikeJdbcSession, envelope: EventEnvelope[Quiz.Event]) =
     val id = envelope.persistenceId
     envelope.event match
       case e: Created =>
-        register(e, State.COMPOSING)
+        session
+          .db
+          .withinTx { implicit session =>
+            sql"delete from quiz where id=?".bind(id).execute.apply()
+            sql"insert into quiz (id,title,status,obsolete) values (?,?,?,?)"
+              .bind(id, e.title, "COMPOSING", false)
+              .update
+              .apply()
+            SQL(insMember)
+              .bind(id, 1, e.curator.id, e.curator.name)
+              .update
+              .apply()
+            e.authors
+              .foreach { a =>
+                SQL(insMember)
+                  .bind(id, 2, a.id, a.name)
+                  .update
+                  .apply()
+              }
+            e.inspectors
+              .foreach { i =>
+                SQL(insMember)
+                  .bind(id, 3, i.id, i.name)
+                  .update
+                  .apply()
+              }
+          }
       case e: Updated =>
-        update(id, e)
+        session.db.withinTx { implicit session =>
+          sql"update quiz set title=? where id=?".bind(e.title, id).update.apply()
+        }
       case AuthorAdded(author) =>
-        addAuthor(id, author)
+        session.db.withinTx { implicit session =>
+          SQL(delMember).bind(id, author.id).execute.apply()
+          SQL(insMember).bind(id, 2, author.id, author.name).update.apply()
+        }
       case InspectorAdded(inspector) =>
-        addInspector(id, inspector)
+        session.db.withinTx { implicit session =>
+          SQL(delMember).bind(id, inspector.id).execute.apply()
+          SQL(insMember).bind(id, 3, inspector.id, inspector.name).update.apply()
+        }
       case AuthorRemoved(author) =>
-        removeAuthor(id, author)
+        session.db.withinTx { implicit session =>
+          SQL(delMember).bind(id, author.id).execute.apply()
+        }
       case InspectorRemoved(inspector) =>
-        removeInspector(id, inspector)
+        session.db.withinTx { implicit session =>
+          SQL(delMember).bind(id, inspector.id).execute.apply()
+        }
       case GoneForReview =>
-        changeStatus(id, State.REVIEW)
+        ???
       case GoneComposing =>
-        changeStatus(id, State.COMPOSING)
+        ???
       case GoneReleased =>
-        changeStatus(id, State.RELEASED)
+        ???
       case GotObsolete =>
-        setObsolete(id)
+        ???
 
       case _ =>
 
-  protected def register(event: Created, status: State): Unit
-  protected def update(id: QuizID, event: Updated): Unit
-  protected def addAuthor(id: QuizID, author: Author): Unit
-  protected def addInspector(id: QuizID, inspector: Inspector): Unit
-  protected def removeAuthor(id: QuizID, author: Author): Unit
-  protected def removeInspector(id: QuizID, inspector: Inspector): Unit
-  protected def changeStatus(id: QuizID, status: State): Unit
-  protected def setObsolete(id: QuizID): Unit
+  private def changeStatus(id: QuizID, status: State) = ???
