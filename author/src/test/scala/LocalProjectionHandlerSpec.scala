@@ -72,20 +72,9 @@ class LocalProjectionHandlerSpec extends wordspec.AnyWordSpec, matchers.should.M
     val time = java.time.Instant.now.toEpochMilli
     EventEnvelope(akka.persistence.query.Offset.sequence(s), id, s, event, time)
 
-  val title = "test quiz"
-  val intro = "some intro"
-  val lenMins = 60
-  val curator = Person("cur", "curator name")
-  val author1 = Person("author1", "author1 name")
-  val author2 = Person("author2", "author2 name")
-  val author3 = Person("author3", "author3 name")
-  val authors = Set(author1, author2)
-  val inspector1 = Person("inspector1", "inspector1 name")
-  val inspector2 = Person("inspector2", "inspector2 name")
-  val inspector3 = Person("inspector3", "inspector3 name")
-  val inspectors = Set(inspector1, inspector2)
-
   def changeDb = afterWord("change db on event:")
+
+  import testdata.*
 
   "LocalProjection" should
     changeDb {

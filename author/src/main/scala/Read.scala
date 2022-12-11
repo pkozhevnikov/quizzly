@@ -1,6 +1,6 @@
 package quizzly.author
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, ExecutionContext}
 
 case class QuizListed(
     id: String,
@@ -14,4 +14,4 @@ case class QuizListed(
 
 trait Read:
 
-  def getList(): Future[List[QuizListed]]
+  def getList()(using ExecutionContext): Future[List[QuizListed]]
