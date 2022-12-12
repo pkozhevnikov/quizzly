@@ -3,17 +3,10 @@ package quizzly.author
 import akka.actor.typed.ActorSystem
 import com.typesafe.config.Config
 import com.zaxxer.hikari.HikariDataSource
-import scalikejdbc.ConnectionPool
-import scalikejdbc.DataSourceCloser
-import scalikejdbc.DataSourceConnectionPool
+import scalikejdbc.*
 
 object ScalikeJdbcSetup:
 
-  /** Initiate the ScalikeJDBC connection pool configuration and shutdown. The DataSource is setup
-    * with ActorSystem's config.
-    *
-    * The connection pool will be closed when the actor system terminates.
-    */
   def apply(system: ActorSystem[_]): Unit =
     initFromConfig(system.name, system.settings.config)
     system
@@ -22,9 +15,6 @@ object ScalikeJdbcSetup:
         ConnectionPool.close(system.name)
       }(using scala.concurrent.ExecutionContext.Implicits.global)
 
-  /** Builds a Hikari DataSource with values from jdbc-connection-settings. The DataSource is then
-    * configured as the 'default' connection pool for ScalikeJDBC.
-    */
   private def initFromConfig(name: String, config: Config): Unit =
 
     val dataSource = buildDataSource(config.getConfig("jdbc-connection-settings"))
@@ -50,7 +40,5 @@ object ScalikeJdbcSetup:
 
     dataSource
 
-  /** ScalikeJdbc needs a closer for the DataSource to delegate the closing call.
-    */
   private case class HikariCloser(dataSource: HikariDataSource) extends DataSourceCloser:
     override def close(): Unit = dataSource.close()
