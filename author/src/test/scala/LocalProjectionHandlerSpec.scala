@@ -19,11 +19,9 @@ import scala.concurrent.{Future, ExecutionContext}
 import akka.stream.scaladsl.Source
 
 object LocalProjectionHandlerSpec:
+  import com.typesafe.config.ConfigFactory
   val config =
-    com
-      .typesafe
-      .config
-      .ConfigFactory
+    ConfigFactory
       .parseString("""
     akka {
       projection {
@@ -87,7 +85,7 @@ class LocalProjectionHandlerSpec extends wordspec.AnyWordSpec, matchers.should.M
       val toMemberRow: WrappedResultSet => MemberRow =
         rs => MemberRow(rs.string("id"), rs.int("role"), rs.string("person_id"), rs.string("name"))
 
-      def proj(id: QuizID, events: Quiz.Event*) = 
+      def proj(id: QuizID, events: Quiz.Event*) =
         val provider = TestSourceProvider(Source(events.map(nextEvent(id, _))), _.offset)
         JdbcProjection.exactlyOnce(
           ProjectionId("testlocal", Quiz.Tags.Single),

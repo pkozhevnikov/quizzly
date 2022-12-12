@@ -2,7 +2,6 @@ package quizzly.author
 
 object testdata:
 
-
   val title = "test quiz"
   val intro = "some intro"
   val lenMins = 60
@@ -25,4 +24,3 @@ object testdata:
     List(1)
   )
   val section = Section("tq-1-1", "section title", "section intro", List(item))
-

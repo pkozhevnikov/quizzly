@@ -124,7 +124,7 @@ class HttpFrontendSpec
   )
 
   object read extends Read:
-    def getList() = Future(quizList)
+    def getList()(using ExecutionContext) = Future(quizList)
 
   def get(path: String, personId: PersonID) = Get(s"/v1/$path") ~> addHeader("pl", personId)
   def delete(path: String, personId: PersonID) = Delete(s"/v1/$path") ~> addHeader("pl", personId)
