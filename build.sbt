@@ -1,6 +1,8 @@
 ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "3.1.2"
 
+Test / parallelExecution := true
+
 val AkkaVersion = "2.7.0"
 val AkkaHttpVersion = "10.4.0"
 val AkkaProjectionVersion = "1.3.1"

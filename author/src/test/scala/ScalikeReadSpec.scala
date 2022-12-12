@@ -24,7 +24,7 @@ object ScalikeReadSpec:
 
 class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matchers.should.Matchers:
 
-  val testKit = ActorTestKit(ScalikeReadSpec.config)
+  val testKit = ActorTestKit("readtest", ScalikeReadSpec.config)
 
   import testdata.*
 
@@ -32,7 +32,7 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
   val q2 = QuizListed(
     "2",
     "quiz 2",
-    true,
+    false,
     curator,
     authors - author1,
     inspectors + inspector3,
@@ -41,12 +41,14 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
   val q3 = QuizListed(
     "3",
     "quiz 3",
-    false,
+    true,
     author3,
     authors + curator,
     inspectors - inspector2,
     Quiz.State.RELEASED
   )
+
+  def DB = NamedDB(testKit.system.name)
 
   override def beforeAll() =
     super.beforeAll()
@@ -56,7 +58,7 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
       val res = scala.io.Source.fromResource("read.ddl")
       try res.mkString
       finally res.close()
-    DB.localTx { implicit session =>
+    NamedDB(testKit.system.name).localTx { implicit session =>
       sql"drop table if exists member".execute.apply()
       sql"drop table if exists quiz".execute.apply()
       SQL(create).execute.apply()
@@ -86,7 +88,7 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
 
   "read side" should {
     "return list of quizzes" in {
-      ScalikeRead
+      ScalikeRead(testKit.system.name)
         .getList()
         .map { list =>
           list should contain inOrder (q1, q2, q3)

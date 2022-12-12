@@ -3,7 +3,7 @@ package quizzly.author
 import scalikejdbc.*
 import scala.concurrent.{Future, ExecutionContext}
 
-object ScalikeRead extends Read:
+class ScalikeRead(poolName: String) extends Read:
 
   case class Row(
       id: String,
@@ -16,7 +16,7 @@ object ScalikeRead extends Read:
   )
 
   def getList()(using ExecutionContext) = Future {
-    val list = DB.readOnly { implicit session =>
+    val list = NamedDB(poolName).readOnly { implicit session =>
       sql"""select q.id,q.title,q.status,q.obsolete,m.role,m.person_id,m.name
               from quiz q right join member m on q.id=m.id order by q.id,m.role,m.name"""
         .map { rs =>
