@@ -35,3 +35,11 @@ case class QuizConfig(
     minTitleLength: Int,
     inactivityMinutes: Int
 )
+object QuizConfig:
+  def fromConfig(qconf: com.typesafe.config.Config) = QuizConfig(
+    qconf.getInt("minAuthors"),
+    qconf.getInt("minInspectors"),
+    qconf.getInt("minTrialLength"),
+    qconf.getInt("minTitleLength"),
+    qconf.getInt("inactivityMinutes")
+  )

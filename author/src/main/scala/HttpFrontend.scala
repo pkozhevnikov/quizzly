@@ -101,7 +101,8 @@ object HttpFrontend extends JsonFormats:
     given akka.util.Timeout = 2.seconds
       
     def onQuiz(id: String)(cmd: ActorRef[Resp[_]] => Quiz.Command) = 
-      completeCall(entities.quiz(id).ask[Resp[_]](cmd))
+      val quizent = entities.quiz(id)
+      completeCall(quizent.ask[Resp[_]](cmd))
 
     def onSection(id: String)(cmd: ActorRef[Resp[_]] => SectionEdit.Command) = 
       completeCall(entities.section(id).ask[Resp[_]](cmd))
