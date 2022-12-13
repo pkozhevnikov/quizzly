@@ -102,7 +102,7 @@ class LocalProjectionHandlerSpec
           val quiz = DB.readOnly { implicit session =>
             sql"select * from quiz where id='q1'".map(toQuizRow).single.apply()
           }
-          quiz shouldBe Some(QuizRow("q1", title, "COMPOSING", false))
+          quiz shouldBe Some(QuizRow("q1", title, "Composing", false))
           val members = DB.readOnly { implicit session =>
             sql"select * from member where id='q1'".map(toMemberRow).list.apply()
           }
@@ -123,7 +123,7 @@ class LocalProjectionHandlerSpec
           val quiz = DB.readOnly { implicit session =>
             sql"select * from quiz where id='q1'".map(toQuizRow).single.apply()
           }
-          quiz shouldBe Some(QuizRow("q1", "new title", "COMPOSING", false))
+          quiz shouldBe Some(QuizRow("q1", "new title", "Composing", false))
         }
       }
 
@@ -178,21 +178,21 @@ class LocalProjectionHandlerSpec
       "change state to review" in {
         val p = proj("q1", created, Quiz.GoneForReview)
         projTestKit.run(p) {
-          checkStatus("REVIEW")
+          checkStatus("Review")
         }
       }
 
       "change state to composing" in {
         val p = proj("q1", created, Quiz.GoneForReview, Quiz.GoneComposing)
         projTestKit.run(p) {
-          checkStatus("COMPOSING")
+          checkStatus("Composing")
         }
       }
 
       "change state to released" in {
         val p = proj("q1", created, Quiz.GoneForReview, Quiz.GoneReleased)
         projTestKit.run(p) {
-          checkStatus("RELEASED")
+          checkStatus("Released")
         }
       }
 
@@ -202,7 +202,7 @@ class LocalProjectionHandlerSpec
           val quiz = DB.readOnly { implicit session =>
             sql"select * from quiz where id='q1'".map(toQuizRow).single.apply()
           }
-          quiz shouldBe Some(QuizRow("q1", title, "RELEASED", true))
+          quiz shouldBe Some(QuizRow("q1", title, "Released", true))
         }
       }
 

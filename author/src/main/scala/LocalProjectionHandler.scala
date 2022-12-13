@@ -25,7 +25,7 @@ class LocalProjectionHandler extends JdbcHandler[EventEnvelope[Quiz.Event], Scal
         update { implicit session =>
           sql"delete from quiz where id=?".bind(id).execute.apply()
           sql"insert into quiz (id,title,status,obsolete) values (?,?,?,?)"
-            .bind(id, e.title, State.COMPOSING.toString, false)
+            .bind(id, e.title, State.Composing.toString, false)
             .update
             .apply()
           SQL(insMember).bind(id, 1, e.curator.id, e.curator.name).update.apply()
@@ -61,11 +61,11 @@ class LocalProjectionHandler extends JdbcHandler[EventEnvelope[Quiz.Event], Scal
           SQL(delMember).bind(id, inspector.id).execute.apply()
         }
       case GoneForReview =>
-        changeStatus(State.REVIEW)
+        changeStatus(State.Review)
       case GoneComposing =>
-        changeStatus(State.COMPOSING)
+        changeStatus(State.Composing)
       case GoneReleased =>
-        changeStatus(State.RELEASED)
+        changeStatus(State.Released)
       case GotObsolete =>
         update { implicit session =>
           sql"update quiz set obsolete=? where id=?".bind(true, id).update.apply()

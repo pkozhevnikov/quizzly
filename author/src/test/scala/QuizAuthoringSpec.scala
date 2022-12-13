@@ -223,7 +223,7 @@ class QuizAuthoringSpec
             curator,
             Set(author1, author2),
             Set(inspector1, inspector2),
-            Quiz.State.COMPOSING
+            Quiz.State.Composing
           )
       }
     }
@@ -267,7 +267,7 @@ class QuizAuthoringSpec
             QuizListed(
               id = "ABC-1",
               title = "Quiz ABC",
-              state = Quiz.State.COMPOSING,
+              state = Quiz.State.Composing,
               obsolete = false,
               curator = curator,
               authors = Set(author1, author2),
@@ -312,7 +312,7 @@ class QuizAuthoringSpec
       head("quiz/D/resolve", inspector1)
       head("quiz/D/resolve", inspector2)
       val full = get("quiz/D", curator).to[FullQuiz]
-      full.state shouldBe Quiz.State.RELEASED
+      full.state shouldBe Quiz.State.Released
       And("I am a Curator")
       When("'set obsolete' request is made")
       delete("quiz/D", curator).status shouldBe StatusCodes.NoContent
@@ -346,7 +346,7 @@ class QuizAuthoringSpec
       create("B")
       val full = get("quiz/B", curator).to[FullQuiz]
       full.id shouldBe "B"
-      full.state shouldBe Quiz.State.COMPOSING
+      full.state shouldBe Quiz.State.Composing
       full.curator shouldBe curator
       And("I am a author")
       And("modified title, intro, recommended length")

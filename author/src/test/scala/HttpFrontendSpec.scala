@@ -63,7 +63,7 @@ class HttpFrontendSpec
         )
       )
     ),
-    state = Quiz.State.COMPOSING
+    state = Quiz.State.Composing
   )
 
   object auth extends Auth:
@@ -120,7 +120,7 @@ class HttpFrontendSpec
         TestEntityRef(SectionEditEntity.EntityKey, id, testKit.spawn(beh))
 
   val quizList = List(
-    QuizListed("q1", "quiz1", false, p1, Set(p1, p2), Set(p3, p4), Quiz.State.COMPOSING)
+    QuizListed("q1", "quiz1", false, p1, Set(p1, p2), Set(p3, p4), Quiz.State.Composing)
   )
 
   object read extends Read:

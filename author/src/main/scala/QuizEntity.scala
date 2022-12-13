@@ -100,7 +100,7 @@ object QuizEntity:
                       Set.empty,
                       false,
                       composing.sections,
-                      State.COMPOSING
+                      State.Composing
                     )
                   )
                 )
@@ -273,7 +273,7 @@ object QuizEntity:
                       review.disapprovals,
                       false,
                       review.composing.sections,
-                      State.REVIEW
+                      State.Review
                     )
                   )
                 )
@@ -349,7 +349,7 @@ object QuizEntity:
                       Set.empty,
                       released.obsolete,
                       released.sections,
-                      State.RELEASED
+                      State.Released
                     )
                   )
                 )

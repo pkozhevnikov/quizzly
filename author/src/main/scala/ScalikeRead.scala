@@ -46,14 +46,14 @@ class ScalikeRead(poolName: String) extends Read:
           members(2).toSet,
           members(3).toSet,
           rows.head.status match
-            case "COMPOSING" =>
-              Quiz.State.COMPOSING
-            case "REVIEW" =>
-              Quiz.State.REVIEW
-            case "RELEASED" =>
-              Quiz.State.RELEASED
+            case "Composing" =>
+              Quiz.State.Composing
+            case "Review" =>
+              Quiz.State.Review
+            case "Released" =>
+              Quiz.State.Released
             case _ =>
-              Quiz.State.RELEASED
+              Quiz.State.Released
         )
       }
       .toList

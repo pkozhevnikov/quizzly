@@ -31,7 +31,7 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
 
   import testdata.*
 
-  val q1 = QuizListed("1", "quiz 1", false, curator, authors, inspectors, Quiz.State.COMPOSING)
+  val q1 = QuizListed("1", "quiz 1", false, curator, authors, inspectors, Quiz.State.Composing)
   val q2 = QuizListed(
     "2",
     "quiz 2",
@@ -39,7 +39,7 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
     curator,
     authors - author1,
     inspectors + inspector3,
-    Quiz.State.REVIEW
+    Quiz.State.Review
   )
   val q3 = QuizListed(
     "3",
@@ -48,7 +48,7 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
     author3,
     authors + curator,
     inspectors - inspector2,
-    Quiz.State.RELEASED
+    Quiz.State.Released
   )
 
   def DB = NamedDB(testKit.system.name)

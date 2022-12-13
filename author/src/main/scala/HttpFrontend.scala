@@ -39,12 +39,12 @@ trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
       def write(s: Quiz.State) = JsString(s.toString)
       def read(n: JsValue) =
         n match
-          case JsString("COMPOSING") =>
-            Quiz.State.COMPOSING
-          case JsString("REVIEW") =>
-            Quiz.State.REVIEW
-          case JsString("RELEASED") =>
-            Quiz.State.RELEASED
+          case JsString("Composing") =>
+            Quiz.State.Composing
+          case JsString("Review") =>
+            Quiz.State.Review
+          case JsString("Released") =>
+            Quiz.State.Released
           case x =>
             throw DeserializationException(s"unknown value $x")
   given RootJsonFormat[QuizListed] = jsonFormat7(QuizListed.apply)

@@ -51,9 +51,9 @@ object Quiz:
     val All = Vector("quiz-1", "quiz-2", "quiz-3")
 
   enum State:
-    case COMPOSING,
-      REVIEW,
-      RELEASED
+    case Composing,
+      Review,
+      Released
 
   final case class Blank(id: QuizID) extends Quiz
 

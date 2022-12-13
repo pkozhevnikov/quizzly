@@ -200,7 +200,7 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
               Set.empty,
               false,
               List.empty,
-              State.COMPOSING
+              State.Composing
             )
           )
       }
@@ -655,7 +655,7 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
               Set.empty,
               false,
               List.empty,
-              State.REVIEW
+              State.Review
             )
           )
       }
@@ -880,7 +880,7 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
               Set.empty,
               true,
               List.empty,
-              State.RELEASED
+              State.Released
             )
           )
       }
