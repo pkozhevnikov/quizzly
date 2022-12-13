@@ -24,14 +24,16 @@ object QuizEntity:
 
   def apply(id: QuizID, sections: String => EntityRef[SectionEdit.Command], config: QuizConfig)(
       using ExecutionContext
-  ): Behavior[Command] = Behaviors.setup { ctx =>
-    EventSourcedBehavior[Command, Event, Quiz](
-      PersistenceId.ofUniqueId(id),
-      Blank(id),
-      commandHandler(ctx, sections, config),
-      eventHandler
-    )
-  }
+  ): Behavior[Command] = 
+    Behaviors.setup { ctx =>
+      EventSourcedBehavior[Command, Event, Quiz](
+        PersistenceId.ofUniqueId(id),
+        Blank(id),
+        commandHandler(ctx, sections, config),
+        eventHandler
+      )
+      .withTagger(_ => Set(Tags.Single))
+    }
 
   import Resp.*
 

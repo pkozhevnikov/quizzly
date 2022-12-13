@@ -41,13 +41,15 @@ object LocalProjectionHandlerSpec:
     }
   """).resolve
 
-class LocalProjectionHandlerSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, BeforeAndAfterAll:
+class LocalProjectionHandlerSpec
+    extends wordspec.AnyWordSpec,
+      matchers.should.Matchers,
+      BeforeAndAfterAll:
 
   val testKit = ActorTestKit("localprojtest", LocalProjectionHandlerSpec.config)
   val projTestKit = ProjectionTestKit(testKit.system)
   given ActorSystem[?] = testKit.system
   given ExecutionContext = testKit.system.executionContext
-
 
   def DB = NamedDB(testKit.system.name)
 
@@ -65,8 +67,7 @@ class LocalProjectionHandlerSpec extends wordspec.AnyWordSpec, matchers.should.M
       SQL(create).execute.apply()
     }
 
-  override def afterAll() =
-    testKit.shutdownTestKit()
+  override def afterAll() = testKit.shutdownTestKit()
 
   var _seq = -1
   def seq() =

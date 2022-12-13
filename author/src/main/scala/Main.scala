@@ -4,6 +4,7 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.cluster.sharding.typed.scaladsl.*
 import akka.persistence.jdbc.query.scaladsl.JdbcReadJournal
+import akka.persistence.jdbc.testkit.scaladsl.SchemaUtils
 import akka.projection.eventsourced.scaladsl.EventSourcedProvider
 import akka.projection.jdbc.scaladsl.JdbcProjection
 import akka.projection.ProjectionId
@@ -28,6 +29,7 @@ object Main:
     given ActorSystem[?] = system
     given ExecutionContext = system.executionContext
     ScalikeJdbcSetup(system)
+    SchemaUtils.createIfNotExists()
     val create =
       val res = scala.io.Source.fromResource("read.ddl")
       try res.mkString
