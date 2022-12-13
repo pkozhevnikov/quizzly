@@ -61,6 +61,9 @@ object QuizAuthoringSpec:
       user = "sa"
       password = "sa"
       url = "jdbc:h2:mem:app"
+      migrations-table = "schemahistory"
+      migrations-locations = ["classpath:db"]
+      migration = on
     }
     akka-persistence-jdbc {
       shared-databases {

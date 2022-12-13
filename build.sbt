@@ -43,7 +43,8 @@ val commonDependencies = Seq(
   ("org.scalikejdbc" %% "scalikejdbc" % "3.5.0")
         .cross(CrossVersion.for3Use2_13),
   "com.h2database" % "h2" % "2.1.212",
-  "com.zaxxer" % "HikariCP" % "5.0.1"
+  "com.zaxxer" % "HikariCP" % "5.0.1",
+  "org.flywaydb" % "flyway-core" % "9.7.0"
 )
 
 lazy val author = project.settings(

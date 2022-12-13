@@ -4,11 +4,13 @@ import akka.actor.typed.ActorSystem
 import com.typesafe.config.Config
 import com.zaxxer.hikari.HikariDataSource
 import scalikejdbc.*
+import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.Location
 
 object ScalikeJdbcSetup:
 
   def apply(system: ActorSystem[_]): Unit =
-    initFromConfig(system.name, system.settings.config)
+    initFromConfig(system.name, system.settings.config.getConfig("jdbc-connection-settings"))
     system
       .whenTerminated
       .map { _ =>
@@ -17,17 +19,30 @@ object ScalikeJdbcSetup:
 
   private def initFromConfig(name: String, config: Config): Unit =
 
-    val dataSource = buildDataSource(config.getConfig("jdbc-connection-settings"))
+    val dataSource = buildDataSource(name, config)
 
     ConnectionPool.add(
       name,
       DataSourceConnectionPool(dataSource = dataSource, closer = HikariCloser(dataSource))
     )
 
-  private def buildDataSource(config: Config): HikariDataSource =
+    import scala.collection.JavaConverters.*
+
+    if config.getBoolean("migration") then
+      Flyway
+        .configure
+        .dataSource(dataSource)
+        .table(config.getString("migrations-table"))
+        .locations(config.getStringList("migrations-locations").asScala.map(Location(_)).toSeq: _*)
+        .group(true)
+        .outOfOrder(false)
+        .load
+        .migrate
+
+  private def buildDataSource(name: String, config: Config): HikariDataSource =
     val dataSource = HikariDataSource()
 
-    dataSource.setPoolName("rscp")
+    dataSource.setPoolName(name)
     dataSource.setMaximumPoolSize(config.getInt("connection-pool.max-pool-size"))
 
     val timeout = config.getDuration("connection-pool.timeout").toMillis

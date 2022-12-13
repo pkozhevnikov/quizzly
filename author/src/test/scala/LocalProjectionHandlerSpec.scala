@@ -38,6 +38,9 @@ object LocalProjectionHandlerSpec:
       user = "sa"
       password = "sa"
       url = "jdbc:h2:mem:readside"
+      migrations-table = "schemahistory"
+      migrations-locations = ["classpath:db"]
+      migration = on
     }
   """).resolve
 
@@ -55,17 +58,7 @@ class LocalProjectionHandlerSpec
 
   override def beforeAll() =
     ScalikeJdbcSetup(testKit.system)
-
     JdbcProjection.createTablesIfNotExists(() => ScalikeJdbcSession())
-    val create =
-      val res = scala.io.Source.fromResource("read.ddl")
-      try res.mkString
-      finally res.close()
-    NamedDB(testKit.system.name).localTx { implicit session =>
-      sql"drop table if exists member".execute.apply()
-      sql"drop table if exists quiz".execute.apply()
-      SQL(create).execute.apply()
-    }
 
   override def afterAll() = testKit.shutdownTestKit()
 

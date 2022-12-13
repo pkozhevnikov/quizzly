@@ -19,6 +19,9 @@ object ScalikeReadSpec:
       user = "sa"
       password = "sa"
       url = "jdbc:h2:mem:read"
+      migrations-table = "schemahistory"
+      migrations-locations = ["classpath:db"]
+      migration = on
     }
   """).resolve
 
@@ -54,14 +57,7 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
     super.beforeAll()
     ScalikeJdbcSetup(testKit.system)
 
-    val create =
-      val res = scala.io.Source.fromResource("read.ddl")
-      try res.mkString
-      finally res.close()
     NamedDB(testKit.system.name).localTx { implicit session =>
-      sql"drop table if exists member".execute.apply()
-      sql"drop table if exists quiz".execute.apply()
-      SQL(create).execute.apply()
       val insmemb = "insert into member (id,role,person_id,name) values (?,?,?,?)"
       def ins(q: QuizListed) =
         sql"insert into quiz (id,title,status,obsolete) values (?,?,?,?)"

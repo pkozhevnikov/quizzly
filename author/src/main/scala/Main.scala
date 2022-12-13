@@ -19,7 +19,7 @@ import akka.http.scaladsl.Http
 import scalikejdbc.*
 
 @main
-def run = 
+def run =
   val sys = ActorSystem(Behaviors.empty, "QuizAuthoring")
   Main(sys, FakeAuth)
 
@@ -30,15 +30,6 @@ object Main:
     given ExecutionContext = system.executionContext
     ScalikeJdbcSetup(system)
     SchemaUtils.createIfNotExists()
-    val create =
-      val res = scala.io.Source.fromResource("read.ddl")
-      try res.mkString
-      finally res.close()
-    NamedDB(system.name).localTx { implicit session =>
-      sql"drop table if exists member".execute.apply()
-      sql"drop table if exists quiz".execute.apply()
-      SQL(create).execute.apply()
-    }
     val sharding = ClusterSharding(system)
     val quizConfig = QuizConfig.fromConfig(system.settings.config.getConfig("author"))
     val getSection = sharding.entityRefFor(SectionEditEntity.EntityKey, _)
