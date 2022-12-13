@@ -6,7 +6,8 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.*
-import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.http.scaladsl.unmarshalling.*
+import akka.http.scaladsl.marshalling.*
 import akka.http.scaladsl.client.RequestBuilding.*
 
 import com.typesafe.config.ConfigFactory
@@ -119,7 +120,7 @@ class QuizAuthoringSpec
   def freePort(default: Int) = Using(new ServerSocket(0))(_.getLocalPort).getOrElse(default)
   val httpPort = freePort(33032)
   val nodePort = freePort(44043)
-  
+
   val appSystem = ActorSystem(Behaviors.empty, "app", QuizAuthoringSpec.config(nodePort, httpPort))
   val clnSystem = ActorSystem(
     Behaviors.empty,
@@ -156,8 +157,83 @@ class QuizAuthoringSpec
     clnSystem.terminate()
     appSystem.terminate()
 
+  extension (response: HttpResponse)
+    def to[C](using FromResponseUnmarshaller[C]) = Await.result(Unmarshal(response).to[C], 1.second)
+  extension (path: String)
+    def fullUrl = s"http://localhost:$httpPort/v1/$path"
+  def request(req: HttpRequest, as: Person) = Await
+    .result(http.singleRequest(req ~> addHeader("p", as.id)), 1.second)
+  def post[C](path: String, as: Person, content: C)(using ToEntityMarshaller[C]) = request(
+    Post(path.fullUrl, content),
+    as
+  )
+  def put[C](path: String, as: Person, content: C)(using ToEntityMarshaller[C]) = request(
+    Put(path.fullUrl, content),
+    as
+  )
+  def get(path: String, as: Person) = request(Get(path.fullUrl), as)
+  def delete(path: String, as: Person) = request(Delete(path.fullUrl), as)
+  def head(path: String, as: Person) = request(Head(path.fullUrl), as)
+
+  val authorsIds12 = Set(author1.id, author2.id)
+  val inspectorsIds12 = Set(inspector1.id, inspector2.id)
+
+  def create(id: QuizID) =
+    val req = CreateQuiz(id, s"Quiz $id", s"some intro for $id", 10, authorsIds12, inspectorsIds12)
+    val res = post("quiz", curator, req)
+    res.status shouldBe StatusCodes.OK
+    res.to[Quiz.CreateDetails] shouldBe
+      Quiz.CreateDetails(Set(author1, author2), Set(inspector1, inspector2))
+
   info("As an Official")
   info("I want to manage a Quiz")
+
+  Feature("officials list") {
+
+    Scenario("getting officials list") {
+      When("'get staff' request is made")
+      val res = get("staff", author3)
+      Then("full list of officials is returned")
+      res.status shouldBe StatusCodes.OK
+      res.to[List[Person]] should contain allOf
+        (curator, author1, author2, author3, inspector1, inspector2, inspector3)
+    }
+
+    Scenario("access denied for not officials") {
+      When("'get staff' request is done by not official")
+      val res = get("staff", Person("not exist", ""))
+      Then("access denied")
+      res.status shouldBe StatusCodes.Unauthorized
+    }
+
+  }
+
+  Feature("quiz list") {
+    Scenario("getting quiz list") {
+      Given("a quiz existing")
+      create("First")
+      When("'get quiz list' request is done by official")
+      Then("quiz list is returned")
+      eventually {
+        get("quiz", curator).to[List[QuizListed]].find(_.id == "First").get shouldBe
+          QuizListed(
+            "First",
+            "Quiz First",
+            false,
+            curator,
+            Set(author1, author2),
+            Set(inspector1, inspector2),
+            Quiz.State.COMPOSING
+          )
+      }
+    }
+    Scenario("access denied for not officials") {
+      When("'get quiz list' request is done by not official")
+      val res = get("quiz", Person("notexist", ""))
+      Then("request rejected")
+      res.status shouldBe StatusCodes.Unauthorized
+    }
+  }
 
   Feature("Quiz creation") {
 
@@ -170,29 +246,22 @@ class QuizAuthoringSpec
         title = "Quiz ABC",
         intro = "some intro on ABC",
         recommendedLength = 10,
-        authors = Set(author1.id, author2.id),
-        inspectors = Set(inspector1.id, inspector2.id)
+        authors = authorsIds12,
+        inspectors = inspectorsIds12
       )
 
       When("'create quiz' request is sent")
-      val res = http
-        .singleRequest(Post(s"http://localhost:$httpPort/v1/quiz", req) ~> addHeader("p", curator.id))
+      val res = post("quiz", curator, req)
 
       Then("new Quiz created")
-      val details = Await.result(res.flatMap(Unmarshal(_).to[Quiz.CreateDetails]), 1.second)
-      details shouldBe Quiz.CreateDetails(Set(author1, author2), Set(inspector1, inspector2))
+      res.status shouldBe StatusCodes.OK
+      res.to[Quiz.CreateDetails] shouldBe
+        Quiz.CreateDetails(Set(author1, author2), Set(inspector1, inspector2))
 
       And("I am a Curator")
       And("new Quiz is in Composing state")
       eventually {
-        val listed = Await
-          .result(
-            http
-              .singleRequest(Get(s"http://localhost:$httpPort/v1/quiz") ~> addHeader("p", curator.id))
-              .flatMap(Unmarshal(_).to[List[QuizListed]]),
-            1.second
-          )
-          .find(_.id == "ABC-1")
+        val listed = get("quiz", curator).to[List[QuizListed]].find(_.id == "ABC-1")
         listed shouldBe
           Some(
             QuizListed(
@@ -209,32 +278,59 @@ class QuizAuthoringSpec
     }
 
     Scenario("Quiz not created 1") {
+      create("A")
       Given("not unique identifier specified")
       And("title and intro specified")
       And("Authors and Inspectors specified")
+      val req = CreateQuiz("A", "title", "", 10, authorsIds12, inspectorsIds12)
       When("'create quiz' request is sent")
+      val res = post("quiz", curator, req)
       Then("Quiz is not created")
+      res.status shouldBe StatusCodes.UnprocessableEntity
       And("'quiz already exists' message is displayed")
+      res.to[Error] shouldBe Quiz.quizAlreadyExists.error() + "A"
     }
 
     Scenario("Quiz not created 2") {
       Given("unique identifier specified")
       And("title and intro specified")
-      And("Authors and Inspectors not specified")
+      And("Authors not specified")
+      val req = CreateQuiz("B", "title", "", 10, Set.empty, inspectorsIds12)
       When("'create quiz' request is sent")
+      val res = post("quiz", curator, req)
       Then("Quiz is not created")
-      And("'not enough authors or inspectors' message is displayed")
+      res.status shouldBe StatusCodes.UnprocessableEntity
+      And("'not enough authors' message is displayed")
+      res.to[Error] shouldBe Quiz.notEnoughAuthors.error()
     }
 
-    Scenario("main Quiz attributes changed") {
-      Given("a Quiz in Composing state")
+    Scenario("set a Quiz Obsolete") {
+      Given("a Quiz in Released state")
+      create("D")
+      head("quiz/D/ready", author1)
+      head("quiz/D/ready", author2)
+      head("quiz/D/resolve", inspector1)
+      head("quiz/D/resolve", inspector2)
+      val full = get("quiz/D", curator).to[FullQuiz]
+      full.state shouldBe Quiz.State.RELEASED
       And("I am a Curator")
-      And("modified title, intro, recommended length")
-      When("'save' request is performed")
-      Then("new title, recommended length and intro saved")
+      When("'set obsolete' request is made")
+      delete("quiz/D", curator).status shouldBe StatusCodes.NoContent
+      Then("the quiz is obsolete")
+      val obsolete = get("quiz/D", curator).to[FullQuiz]
+      obsolete.obsolete shouldBe true
     }
 
-    Scenario("set a Quiz Obsolete")(pending)
+    Scenario("cannot set a quiz obsolete") {
+      Given("a Quiz in Composing state")
+      create("C")
+      And("I am a Curator")
+      When("'set obsolete' request is made")
+      val res = delete("quiz/C", curator)
+      Then("operation is rejected")
+      res.status shouldBe StatusCodes.UnprocessableEntity
+      res.to[Error] shouldBe Quiz.isComposing.error()
+    }
 
   }
 
@@ -243,7 +339,45 @@ class QuizAuthoringSpec
   info("As an Author")
   info("I want to modify a Quiz")
 
-  Feature("Quiz modification")(pending)
+  Feature("Quiz modification") {
+
+    Scenario("main Quiz attributes changed") {
+      Given("a Quiz in Composing state")
+      create("B")
+      val full = get("quiz/B", curator).to[FullQuiz]
+      full.id shouldBe "B"
+      full.state shouldBe Quiz.State.COMPOSING
+      full.curator shouldBe curator
+      And("I am a author")
+      And("modified title, intro, recommended length")
+      val req = UpdateQuiz("title plus", "intro plus", 77)
+      When("'save' request is performed")
+      val res = put("quiz/B", author1, req)
+      res.status shouldBe StatusCodes.NoContent
+      Then("new title, recommended length and intro saved")
+      val saved = get("quiz/B", curator).to[FullQuiz]
+      saved.title shouldBe "title plus"
+      saved.intro shouldBe "intro plus"
+      saved.recommendedLength shouldBe 77
+      eventually {
+        val listed = get("quiz", curator).to[List[QuizListed]].find(_.id == "B").get
+        listed.title shouldBe "title plus"
+      }
+    }
+
+    Scenario("update rejection 1") {
+      Given("a quiz in Composing state")
+      create("E")
+      And("modified attributes")
+      val req = UpdateQuiz("title plus", "", 100)
+      When("'save' request is done by not author")
+      val res = put("quiz/E", author3, req)
+      Then("operation rejected")
+      res.status shouldBe StatusCodes.UnprocessableEntity
+      res.to[Error] shouldBe Quiz.notAuthor.error()
+    }
+
+  }
 
   info("")
 
