@@ -19,9 +19,7 @@ import akka.http.scaladsl.Http
 import scalikejdbc.*
 
 @main
-def run =
-  val sys = ActorSystem(Behaviors.empty, "QuizAuthoring")
-  Main(sys, FakeAuth)
+def run = Main(ActorSystem(Behaviors.empty, "QuizAuthoring"), FakeAuth)
 
 object Main:
 
@@ -57,9 +55,11 @@ object Main:
       new:
         def quiz(id: String) = getQuiz(id)
         def section(id: String) = getSection(id)
+    val host = system.settings.config.getString("frontend.http.host")
+    val port = system.settings.config.getInt("frontend.http.port")
     Http()
-      .newServerAt("0.0.0.0", system.settings.config.getInt("frontend-http-port"))
-      .bind(HttpFrontend(ScalikeRead(system.name), entityAware, auth))
+      .newServerAt("0.0.0.0", port)
+      .bind(HttpFrontend(ScalikeRead(system.name), entityAware, auth, host, port))
       .map(_.addToCoordinatedShutdown(3.seconds))
       .onComplete {
         case Success(binding) =>

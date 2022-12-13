@@ -8,6 +8,7 @@ import akka.http.scaladsl.model.*
 import akka.cluster.sharding.typed.scaladsl.EntityRef
 
 import akka.stream.scaladsl.Source
+import akka.util.ByteString
 
 import akka.http.scaladsl.common.{EntityStreamingSupport, JsonEntityStreamingSupport}
 import akka.http.scaladsl.marshallers.sprayjson.{SprayJsonSupport}
@@ -74,39 +75,57 @@ trait Auth:
 object HttpFrontend extends JsonFormats:
 
   val log = org.slf4j.LoggerFactory.getLogger("HttpFrontend")
-  
-  // format: off
-  def apply(read: Read, entities: EntityAware, authService: Auth) (using ActorSystem[_], ExecutionContext)=
-    
-    def auth(request: HttpRequest)(next: Person => Route) = 
+
+  def apply(
+      read: Read,
+      entities: EntityAware,
+      authService: Auth,
+      host: String = "localhost",
+      port: Int = 9099
+  )(using ActorSystem[_], ExecutionContext) =
+
+    def auth(request: HttpRequest)(next: Person => Route) =
       onComplete(authService.authenticate(request)) {
-        case Success(p) => next(p)
-        case Failure(ex) => complete(StatusCodes.Unauthorized)
+        case Success(p) =>
+          next(p)
+        case Failure(ex) =>
+          complete(StatusCodes.Unauthorized)
       }
 
     def completeCall(fut: Future[Resp[_]]) =
       onComplete(fut) {
-        case Success(Resp.OK) => complete(StatusCodes.NoContent)
-        case Success(Resp.Good(r)) => r match
-          case s: String => complete(s)
-          case c: Quiz.CreateDetails => complete(c)
-          case l: List[?] => 
-            complete(StrList(l.map(_.toString)))
-          case f: FullQuiz => complete(f)
-          case _ => complete(StatusCodes.BadRequest, s"cannot serialize $r")
-        case Success(Resp.Bad(e)) => complete(StatusCodes.UnprocessableEntity, e)
-        case Failure(ex) => complete(StatusCodes.InternalServerError, ex.getMessage)
+        case Success(Resp.OK) =>
+          complete(StatusCodes.NoContent)
+        case Success(Resp.Good(r)) =>
+          r match
+            case s: String =>
+              complete(s)
+            case c: Quiz.CreateDetails =>
+              complete(c)
+            case l: List[?] =>
+              complete(StrList(l.map(_.toString)))
+            case f: FullQuiz =>
+              complete(f)
+            case _ =>
+              complete(StatusCodes.BadRequest, s"cannot serialize $r")
+        case Success(Resp.Bad(e)) =>
+          complete(StatusCodes.UnprocessableEntity, e)
+        case Failure(ex) =>
+          complete(StatusCodes.InternalServerError, ex.getMessage)
       }
 
     given akka.util.Timeout = 2.seconds
-      
-    def onQuiz(id: String)(cmd: ActorRef[Resp[_]] => Quiz.Command) = 
+
+    def onQuiz(id: String)(cmd: ActorRef[Resp[_]] => Quiz.Command) =
       val quizent = entities.quiz(id)
       completeCall(quizent.ask[Resp[_]](cmd))
 
-    def onSection(id: String)(cmd: ActorRef[Resp[_]] => SectionEdit.Command) = 
-      completeCall(entities.section(id).ask[Resp[_]](cmd))
+    def onSection(id: String)(cmd: ActorRef[Resp[_]] => SectionEdit.Command) = completeCall(
+      entities.section(id).ask[Resp[_]](cmd)
+    )
 
+    // format: off
+    pathPrefix("pubapi")(pubapi(host, port))~
     extractRequest { request =>
       auth(request) { person => 
         pathPrefix("v1") {
@@ -288,5 +307,23 @@ object HttpFrontend extends JsonFormats:
         }
       }
     }
+    // format: on
 
-  // format: on
+  val yamlContentType = ContentType(
+    MediaType.textWithFixedCharset("vnd.yaml", HttpCharsets.`UTF-8`, "yaml", "yml")
+  )
+  private def pubapi(host: String, port: Int) = concat(
+    pathSingleSlash(getFromResource("pubapi/index.html")),
+    path("root.yaml") {
+      complete(
+        HttpEntity(
+          yamlContentType,
+          Source
+            .fromIterator(() => scala.io.Source.fromResource("pubapi/root.yaml").getLines())
+            .map(_.replace("""${http.host}""", host).replace("""${http.port}""", port.toString))
+            .map(l => ByteString(s"$l\n"))
+        )
+      )
+    },
+    getFromResourceDirectory("pubapi")
+  )

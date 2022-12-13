@@ -98,7 +98,10 @@ object QuizAuthoringSpec:
       minTitleLength = 5
       inactivityMinutes = 10
     }
-    frontend-http-port = $httpPort
+    frontend.http {
+      host = "localhost"
+      port = $httpPort
+    }
     """)
       .resolve
 
