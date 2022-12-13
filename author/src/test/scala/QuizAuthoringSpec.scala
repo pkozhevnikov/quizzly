@@ -171,9 +171,15 @@ class QuizAuthoringSpec
     Put(path.fullUrl, content),
     as
   )
+  def patch[C](path: String, as: Person, content: C)(using ToEntityMarshaller[C]) = request(
+    Patch(path.fullUrl, content),
+    as
+  )
   def get(path: String, as: Person) = request(Get(path.fullUrl), as)
   def delete(path: String, as: Person) = request(Delete(path.fullUrl), as)
-  def head(path: String, as: Person) = request(Head(path.fullUrl), as)
+  def patch(path: String, as: Person) = request(Patch(path.fullUrl), as)
+  def post(path: String, as: Person) = request(Post(path.fullUrl), as)
+  def put(path: String, as: Person) = request(Put(path.fullUrl), as)
 
   val authorsIds12 = Set(author1.id, author2.id)
   val inspectorsIds12 = Set(inspector1.id, inspector2.id)
@@ -307,10 +313,10 @@ class QuizAuthoringSpec
     Scenario("set a Quiz Obsolete") {
       Given("a Quiz in Released state")
       create("D")
-      head("quiz/D/ready", author1)
-      head("quiz/D/ready", author2)
-      head("quiz/D/resolve", inspector1)
-      head("quiz/D/resolve", inspector2)
+      patch("quiz/D/ready", author1)
+      patch("quiz/D/ready", author2)
+      patch("quiz/D/resolve", inspector1)
+      patch("quiz/D/resolve", inspector2)
       val full = get("quiz/D", curator).to[FullQuiz]
       full.state shouldBe Quiz.State.Released
       And("I am a Curator")
@@ -374,7 +380,53 @@ class QuizAuthoringSpec
       val res = put("quiz/E", author3, req)
       Then("operation rejected")
       res.status shouldBe StatusCodes.UnprocessableEntity
+      And("'not author' is displayed")
       res.to[Error] shouldBe Quiz.notAuthor.error()
+    }
+
+    Scenario("update rejection 2") {
+      Given("a quiz in Composing state")
+      create("F")
+      And("modified attributes with short title")
+      val req = UpdateQuiz("xx", "", 80)
+      When("'save' request is done by author")
+      val res = put("quiz/F", author1, req)
+      Then("operation rejected")
+      res.status shouldBe StatusCodes.UnprocessableEntity
+      And("'too short title' is displayed")
+      res.to[Error] shouldBe Quiz.tooShortTitle.error()
+    }
+
+    Scenario("section creation") {
+      Given("a quiz in Composing state")
+      create("G")
+      When("'add section' request is done")
+      val res = post("quiz/G", author1, CreateSection("section 1"))
+      Then("new section is added")
+      res.status shouldBe StatusCodes.OK
+      res.to[String] shouldBe "G-1"
+      And("I am an owner")
+      val ownres = patch("quiz/G?sc=G-1", author1)
+      ownres.status shouldBe StatusCodes.UnprocessableEntity
+      ownres.to[Error] shouldBe SectionEdit.alreadyOwned.error()
+    }
+
+    Scenario("section update") {
+      Given("a quiz in Composing state")
+      create("H")
+      And("a section added and owned")
+      post("quiz/H", author1, CreateSection("section 1"))
+      When("'update section' request is made")
+      val upd = put("section/H-1", author1, UpdateSection("section 1 plus", "section 1 intro"))
+      upd.status shouldBe StatusCodes.NoContent
+      And("section discharged")
+      val dis = get("section/H-1", author1)
+      dis.status shouldBe StatusCodes.NoContent
+      Then("the section updated")
+      val full = get("quiz/H", author1)
+      val sect = full.to[FullQuiz].sections.head
+      sect.title shouldBe "section 1 plus"
+      sect.intro shouldBe "section 1 intro"
     }
 
   }

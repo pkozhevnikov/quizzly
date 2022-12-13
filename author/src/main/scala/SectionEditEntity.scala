@@ -49,7 +49,7 @@ object SectionEditEntity:
                         timer.reset(config.inactivityMinutes)
                         Resp.OK
                       }
-                case c: CommandWithReply[_] =>
+                case c: CommandWithReply[?] =>
                   Effect.reply(c.replyTo)(Bad(Quiz.sectionNotFound.error()))
                 case _ =>
                   Effect.unhandled
@@ -60,7 +60,7 @@ object SectionEditEntity:
                   Effect.reply(c.replyTo)(Bad(alreadyExists.error()))
                 case c: GetOwner =>
                   Effect.reply(c.replyTo)(Good(edit.owner))
-                case c: CommandWithOwnerReply[_] =>
+                case c: CommandWithOwnerReply[?] =>
                   edit.owner match
                     case Some(person) =>
                       if c.owner != person then
@@ -123,13 +123,16 @@ object SectionEditEntity:
             )
           )
         Effect.none
+      case c: Own =>
+        Effect.reply(c.replyTo)(Bad(alreadyOwned.error()))
       case Discharge(_, replyTo) =>
+        print(s"discharge req ${edit.quizID} ${edit.section.sc}")
         quizzes(edit.quizID)
           .ask(Quiz.SaveSection(edit.section, _))(2.seconds)
           .onComplete {
             case Success(r) =>
               r match
-                case Resp.OK =>
+                case Good(_) =>
                   ctx.self ! InternalDischarge(replyTo)
                 case Bad(e) =>
                   replyTo ! Bad(e)

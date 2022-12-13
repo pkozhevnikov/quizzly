@@ -1,3 +1,80 @@
+put:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  summary: update section
+  description: |
+    Updates section
+  operationId: updatesection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+  -
+    in: body
+    name: section-main
+    required: true
+    schema:
+      $ref: /pubapi/schemas/update-section.yaml
+
+  responses:
+    204:
+      description: section updated
+    422:
+      description: error
+
+get:
+  tags:
+  - v1
+  summary: discharge section
+  description: |
+    Discharges section
+  operationId: dischargesection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+
+  responses:
+    204:
+      description: section discharged
+    422:
+      description: error
+
+delete:
+  tags:
+  - v1
+  summary: remove section
+  description: |
+    Removes section
+  operationId: removesection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+  -
+    in: query
+    name: qid
+    required: true
+    description: quiz ID
+    type: string
+
+  responses:
+    204:
+      description: section removed
+    422:
+      description: error
+
 patch:
   tags:
   - v1
@@ -34,83 +111,6 @@ patch:
         type: array
         items:
           $ref: /pubapi/schemas/sc.yaml
-    422:
-      description: error
-
-put:
-  tags:
-  - v1
-  consumes:
-  - application/json
-  summary: update section
-  description: |
-    Updates section
-  operationId: updatesection
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: section ID
-    type: string
-  -
-    in: body
-    name: section-main
-    required: true
-    schema:
-      $ref: /pubapi/schemas/update-section.yaml
-
-  responses:
-    204:
-      description: section updated
-    422:
-      description: error
-
-delete:
-  tags:
-  - v1
-  summary: remove section
-  description: |
-    Removes section
-  operationId: removesection
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: section ID
-    type: string
-  -
-    in: query
-    name: qid
-    required: true
-    description: quiz ID
-    type: string
-
-  responses:
-    204:
-      description: section removed
-    422:
-      description: error
-
-head:
-  tags:
-  - v1
-  summary: discharge section
-  description: |
-    Discharges section
-  operationId: dischargesection
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: section ID
-    type: string
-
-  responses:
-    204:
-      description: section discharged
     422:
       description: error
 

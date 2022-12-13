@@ -182,7 +182,7 @@ object HttpFrontend extends JsonFormats:
                     )
                   }
                 }~
-                head {
+                patch {
                   parameter("sc") { sc =>
                     onQuiz(quizID)(Quiz.OwnSection(sc, person, _))
                   }
@@ -198,7 +198,7 @@ object HttpFrontend extends JsonFormats:
                 delete {
                   onQuiz(quizID)(Quiz.UnsetReadySign(person, _))
                 }~
-                head {
+                patch {
                   onQuiz(quizID)(Quiz.SetReadySign(person, _))
                 }
               }~
@@ -206,12 +206,12 @@ object HttpFrontend extends JsonFormats:
                 delete {
                   onQuiz(quizID)(Quiz.Resolve(person, false, _))
                 }~
-                head {
+                patch {
                   onQuiz(quizID)(Quiz.Resolve(person, true, _))
                 }
               }~
               path("authors" / Segment) { authorId =>
-                head {
+                patch {
                   onComplete(authService.getPerson(authorId)) {
                     case Success(o) => o match
                       case Some(author) =>
@@ -237,7 +237,7 @@ object HttpFrontend extends JsonFormats:
                 }
               }~
               path("inspectors" / Segment) { inspectorId =>
-                head {
+                patch {
                   onComplete(authService.getPerson(inspectorId)) {
                     case Success(o) => o match
                       case Some(inspector) =>
@@ -281,7 +281,7 @@ object HttpFrontend extends JsonFormats:
                   onQuiz(quizID)(Quiz.RemoveSection(sc, person, _))
                 }
               }~
-              head {
+              get {
                 onSection(sc)(SectionEdit.Discharge(person, _))
               }
             }~

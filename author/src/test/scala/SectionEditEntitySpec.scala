@@ -168,7 +168,7 @@ class SectionEditEntitySpec
         putQuiz(
           "tq-1",
           Behaviors.receiveMessage { case c: Quiz.SaveSection =>
-            c.replyTo ! Resp.OK
+            c.replyTo ! Good(c.section.sc)
             Behaviors.stopped
           }
         )
@@ -269,7 +269,7 @@ class SectionEditEntitySpec
           Behaviors.monitor(
             probe.ref,
             Behaviors.receiveMessage { case c: Quiz.SaveSection =>
-              c.replyTo ! Resp.OK
+              c.replyTo ! Good(c.section.sc)
               Behaviors.stopped
             }
           )
@@ -313,7 +313,7 @@ class SectionEditEntitySpec
         putQuiz(
           "tq-1",
           Behaviors.receiveMessage { case c: Quiz.SaveSection =>
-            c.replyTo ! Resp.OK
+            c.replyTo ! Good(c.section.sc)
             Behaviors.stopped
           }
         )

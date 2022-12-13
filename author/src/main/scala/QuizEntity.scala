@@ -240,14 +240,16 @@ object QuizEntity:
                 sections(sc)
                   .ask(SectionEdit.Own(owner, _))(2.seconds)
                   .onComplete {
-                    case Success(r: RespOK) =>
-                      replyTo ! r
+                    case Success(Resp.OK) =>
+                      replyTo ! Resp.OK
+                    case Success(Bad(e)) =>
+                      replyTo ! Bad(e)
                     case Failure(ex) =>
                       replyTo ! Bad(unprocessed(ex.getMessage).error())
                   }
                 Effect.none
 
-            case c: CommandWithReply[_] =>
+            case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(isComposing.error()))
 
         case review: Review =>

@@ -19,7 +19,7 @@ delete:
     422:
       description: error
 
-head:
+patch:
   tags:
   - v1
   summary: set readiness sign

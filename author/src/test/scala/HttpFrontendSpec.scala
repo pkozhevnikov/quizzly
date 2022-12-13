@@ -128,7 +128,6 @@ class HttpFrontendSpec
 
   def get(path: String, personId: PersonID) = Get(s"/v1/$path") ~> addHeader("pl", personId)
   def delete(path: String, personId: PersonID) = Delete(s"/v1/$path") ~> addHeader("pl", personId)
-  def head(path: String, personId: PersonID) = Head(s"/v1/$path") ~> addHeader("pl", personId)
   def post[C](path: String, personId: PersonID, content: C)(using ToEntityMarshaller[C]) =
     Post(s"/v1/$path", content) ~> addHeader("pl", personId)
   def put[C](path: String, personId: PersonID, content: C)(using ToEntityMarshaller[C]) =
@@ -303,14 +302,14 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        head("quiz/qx?sc=qx-1", p3.id) ~> route ~>
+        patch("quiz/qx?sc=qx-1", p3.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "not own section" in {
         val err = Quiz.sectionNotFound.error() + "qx-1"
-        head("quiz/qx?sc=qx-1", p3.id) ~> stdquiz("qx", Bad(err)) ~>
+        patch("quiz/qx?sc=qx-1", p3.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -387,14 +386,14 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        head("quiz/qx/ready", p4.id) ~> route ~>
+        patch("quiz/qx/ready", p4.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "not set readiness sign with error" in {
         val err = Quiz.notAuthor.error()
-        head("quiz/qx/ready", p4.id) ~> stdquiz("qx", Bad(err)) ~>
+        patch("quiz/qx/ready", p4.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -417,14 +416,14 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        head("quiz/qx/resolve", p4.id) ~> route ~>
+        patch("quiz/qx/resolve", p4.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "not approve with error" in {
         val err = Quiz.notAuthor.error()
-        head("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Bad(err)) ~>
+        patch("quiz/qx/resolve", p4.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -474,14 +473,14 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        head("quiz/qx/authors/p2", p1.id) ~> route ~>
+        patch("quiz/qx/authors/p2", p1.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "not add author with error" in {
         val err = Quiz.quizNotFound.error()
-        head("quiz/qx/authors/p2", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+        patch("quiz/qx/authors/p2", p1.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -489,7 +488,7 @@ class HttpFrontendSpec
       }
       "not add author person not found" in {
         val err = Quiz.personNotFound.error() + "p9"
-        head("quiz/qx/authors/p9", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+        patch("quiz/qx/authors/p9", p1.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -539,14 +538,14 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        head("quiz/qx/inspectors/p2", p1.id) ~> route ~>
+        patch("quiz/qx/inspectors/p2", p1.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "not add inspector with error" in {
         val err = Quiz.quizNotFound.error()
-        head("quiz/qx/inspectors/p2", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+        patch("quiz/qx/inspectors/p2", p1.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -554,7 +553,7 @@ class HttpFrontendSpec
       }
       "not add inspector person not found" in {
         val err = Quiz.personNotFound.error() + "p9"
-        head("quiz/qx/inspectors/p9", p1.id) ~> stdquiz("qx", Bad(err)) ~>
+        patch("quiz/qx/inspectors/p9", p1.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -691,14 +690,14 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        head("section/sx", p3.id) ~> route ~>
+        get("section/sx", p3.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "not discharge section with error" in {
         val err = SectionEdit.notOwned.error()
-        head("section/sx", p3.id) ~> stdsect("sx", Bad(err)) ~>
+        get("section/sx", p3.id) ~> stdsect("sx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
