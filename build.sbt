@@ -49,9 +49,13 @@ val commonDependencies = Seq(
   "org.flywaydb" % "flyway-core" % "9.7.0"
 )
 
-lazy val author = project.settings(
-  libraryDependencies ++= commonDependencies
-)
+lazy val author = project
+  .enablePlugins(PackPlugin)
+  .settings(
+    name := "author",
+    packMain := Map("author" -> "quizzly.author.run"),
+    libraryDependencies ++= commonDependencies
+  )
 
 lazy val school = project.settings(
   libraryDependencies ++= commonDependencies

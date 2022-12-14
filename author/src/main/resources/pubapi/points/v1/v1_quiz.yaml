@@ -1,3 +1,27 @@
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: list quizzes
+  description: |
+    List quizzes
+  operationId: listquizzes
+  parameters:
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: normal response
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/quiz-listed.yaml
+
 post:
   tags:
   - v1
@@ -17,6 +41,11 @@ post:
     description: main quiz params
     schema:
       $ref: /pubapi/schemas/create-quiz.yaml
+  -
+    in: header
+    name: p
+    required: true
+    type: string
 
   responses:
     200:
@@ -27,23 +56,6 @@ post:
       description: error response
       schema: 
         $ref: /pubapi/schemas/error.yaml
-
-get:
-  tags:
-  - v1
-  produces:
-  - application/json
-  summary: list quizzes
-  description: |
-    List quizzes
-  operationId: listquizzes
-  responses:
-    200:
-      description: normal response
-      schema: 
-        type: array
-        items:
-          $ref: /pubapi/schemas/quiz-listed.yaml
 
 
 definitions:

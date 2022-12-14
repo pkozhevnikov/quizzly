@@ -7,6 +7,13 @@ get:
   description: |
     Returns list of officials
   operationId: getpersonlist
+  parameters:
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
   responses:
     200:
       description: normal response

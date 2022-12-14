@@ -20,6 +20,11 @@ put:
     required: true
     schema:
       $ref: /pubapi/schemas/update-section.yaml
+  -
+    in: header
+    name: p
+    required: true
+    type: string
 
   responses:
     204:
@@ -40,6 +45,11 @@ get:
     name: id
     required: true
     description: section ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
     type: string
 
   responses:
@@ -67,6 +77,11 @@ delete:
     name: qid
     required: true
     description: quiz ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
     type: string
 
   responses:
@@ -102,6 +117,11 @@ patch:
     name: qid
     required: true
     description: quiz ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
     type: string
 
   responses:

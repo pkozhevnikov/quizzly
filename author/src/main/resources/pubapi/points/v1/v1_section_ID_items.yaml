@@ -21,6 +21,11 @@ put:
     description: item data
     schema:
       $ref: /pubapi/schemas/item.yaml
+  -
+    in: header
+    name: p
+    required: true
+    type: string
 
   responses:
     204:
@@ -41,6 +46,11 @@ patch:
     name: id
     required: true
     description: section ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
     type: string
 
   responses:

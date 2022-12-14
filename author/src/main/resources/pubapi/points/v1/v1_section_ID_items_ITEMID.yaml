@@ -18,6 +18,11 @@ delete:
     required: true
     description: item ID
     type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
 
   responses:
     204:
@@ -52,6 +57,11 @@ patch:
     name: up
     required: true
     description: move item up, true or false
+    type: string
+  -
+    in: header
+    name: p
+    required: true
     type: string
 
   responses:

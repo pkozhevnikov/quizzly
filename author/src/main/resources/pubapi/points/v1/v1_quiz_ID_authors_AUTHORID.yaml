@@ -18,6 +18,11 @@ delete:
     required: true
     description: author ID
     type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
 
   responses:
     204:
@@ -44,6 +49,11 @@ patch:
     name: authorId
     required: true
     description: author ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
     type: string
 
   responses:

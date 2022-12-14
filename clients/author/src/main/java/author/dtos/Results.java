@@ -17,18 +17,13 @@ public class Results {
         }
     }
 
-    public static class createQuiz {
-        public static final Result normalresponse = new Result(true, Status.OK, "normal response");
-        public static final Result errorresponse = new Result(false, Status.UNPROCESSABLE_ENTITY, "error response");
-    }
-
     public static class listquizzes {
         public static final Result normalresponse = new Result(true, Status.OK, "normal response");
     }
 
-    public static class addsection {
-        public static final Result sectioncreatedreturnsidofnewsection = new Result(true, Status.OK, "section created, returns ID of new section");
-        public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
+    public static class createQuiz {
+        public static final Result normalresponse = new Result(true, Status.OK, "normal response");
+        public static final Result errorresponse = new Result(false, Status.UNPROCESSABLE_ENTITY, "error response");
     }
 
     public static class updatequiz {
@@ -38,6 +33,11 @@ public class Results {
 
     public static class getquiz {
         public static final Result normalresponse = new Result(true, Status.OK, "normal response");
+        public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
+    }
+
+    public static class addsection {
+        public static final Result sectioncreatedreturnsidofnewsection = new Result(true, Status.OK, "section created, returns ID of new section");
         public static final Result error = new Result(false, Status.UNPROCESSABLE_ENTITY, "error");
     }
 

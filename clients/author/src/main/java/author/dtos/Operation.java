@@ -4,11 +4,11 @@ import rall.basic.swagger.enums.Method;
 
 public enum Operation {
 
-    createQuiz("v1", "v1", "quiz", Method.POST, "Create new quiz"),
     listquizzes("v1", "v1", "quiz", Method.GET, "list quizzes"),
-    addsection("v1", "v1", "quiz/{id}", Method.POST, "add section"),
+    createQuiz("v1", "v1", "quiz", Method.POST, "Create new quiz"),
     updatequiz("v1", "v1", "quiz/{id}", Method.PUT, "Update quiz"),
     getquiz("v1", "v1", "quiz/{id}", Method.GET, "get quiz"),
+    addsection("v1", "v1", "quiz/{id}", Method.POST, "add section"),
     setobsolete("v1", "v1", "quiz/{id}", Method.DELETE, "set quiz obsolete"),
     ownsection("v1", "v1", "quiz/{id}", Method.PATCH, "own section"),
     unsetreadysign("v1", "v1", "quiz/{id}/ready", Method.DELETE, "unset readiness sign"),

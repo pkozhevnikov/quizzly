@@ -12,6 +12,11 @@ delete:
     required: true
     description: quiz ID
     type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
 
   responses:
     204:
@@ -32,6 +37,11 @@ patch:
     name: id
     required: true
     description: quiz ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
     type: string
 
   responses:
