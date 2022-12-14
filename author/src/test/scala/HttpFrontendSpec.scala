@@ -1,19 +1,17 @@
 package quizzly.author
 
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.actor.typed.*
-import scaladsl.Behaviors
 import akka.cluster.sharding.typed.scaladsl.EntityRef
 import akka.cluster.sharding.typed.testkit.scaladsl.TestEntityRef
-
-import akka.http.scaladsl.model.*
 import akka.http.scaladsl.marshalling.*
+import akka.http.scaladsl.model.*
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-
-import akka.actor.testkit.typed.scaladsl.ActorTestKit
-
 import org.scalatest.*
-
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scaladsl.Behaviors
+import com.typesafe.config.ConfigFactory
 
 class HttpFrontendSpec
     extends wordspec.AnyWordSpec,
@@ -23,7 +21,7 @@ class HttpFrontendSpec
 
   val log = org.slf4j.LoggerFactory.getLogger("HttpFrontendSpec")
 
-  val testKit = ActorTestKit("frontendkit")
+  val testKit = ActorTestKit("frontendkit", ConfigFactory.empty)
   given ActorSystem[?] = testKit.system
 
   val p1 = Person("p1", "p1 name")

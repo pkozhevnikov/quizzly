@@ -1,9 +1,8 @@
 package quizzly.author
 
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import org.scalatest.*
 import scalikejdbc.*
-
-import akka.actor.testkit.typed.scaladsl.ActorTestKit
 
 object ScalikeReadSpec:
   import com.typesafe.config.ConfigFactory

@@ -1,17 +1,14 @@
 package quizzly.author
 
-import akka.actor.typed.*
-import scaladsl.Behaviors
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
-import akka.persistence.testkit.scaladsl.{EventSourcedBehaviorTestKit as TestKit}
+import akka.actor.typed.*
 import akka.cluster.sharding.typed.scaladsl.EntityRef
 import akka.cluster.sharding.typed.testkit.scaladsl.TestEntityRef
-
-import org.scalatest.*
-
+import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit as TestKit
 import com.typesafe.config.*
-
+import org.scalatest.*
 import scala.concurrent.ExecutionContext
+import scaladsl.Behaviors
 
 object QuizEntitySpec:
   val config: Config = ConfigFactory

@@ -1,18 +1,17 @@
 package quizzly.author
 
+import akka.actor.testkit.typed.scaladsl.ActorTestKit
+import akka.actor.testkit.typed.scaladsl.ManualTime
+import akka.actor.testkit.typed.scaladsl.TestProbe
 import akka.actor.typed.*
-import scaladsl.Behaviors
-import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe, ManualTime}
-import akka.persistence.testkit.scaladsl.{EventSourcedBehaviorTestKit as TestKit}
 import akka.cluster.sharding.typed.scaladsl.EntityRef
 import akka.cluster.sharding.typed.testkit.scaladsl.TestEntityRef
-
-import org.scalatest.*
-
+import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit as TestKit
 import com.typesafe.config.*
-
+import org.scalatest.*
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.*
+import scaladsl.Behaviors
 
 object SectionEditEntitySpec:
   val config: Config = ConfigFactory
@@ -36,8 +35,8 @@ class SectionEditEntitySpec
 
   val id = "tq-1-1"
 
-  import SectionEdit.*
   import Resp.*
+  import SectionEdit.*
 
   val manualTime = ManualTime()
 

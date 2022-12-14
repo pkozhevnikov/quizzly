@@ -19,91 +19,12 @@ object QuizAuthoringSpec:
   def config(nodePort: Int, httpPort: Int) =
     ConfigFactory
       .parseString(s"""
-    akka {
-      actor {
-        provider = "cluster"
-        serialization-bindings {
-          "quizzly.author.CborSerializable" = jackson-cbor
-        }
-      }
-      cluster {
-        roles = ["author"]
-        seed-nodes = [
-          "akka://app@localhost:$nodePort"
-        ]
-        sharding {
-          number-of-shards = 100
-        }
-        downing-provider-class = "akka.cluster.sbr.SplitBrainResolverProvider"
-      }
-      remote.artery {
-        canonical {
-          hostname = "localhost"
-          port = "$nodePort"
-        }
-      }
-      persistence {
-        journal.plugin = "jdbc-journal"
-        auto-start-journals = ["jdbc-journal"]
-        snapshot-store.plugin = "jdbc-snapshot-store"
-        auto-start-snapshot-stores = ["jdbc-snapshot-store"]
-      }
-      projection {
-        jdbc.blocking-jdbc-dispatcher.thread-pool-executor.fixed-pool-size = 10
-        jdbc.dialect = h2-dialect
-      }
-    }
-    jdbc-connection-settings {
-      connection-pool {
-        timeout = 250ms
-        max-pool-size = $${akka.projection.jdbc.blocking-jdbc-dispatcher.thread-pool-executor.fixed-pool-size}
-      }
-      driver = "org.h2.Driver"
-      user = "sa"
-      password = "sa"
-      url = "jdbc:h2:mem:app"
-      migrations-table = "schemahistory"
-      migrations-locations = ["classpath:db"]
-      migration = on
-    }
-    akka-persistence-jdbc {
-      shared-databases {
-        default {
-          profile = "slick.jdbc.H2Profile$$"
-          db {
-            host = "localhost"
-            url = $${jdbc-connection-settings.url}
-            user = $${jdbc-connection-settings.user}
-            password = $${jdbc-connection-settings.password}
-            driver = $${jdbc-connection-settings.driver}
-            numThreads = 5
-            maxConnections = 5
-            minConnections = 1
-          }
-        }
-      }
-    }
-    jdbc-journal {
-      use-shared-db = "default"
-    }
-    jdbc-snapshot-store {
-      use-shared-db = "default"
-    }
-    jdbc-read-journal {
-      use-shared-db = "default"
-    }
-    author {
-      minAuthors = 2
-      minInspectors = 2
-      minTrialLength = 5
-      minTitleLength = 5
-      inactivityMinutes = 10
-    }
-    frontend.http {
-      host = "localhost"
-      port = $httpPort
-    }
+    akka.cluster.seed-nodes = ["akka://app@localhost:$nodePort"]
+    akka.remote.artery.canonical.port = "$nodePort"
+    jdbc-connection-settings.url = "jdbc:h2:mem:app"
+    frontend.http.port = $httpPort
     """)
+      .withFallback(ConfigFactory.load("application.conf"))
       .resolve
 
 class QuizAuthoringSpec

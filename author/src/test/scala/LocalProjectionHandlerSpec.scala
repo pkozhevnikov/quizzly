@@ -1,22 +1,18 @@
 package quizzly.author
 
-import akka.actor.typed.*
-import akka.stream.scaladsl.*
-
-import org.scalatest.*
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
-import akka.projection.testkit.scaladsl.{ProjectionTestKit, TestSourceProvider}
-
-import scalikejdbc.*
-
-import akka.projection.eventsourced.EventEnvelope
-import akka.projection.ProjectionId
+import akka.actor.typed.*
 import akka.projection.ProjectionBehavior
+import akka.projection.ProjectionId
+import akka.projection.eventsourced.EventEnvelope
 import akka.projection.jdbc.scaladsl.JdbcProjection
-
-import scala.concurrent.{Future, ExecutionContext}
-
-import akka.stream.scaladsl.Source
+import akka.projection.testkit.scaladsl.ProjectionTestKit
+import akka.projection.testkit.scaladsl.TestSourceProvider
+import akka.stream.scaladsl.*
+import org.scalatest.*
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scalikejdbc.*
 
 object LocalProjectionHandlerSpec:
   import com.typesafe.config.ConfigFactory
