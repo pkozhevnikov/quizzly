@@ -72,7 +72,7 @@ object QuizEntity:
                       case _ =>
                         Bad(unprocessed("nonsence").error())
                     }
-            case c: CommandWithReply[_] =>
+            case c: CommandWithReply[?] =>
               Effect
                 .none
                 // .thenStop()
@@ -335,7 +335,7 @@ object QuizEntity:
                 else if resolved.disapprovals.size == resolved.composing.inspectors.size then
                   events :+= GoneComposing
                 Effect.persist(events).thenReply(c.replyTo)(_ => Resp.OK)
-            case c: CommandWithReply[_] =>
+            case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(onReview.error()))
 
         case released: Released =>
@@ -371,7 +371,7 @@ object QuizEntity:
                 Effect.reply(c.replyTo)(Bad(alreadyObsolete.error()))
               else
                 Effect.persist(GotObsolete).thenReply(c.replyTo)(_ => Resp.OK)
-            case c: CommandWithReply[_] =>
+            case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(quizReleased.error()))
 
   val eventHandler: (Quiz, Event) => Quiz =

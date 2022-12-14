@@ -9,7 +9,7 @@ import org.flywaydb.core.api.Location
 
 object ScalikeJdbcSetup:
 
-  def apply(system: ActorSystem[_]): Unit =
+  def apply(system: ActorSystem[?]): Unit =
     initFromConfig(system.name, system.settings.config.getConfig("jdbc-connection-settings"))
     system
       .whenTerminated

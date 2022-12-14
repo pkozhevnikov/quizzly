@@ -24,7 +24,7 @@ class HttpFrontendSpec
   val log = org.slf4j.LoggerFactory.getLogger("HttpFrontendSpec")
 
   val testKit = ActorTestKit("frontendkit")
-  given ActorSystem[_] = testKit.system
+  given ActorSystem[?] = testKit.system
 
   val p1 = Person("p1", "p1 name")
   val p2 = Person("p2", "p2 name")

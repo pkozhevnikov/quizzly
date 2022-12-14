@@ -101,7 +101,7 @@ class SectionEditEntitySpec
       }
 
       "reject other actions" in {
-        def rejected(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
+        def rejected(cmds: (ActorRef[Resp[?]] => Command)*) = cmds.foreach { cmd =>
           val result = kit.runCommand(cmd(_))
           result.reply shouldBe Bad(Quiz.sectionNotFound.error())
         }
@@ -131,7 +131,7 @@ class SectionEditEntitySpec
         result.reply shouldBe Bad(alreadyExists.error())
       }
 
-      def rejectAuthor(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
+      def rejectAuthor(cmds: (ActorRef[Resp[?]] => Command)*) = cmds.foreach { cmd =>
         val result = kit.runCommand(cmd(_))
         result.reply shouldBe Bad(notOwner.error())
         result.hasNoEvents shouldBe true
@@ -337,7 +337,7 @@ class SectionEditEntitySpec
 
       "reject other actions" in {
         createDischarged
-        def rejected(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
+        def rejected(cmds: (ActorRef[Resp[?]] => Command)*) = cmds.foreach { cmd =>
           val result = kit.runCommand(cmd(_))
           result.reply shouldBe Bad(notOwned.error())
         }

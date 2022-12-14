@@ -89,7 +89,7 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
       result.state shouldBe a[Released]
       result
 
-  def rejected(e: Error, expectedState: AnyRef)(cmds: (ActorRef[Resp[_]] => Command)*) = cmds
+  def rejected(e: Error, expectedState: AnyRef)(cmds: (ActorRef[Resp[?]] => Command)*) = cmds
     .foreach { cmd =>
       val result = kit.runCommand(cmd(_))
       result.reply shouldBe Bad(e)
@@ -113,6 +113,7 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
           MoveSection("sc", false, author1, _),
           RemoveSection("sc", author1, _),
           SetReadySign(author1, _),
+          UnsetReadySign(author1, _),
           Resolve(inspector1, false, _),
           SetObsolete(curator, _),
           Get(curator, _)
@@ -680,9 +681,9 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
         createComposing.stateOfType[Composing].signForReview
         val failed = kit.runCommand(UnsetReadySign(author1, _))
         failed.reply shouldBe Bad(onReview.error())
-        failed.stateOfType[Review].composing.readinessSigns should contain allOf(author1, author2)
+        failed.stateOfType[Review].composing.readinessSigns should contain theSameElementsAs
+          Set(author1, author2)
       }
-        
 
       "resolve to release" in {
         val composing = createComposing.stateOfType[Composing]
@@ -800,8 +801,8 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
         val review = reviewState
         val result = kit.runCommand(AddInspector(curator, inspector3, _))
         result.reply shouldBe Resp.OK
-        result.stateOfType[Review].composing.inspectors should contain allOf
-          (inspector1, inspector2, inspector3)
+        result.stateOfType[Review].composing.inspectors should contain theSameElementsAs
+          Set(inspector1, inspector2, inspector3)
       }
 
       "reject add inspector if listed" in {
@@ -845,7 +846,7 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
         val remove = kit.runCommand(RemoveInspector(curator, inspector2, _))
         remove.reply shouldBe Resp.OK
         val review = remove.stateOfType[Review]
-        review.composing.inspectors should contain allOf (inspector1, inspector3)
+        review.composing.inspectors should contain theSameElementsAs Set(inspector1, inspector3)
         review.approvals shouldBe empty
       }
 
@@ -935,6 +936,7 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
           AddInspector(curator, inspector1, _),
           RemoveInspector(curator, inspector1, _),
           SetReadySign(author1, _),
+          UnsetReadySign(author1, _),
           Resolve(inspector1, true, _),
           AddSection("", author1, _),
           OwnSection("", author1, _),

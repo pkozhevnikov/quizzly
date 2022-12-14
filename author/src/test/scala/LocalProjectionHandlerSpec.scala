@@ -112,8 +112,8 @@ class LocalProjectionHandlerSpec
           val members = DB.readOnly { implicit session =>
             sql"select * from member where id='q1'".map(toMemberRow).list.apply()
           }
-          members should contain allOf
-            (
+          members should contain theSameElementsAs
+            Set(
               MemberRow("q1", 1, "cur", "curator name"),
               MemberRow("q1", 2, "author1", "author1 name"),
               MemberRow("q1", 2, "author2", "author2 name"),

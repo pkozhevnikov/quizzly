@@ -191,6 +191,8 @@ class QuizAuthoringSpec
     res.to[Quiz.CreateDetails] shouldBe
       Quiz.CreateDetails(Set(author1, author2), Set(inspector1, inspector2))
 
+  import LoneElement.*
+
   info("Officials author and manage quizzes")
 
   Feature("officials list") {
@@ -200,8 +202,8 @@ class QuizAuthoringSpec
       val res = get("staff", author3)
       Then("full list of officials is returned")
       res.status shouldBe StatusCodes.OK
-      res.to[List[Person]] should contain allOf
-        (curator, author1, author2, author3, inspector1, inspector2, inspector3)
+      res.to[List[Person]] should contain theSameElementsAs
+        Set(curator, author1, author2, author3, inspector1, inspector2, inspector3)
     }
 
     Scenario("access denied for not officials") {
@@ -307,6 +309,54 @@ class QuizAuthoringSpec
       res.status shouldBe StatusCodes.UnprocessableEntity
       And("'not enough authors' message is displayed")
       res.to[Error] shouldBe Quiz.notEnoughAuthors.error()
+    }
+
+    Scenario("authors management") {
+      Given("a quiz in composing state")
+      create("P")
+      When("curator added an author")
+      val add = patch(s"quiz/P/authors/${author3.id}", curator)
+      Then("author is listed")
+      add.status shouldBe StatusCodes.NoContent
+      val full1 = get("quiz/P", curator).to[FullQuiz]
+      full1.authors should contain theSameElementsAs Set(author1, author2, author3)
+      When("curator removes an autor")
+      val rem = delete(s"quiz/P/authors/${author1.id}", curator)
+      Then("author is unlisted")
+      rem.status shouldBe StatusCodes.NoContent
+      val full2 = get("quiz/P", curator).to[FullQuiz]
+      full2.authors should contain theSameElementsAs Set(author2, author3)
+
+      And("changes are seen in quiz list")
+      eventually {
+        val listed = get("quiz", curator).to[List[QuizListed]].find(_.id == "P")
+        listed.isDefined shouldBe true
+        listed.get.authors should contain theSameElementsAs Set(author2, author3)
+      }
+    }
+
+    Scenario("inspectors management") {
+      Given("a quiz in composing state")
+      create("Q")
+      When("curator added an inspector")
+      val add = patch(s"quiz/Q/inspectors/${inspector3.id}", curator)
+      Then("inspector is listed")
+      add.status shouldBe StatusCodes.NoContent
+      val full1 = get("quiz/Q", curator).to[FullQuiz]
+      full1.inspectors should contain theSameElementsAs Set(inspector1, inspector2, inspector3)
+      When("curator removes an inspector")
+      val rem = delete(s"quiz/Q/inspectors/${inspector1.id}", curator)
+      Then("inspector is unlisted")
+      rem.status shouldBe StatusCodes.NoContent
+      val full2 = get("quiz/Q", curator).to[FullQuiz]
+      full2.inspectors should contain theSameElementsAs Set(inspector2, inspector3)
+
+      And("changes are seen in quiz list")
+      eventually {
+        val listed = get("quiz", curator).to[List[QuizListed]].find(_.id == "Q")
+        listed.isDefined shouldBe true
+        listed.get.inspectors should contain theSameElementsAs Set(inspector2, inspector3)
+      }
     }
 
     Scenario("set a Quiz Obsolete") {
@@ -509,7 +559,7 @@ class QuizAuthoringSpec
       rem.status shouldBe StatusCodes.NoContent
       get("section/J-1", author1)
       val full3 = get("quiz/J", curator).to[FullQuiz]
-      full3.sections.find(_.sc == "J-1").get.items.map(_.sc).toSet shouldBe Set("2")
+      full3.sections.find(_.sc == "J-1").get.items.map(_.sc).loneElement shouldBe "2"
     }
 
     Scenario("setting readiness sings") {
@@ -520,7 +570,7 @@ class QuizAuthoringSpec
       sign.status shouldBe StatusCodes.NoContent
       Then("quiz has sign of this author")
       val full1 = get("quiz/K", author1).to[FullQuiz]
-      full1.readinessSigns.toSet shouldBe Set(author1)
+      full1.readinessSigns.loneElement shouldBe author1
       When("author unsets readiness sign")
       val unsign = delete("quiz/K/ready", author1)
       unsign.status shouldBe StatusCodes.NoContent
@@ -540,7 +590,7 @@ class QuizAuthoringSpec
   info("")
 
   Feature("Quiz inspection") {
-    
+
     Scenario("approval and disapproval") {
       Given("a quiz in Review state")
       create("L")
@@ -551,7 +601,7 @@ class QuizAuthoringSpec
       Then("quiz has approval of this inspector")
       approve.status shouldBe StatusCodes.NoContent
       val full1 = get("quiz/L", curator).to[FullQuiz]
-      full1.approvals.toSet shouldBe Set(inspector1)
+      full1.approvals.loneElement shouldBe inspector1
       full1.disapprovals shouldBe empty
 
       When("inspector disapproves the quiz")
@@ -560,7 +610,7 @@ class QuizAuthoringSpec
       disapprove.status shouldBe StatusCodes.NoContent
       val full2 = get("quiz/L", curator).to[FullQuiz]
       full2.approvals shouldBe empty
-      full2.disapprovals.toSet shouldBe Set(inspector1)
+      full2.disapprovals.loneElement shouldBe inspector1
     }
 
     Scenario("disapproval to Composing") {
