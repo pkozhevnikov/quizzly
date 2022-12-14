@@ -10,9 +10,10 @@ import akka.projection.testkit.scaladsl.ProjectionTestKit
 import akka.projection.testkit.scaladsl.TestSourceProvider
 import akka.stream.scaladsl.*
 import org.scalatest.*
+import scalikejdbc.*
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scalikejdbc.*
 
 object LocalProjectionHandlerSpec:
   import com.typesafe.config.ConfigFactory

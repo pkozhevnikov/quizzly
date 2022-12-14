@@ -1,7 +1,8 @@
 package quizzly.author
 
-import scala.concurrent.Future
 import akka.http.scaladsl.model.*
+
+import scala.concurrent.Future
 
 object FakeAuth extends Auth:
   import scala.concurrent.ExecutionContext.Implicits.global

@@ -7,7 +7,9 @@ import akka.cluster.sharding.typed.testkit.scaladsl.TestEntityRef
 import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit as TestKit
 import com.typesafe.config.*
 import org.scalatest.*
+
 import scala.concurrent.ExecutionContext
+
 import scaladsl.Behaviors
 
 object QuizEntitySpec:

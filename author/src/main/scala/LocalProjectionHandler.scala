@@ -1,12 +1,13 @@
 package quizzly.author
 
 import akka.projection.*
+import scalikejdbc.*
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+
 import eventsourced.EventEnvelope
 import jdbc.scaladsl.JdbcHandler
-
-import scala.concurrent.{Future, ExecutionContext}
-
-import scalikejdbc.*
 
 class LocalProjectionHandler extends JdbcHandler[EventEnvelope[Quiz.Event], ScalikeJdbcSession]:
 

@@ -1,7 +1,9 @@
 package quizzly.author
 
 import scalikejdbc.*
-import scala.concurrent.{Future, ExecutionContext}
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class ScalikeRead(poolName: String) extends Read:
 

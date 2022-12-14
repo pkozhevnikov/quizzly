@@ -3,20 +3,18 @@ package quizzly.author
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.cluster.sharding.typed.scaladsl.*
+import akka.http.scaladsl.Http
 import akka.persistence.jdbc.query.scaladsl.JdbcReadJournal
 import akka.persistence.jdbc.testkit.scaladsl.SchemaUtils
+import akka.projection.ProjectionBehavior
+import akka.projection.ProjectionId
 import akka.projection.eventsourced.scaladsl.EventSourcedProvider
 import akka.projection.jdbc.scaladsl.JdbcProjection
-import akka.projection.ProjectionId
-import akka.projection.ProjectionBehavior
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.*
-
-import scala.util.{Success, Failure}
-
-import akka.http.scaladsl.Http
-import scalikejdbc.*
+import scala.util.Failure
+import scala.util.Success
 
 @main
 def run = Main(ActorSystem(Behaviors.empty, "QuizAuthoring"), FakeAuth)

@@ -1,6 +1,7 @@
 package quizzly.author
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 case class QuizListed(
     id: String,

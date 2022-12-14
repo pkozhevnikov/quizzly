@@ -9,8 +9,10 @@ import akka.cluster.sharding.typed.testkit.scaladsl.TestEntityRef
 import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit as TestKit
 import com.typesafe.config.*
 import org.scalatest.*
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.*
+
 import scaladsl.Behaviors
 
 object SectionEditEntitySpec:

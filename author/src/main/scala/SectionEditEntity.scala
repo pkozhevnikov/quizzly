@@ -1,16 +1,20 @@
 package quizzly.author
 
-import akka.actor.typed.{Behavior, ActorRef}
-import akka.actor.typed.scaladsl.{Behaviors, ActorContext, TimerScheduler}
-import akka.cluster.sharding.typed.scaladsl.{EntityTypeKey, EntityRef}
+import akka.actor.typed.ActorRef
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.scaladsl.TimerScheduler
+import akka.cluster.sharding.typed.scaladsl.EntityRef
+import akka.cluster.sharding.typed.scaladsl.EntityTypeKey
 import akka.persistence.typed.PersistenceId
 import akka.persistence.typed.scaladsl.*
+import org.slf4j.*
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.*
-import scala.util.{Failure, Success}
-
-import org.slf4j.*
+import scala.util.Failure
+import scala.util.Success
 
 object SectionEditEntity:
 

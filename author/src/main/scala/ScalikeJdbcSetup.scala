@@ -3,9 +3,9 @@ package quizzly.author
 import akka.actor.typed.ActorSystem
 import com.typesafe.config.Config
 import com.zaxxer.hikari.HikariDataSource
-import scalikejdbc.*
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.Location
+import scalikejdbc.*
 
 object ScalikeJdbcSetup:
 

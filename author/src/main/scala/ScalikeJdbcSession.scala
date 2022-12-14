@@ -1,8 +1,8 @@
 package quizzly.author
 
+import akka.actor.typed.ActorSystem
 import akka.japi.function.Function
 import akka.projection.jdbc.JdbcSession
-import akka.actor.typed.ActorSystem
 import scalikejdbc.*
 
 import java.sql.Connection

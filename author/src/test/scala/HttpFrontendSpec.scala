@@ -7,11 +7,13 @@ import akka.cluster.sharding.typed.testkit.scaladsl.TestEntityRef
 import akka.http.scaladsl.marshalling.*
 import akka.http.scaladsl.model.*
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import com.typesafe.config.ConfigFactory
 import org.scalatest.*
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+
 import scaladsl.Behaviors
-import com.typesafe.config.ConfigFactory
 
 class HttpFrontendSpec
     extends wordspec.AnyWordSpec,

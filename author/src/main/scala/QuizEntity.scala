@@ -1,18 +1,20 @@
 package quizzly.author
 
-import akka.actor.typed.{Behavior, ActorRef}
-import akka.actor.typed.scaladsl.{Behaviors, ActorContext}
-import akka.cluster.sharding.typed.scaladsl.{EntityRef, EntityTypeKey}
+import akka.actor.typed.ActorRef
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.typed.scaladsl.Behaviors
+import akka.cluster.sharding.typed.scaladsl.EntityRef
+import akka.cluster.sharding.typed.scaladsl.EntityTypeKey
 import akka.persistence.typed.PersistenceId
 import akka.persistence.typed.scaladsl.*
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.*
-import scala.util.{Success, Failure}
-
 import org.slf4j.*
 
 import java.util.concurrent.TimeoutException
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.*
+import scala.util.Failure
+import scala.util.Success
 
 object QuizEntity:
 

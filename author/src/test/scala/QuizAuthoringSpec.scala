@@ -1,18 +1,18 @@
 package quizzly.author
 
-import org.scalatest.*
-
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.client.RequestBuilding.*
+import akka.http.scaladsl.marshalling.*
 import akka.http.scaladsl.model.*
 import akka.http.scaladsl.unmarshalling.*
-import akka.http.scaladsl.marshalling.*
-import akka.http.scaladsl.client.RequestBuilding.*
-
 import com.typesafe.config.ConfigFactory
+import org.scalatest.*
 
-import scala.concurrent.{ExecutionContext, Await, Future}
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.concurrent.duration.*
 
 object QuizAuthoringSpec:
