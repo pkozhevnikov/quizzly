@@ -16,7 +16,7 @@ class LocalProjectionHandler extends JdbcHandler[EventEnvelope[Quiz.Event], Scal
   val delMember = "delete from member where id=? and person_id=?"
 
   override final def process(session: ScalikeJdbcSession, envelope: EventEnvelope[Quiz.Event]) =
-    val id = envelope.persistenceId
+    val id = envelope.persistenceId.split("\\|")(1)
     given ScalikeJdbcSession = session
     given QuizID = id
     def update[Result](expr: DBSession => Result) = session.db.withinTx(expr(_))

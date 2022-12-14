@@ -69,7 +69,13 @@ class LocalProjectionHandlerSpec
   def nextEvent(id: QuizID, event: Quiz.Event) =
     val s = seq()
     val time = java.time.Instant.now.toEpochMilli
-    EventEnvelope(akka.persistence.query.Offset.sequence(s), id, s, event, time)
+    EventEnvelope(
+      akka.persistence.query.Offset.sequence(s),
+      s"${QuizEntity.EntityKey.name}|$id",
+      s,
+      event,
+      time
+    )
 
   def changeDb = afterWord("change db on event:")
 

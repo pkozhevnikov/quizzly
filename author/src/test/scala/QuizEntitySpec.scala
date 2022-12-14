@@ -551,7 +551,7 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
         )
         kit.runCommand(AddSection(section.title, author1, _))
         val result = kit.runCommand(RemoveSection("tq-1-1", author1, _))
-        result.reply shouldBe Bad(SectionEdit.alreadyOwned.error() + author1.name)
+        result.reply shouldBe Bad(SectionEdit.alreadyOwned.error())
         result.hasNoEvents shouldBe true
       }
 

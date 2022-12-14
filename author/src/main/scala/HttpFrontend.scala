@@ -82,7 +82,7 @@ object HttpFrontend extends JsonFormats:
       authService: Auth,
       host: String = "localhost",
       port: Int = 9099
-  )(using ActorSystem[_], ExecutionContext) =
+  )(using ActorSystem[?], ExecutionContext) =
 
     def auth(request: HttpRequest)(next: Person => Route) =
       onComplete(authService.authenticate(request)) {
@@ -92,7 +92,7 @@ object HttpFrontend extends JsonFormats:
           complete(StatusCodes.Unauthorized)
       }
 
-    def completeCall(fut: Future[Resp[_]]) =
+    def completeCall(fut: Future[Resp[?]]) =
       onComplete(fut) {
         case Success(Resp.OK) =>
           complete(StatusCodes.NoContent)
@@ -116,12 +116,12 @@ object HttpFrontend extends JsonFormats:
 
     given akka.util.Timeout = 2.seconds
 
-    def onQuiz(id: String)(cmd: ActorRef[Resp[_]] => Quiz.Command) =
+    def onQuiz(id: String)(cmd: ActorRef[Resp[?]] => Quiz.Command) =
       val quizent = entities.quiz(id)
-      completeCall(quizent.ask[Resp[_]](cmd))
+      completeCall(quizent.ask[Resp[?]](cmd))
 
-    def onSection(id: String)(cmd: ActorRef[Resp[_]] => SectionEdit.Command) = completeCall(
-      entities.section(id).ask[Resp[_]](cmd)
+    def onSection(id: String)(cmd: ActorRef[Resp[?]] => SectionEdit.Command) = completeCall(
+      entities.section(id).ask[Resp[?]](cmd)
     )
 
     // format: off

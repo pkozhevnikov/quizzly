@@ -409,6 +409,22 @@ class QuizAuthoringSpec
       val ownres = patch("quiz/G?sc=G-1", author1)
       ownres.status shouldBe StatusCodes.UnprocessableEntity
       ownres.to[Error] shouldBe SectionEdit.alreadyOwned.error()
+      And("another author cannot own this section")
+      val ownres2 = patch("quiz/G?sc=G-1", author2)
+      ownres2.status shouldBe StatusCodes.UnprocessableEntity
+      ownres2.to[Error] shouldBe SectionEdit.notOwner.error()
+      And("another author cannot edit this section")
+      val upd = put("section/G-1", author2, UpdateSection("", ""))
+      upd.status shouldBe StatusCodes.UnprocessableEntity
+      upd.to[Error] shouldBe SectionEdit.notOwner.error()
+      And("curator cannot remove this section")
+      val rem = delete("section/G-1?qid=G", curator)
+      rem.status shouldBe StatusCodes.UnprocessableEntity
+      rem.to[Error] shouldBe Quiz.notAuthor.error()
+      And("another author cannot remove this section")
+      val rem2 = delete("section/G-1?qid=G", author2)
+      rem2.status shouldBe StatusCodes.UnprocessableEntity
+      rem2.to[Error] shouldBe SectionEdit.alreadyOwned.error()
     }
 
     Scenario("section update") {
@@ -427,6 +443,41 @@ class QuizAuthoringSpec
       val sect = full.to[FullQuiz].sections.head
       sect.title shouldBe "section 1 plus"
       sect.intro shouldBe "section 1 intro"
+    }
+
+    Scenario("section removal") {
+      Given("a quiz in Composing state")
+      create("I")
+      And("a section added")
+      post("quiz/I", author1, CreateSection("section 1"))
+      And("the section discharged")
+      get("section/I-1", author1)
+      val full0 = get("quiz/I", author1)
+      full0.to[FullQuiz].sections.exists(_.sc == "I-1") shouldBe true
+      When("another author requests section removal")
+      val del = delete("section/I-1?qid=I", author2)
+      Then("the section is removed")
+      del.status shouldBe StatusCodes.NoContent
+      val full = get("quiz/I", author1)
+      full.to[FullQuiz].sections.find(_.sc == "I-1") shouldBe None
+    }
+
+    Scenario("new item") {
+      Given("a quiz in Composing state")
+      create("J")
+      And("a section added and owned")
+      post("quiz/J", author1, CreateSection("section 1"))
+      And("an item added to the section")
+      val add = patch("section/J-1/items", author1)
+      add.status shouldBe StatusCodes.OK
+      add.to[String] shouldBe "1"
+      When("'save item' request is made")
+      val save = put("section/J-1/items", author1, item.copy(sc = "1"))
+      Then("the item is saved")
+      save.status shouldBe StatusCodes.NoContent
+      get("section/J-1", author1)
+      val full = get("quiz/J", author1).to[FullQuiz]
+      full.sections.find(_.sc == "J-1").get.items.exists(_.sc == "1") shouldBe true
     }
 
   }

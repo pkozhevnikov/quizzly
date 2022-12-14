@@ -26,7 +26,7 @@ object QuizEntity:
       using ExecutionContext
   ): Behavior[Command] = Behaviors.setup { ctx =>
     EventSourcedBehavior[Command, Event, Quiz](
-      PersistenceId.ofUniqueId(id),
+      PersistenceId(EntityKey.name, id),
       Blank(id),
       commandHandler(ctx, sections, config),
       eventHandler
@@ -224,7 +224,7 @@ object QuizEntity:
                         case Good(None) =>
                           ctx.self ! InternalRemoveSection(sc, replyTo)
                         case Good(Some(owner: Author)) =>
-                          replyTo ! Bad(SectionEdit.alreadyOwned.error() + owner.name)
+                          replyTo ! Bad(SectionEdit.alreadyOwned.error())
                     case Failure(ex) =>
                       replyTo ! Bad(unprocessed(ex.getMessage).error())
                   }

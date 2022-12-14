@@ -33,7 +33,7 @@ object SectionEditEntity:
   ): Behavior[Command] = Behaviors.withTimers { timer =>
     Behaviors.setup { ctx =>
       EventSourcedBehavior[Command, Event, Option[SectionEdit]](
-        PersistenceId.ofUniqueId(id),
+        PersistenceId(EntityKey.name, id),
         None,
         (state, cmd) =>
           state match
@@ -126,7 +126,6 @@ object SectionEditEntity:
       case c: Own =>
         Effect.reply(c.replyTo)(Bad(alreadyOwned.error()))
       case Discharge(_, replyTo) =>
-        print(s"discharge req ${edit.quizID} ${edit.section.sc}")
         quizzes(edit.quizID)
           .ask(Quiz.SaveSection(edit.section, _))(2.seconds)
           .onComplete {
