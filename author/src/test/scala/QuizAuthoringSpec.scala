@@ -191,13 +191,12 @@ class QuizAuthoringSpec
     res.to[Quiz.CreateDetails] shouldBe
       Quiz.CreateDetails(Set(author1, author2), Set(inspector1, inspector2))
 
-  info("As an Official")
-  info("I want to manage a Quiz")
+  info("Officials author and manage quizzes")
 
   Feature("officials list") {
 
     Scenario("getting officials list") {
-      When("'get staff' request is made")
+      When("staff list is requested by any official")
       val res = get("staff", author3)
       Then("full list of officials is returned")
       res.status shouldBe StatusCodes.OK
@@ -206,7 +205,7 @@ class QuizAuthoringSpec
     }
 
     Scenario("access denied for not officials") {
-      When("'get staff' request is done by not official")
+      When("staff list is requested by not official")
       val res = get("staff", Person("not exist", ""))
       Then("access denied")
       res.status shouldBe StatusCodes.Unauthorized
@@ -218,7 +217,7 @@ class QuizAuthoringSpec
     Scenario("getting quiz list") {
       Given("a quiz existing")
       create("First")
-      When("'get quiz list' request is done by official")
+      When("quiz list is requested by any official")
       Then("quiz list is returned")
       eventually {
         get("quiz", curator).to[List[QuizListed]].find(_.id == "First").get shouldBe
@@ -234,19 +233,19 @@ class QuizAuthoringSpec
       }
     }
     Scenario("access denied for not officials") {
-      When("'get quiz list' request is done by not official")
+      When("quiz list is requeested by not official")
       val res = get("quiz", Person("notexist", ""))
       Then("request rejected")
       res.status shouldBe StatusCodes.Unauthorized
     }
   }
 
-  Feature("Quiz creation") {
+  Feature("quiz creation") {
 
-    Scenario("Quiz created") {
+    Scenario("quiz created") {
       Given("unique identifier specified")
       And("title and intro specified")
-      And("Authors and Inspectors specified")
+      And("authors and inspectors specified")
       val req = CreateQuiz(
         id = "ABC-1",
         title = "Quiz ABC",
@@ -256,10 +255,10 @@ class QuizAuthoringSpec
         inspectors = inspectorsIds12
       )
 
-      When("'create quiz' request is sent")
+      When("curator requested quiz creation")
       val res = post("quiz", curator, req)
 
-      Then("new Quiz created")
+      Then("new quiz created")
       res.status shouldBe StatusCodes.OK
       res.to[Quiz.CreateDetails] shouldBe
         Quiz.CreateDetails(Set(author1, author2), Set(inspector1, inspector2))
@@ -341,9 +340,6 @@ class QuizAuthoringSpec
   }
 
   info("")
-
-  info("As an Author")
-  info("I want to modify a Quiz")
 
   Feature("Quiz modification") {
 
@@ -543,7 +539,60 @@ class QuizAuthoringSpec
 
   info("")
 
-  info("As an Inspector")
-  info("I want to assess a Quiz")
+  Feature("Quiz inspection") {
+    
+    Scenario("approval and disapproval") {
+      Given("a quiz in Review state")
+      create("L")
+      patch("quiz/L/ready", author1)
+      patch("quiz/L/ready", author2)
+      When("inspector approves the quiz")
+      val approve = patch("quiz/L/resolve", inspector1)
+      Then("quiz has approval of this inspector")
+      approve.status shouldBe StatusCodes.NoContent
+      val full1 = get("quiz/L", curator).to[FullQuiz]
+      full1.approvals.toSet shouldBe Set(inspector1)
+      full1.disapprovals shouldBe empty
 
-  Feature("Quiz inspection")(pending)
+      When("inspector disapproves the quiz")
+      val disapprove = delete("quiz/L/resolve", inspector1)
+      Then("quiz has no approvals and disapprovals")
+      disapprove.status shouldBe StatusCodes.NoContent
+      val full2 = get("quiz/L", curator).to[FullQuiz]
+      full2.approvals shouldBe empty
+      full2.disapprovals.toSet shouldBe Set(inspector1)
+    }
+
+    Scenario("disapproval to Composing") {
+      Given("a quiz in Review state")
+      create("M")
+      patch("quiz/M/ready", author1)
+      patch("quiz/M/ready", author2)
+      When("both inspectors disapprove the quiz")
+      delete("quiz/M/resolve", inspector1)
+      delete("quiz/M/resolve", inspector2)
+      Then("the quiz returns to Composing state")
+      val full = get("quiz/M", curator).to[FullQuiz]
+      full.state shouldBe Quiz.State.Composing
+      full.approvals shouldBe empty
+      full.disapprovals shouldBe empty
+      full.readinessSigns shouldBe empty
+    }
+
+    Scenario("approval to Released") {
+      Given("a quiz in Review state")
+      create("O")
+      patch("quiz/O/ready", author1)
+      patch("quiz/O/ready", author2)
+      When("both inspectors approve the quiz")
+      patch("quiz/O/resolve", inspector1)
+      patch("quiz/O/resolve", inspector2)
+      Then("the quiz is released")
+      val full = get("quiz/O", curator).to[FullQuiz]
+      full.state shouldBe Quiz.State.Released
+      full.approvals shouldBe empty
+      full.disapprovals shouldBe empty
+      full.readinessSigns shouldBe empty
+    }
+
+  }
