@@ -162,7 +162,7 @@ class QuizAuthoringSpec
   extension (path: String)
     def fullUrl = s"http://localhost:$httpPort/v1/$path"
   def request(req: HttpRequest, as: Person) = Await
-    .result(http.singleRequest(req ~> addHeader("p", as.id)), 1.second)
+    .result(http.singleRequest(req ~> addHeader("p", as.id)), 3.second)
   def post[C](path: String, as: Person, content: C)(using ToEntityMarshaller[C]) = request(
     Post(path.fullUrl, content),
     as
@@ -462,7 +462,7 @@ class QuizAuthoringSpec
       full.to[FullQuiz].sections.find(_.sc == "I-1") shouldBe None
     }
 
-    Scenario("new item") {
+    Scenario("item management") {
       Given("a quiz in Composing state")
       create("J")
       And("a section added and owned")
@@ -478,6 +478,65 @@ class QuizAuthoringSpec
       get("section/J-1", author1)
       val full = get("quiz/J", author1).to[FullQuiz]
       full.sections.find(_.sc == "J-1").get.items.exists(_.sc == "1") shouldBe true
+
+      When("another author owned the section")
+      val own = patch("quiz/J?sc=J-1", author2)
+      own.status shouldBe StatusCodes.NoContent
+      And("another item added and save request is made")
+      val add2 = patch("section/J-1/items", author2)
+      add2.status shouldBe StatusCodes.OK
+      add2.to[String] shouldBe "2"
+      val save2 = put("section/J-1/items", author2, item.copy(sc = "2"))
+      Then("new item is saved")
+      save2.status shouldBe StatusCodes.NoContent
+      get("section/J-1", author2)
+      val full2 = get("quiz/J", inspector1)
+      full2.status shouldBe StatusCodes.OK
+      full2.to[FullQuiz].sections.find(_.sc == "J-1").get.items.map(_.sc) should contain inOrder
+        ("1", "2")
+
+      When("first author owned the section")
+      patch("quiz/J?sc=J-1", author1)
+      And("moved an item up")
+      val up = patch("section/J-1/items/2?up=true", author1)
+      Then("item changed position")
+      up.status shouldBe StatusCodes.OK
+      up.to[StrList].list should contain inOrder ("2", "1")
+      get("section/J-1", author1)
+      val full4 = get("quiz/J", author1).to[FullQuiz]
+      full4.sections.find(_.sc == "J-1").get.items.map(_.sc) should contain inOrder ("2", "1")
+
+      patch("quiz/J?sc=J-1", author1)
+      When("requested item removal")
+      val rem = delete("section/J-1/items/1", author1)
+      Then("the item is removed")
+      rem.status shouldBe StatusCodes.NoContent
+      get("section/J-1", author1)
+      val full3 = get("quiz/J", curator).to[FullQuiz]
+      full3.sections.find(_.sc == "J-1").get.items.map(_.sc).toSet shouldBe Set("2")
+    }
+
+    Scenario("setting readiness sings") {
+      Given("a quiz in Composing state")
+      create("K")
+      When("author sets readiness sign")
+      val sign = patch("quiz/K/ready", author1)
+      sign.status shouldBe StatusCodes.NoContent
+      Then("quiz has sign of this author")
+      val full1 = get("quiz/K", author1).to[FullQuiz]
+      full1.readinessSigns.toSet shouldBe Set(author1)
+      When("author unsets readiness sign")
+      val unsign = delete("quiz/K/ready", author1)
+      unsign.status shouldBe StatusCodes.NoContent
+      Then("quiz has no readiness signs")
+      val full2 = get("quiz/K", author1).to[FullQuiz]
+      full2.readinessSigns shouldBe empty
+      When("both authors set readiness signs")
+      patch("quiz/K/ready", author1)
+      patch("quiz/K/ready", author2)
+      Then("quiz is fully signed and gone for Review")
+      val full3 = get("quiz/K", curator).to[FullQuiz]
+      full3.state shouldBe Quiz.State.Review
     }
 
   }

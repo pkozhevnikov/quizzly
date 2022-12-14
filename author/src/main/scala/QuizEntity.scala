@@ -163,6 +163,13 @@ object QuizEntity:
                 if composing.readinessSigns.size + 1 == composing.authors.size then
                   events :+= GoneForReview
                 Effect.persist(events).thenReply(c.replyTo)(_ => Resp.OK)
+            case c: UnsetReadySign =>
+              if !composing.readinessSigns(c.author) then
+                Effect.reply(c.replyTo)(Bad(notSigned.error()))
+              else if !composing.authors(c.author) then
+                Effect.reply(c.replyTo)(Bad(notAuthor.error()))
+              else
+                Effect.persist(ReadySignUnset(c.author)).thenReply(c.replyTo)(_ => Resp.OK)
             case c: Resolve =>
               if !composing.inspectors(c.inspector) then
                 Effect.reply(c.replyTo)(Bad(notInspector.error()))
@@ -315,6 +322,8 @@ object QuizEntity:
                 Effect.persist(InspectorRemoved(inspector)).thenReply(replyTo)(_ => Resp.OK)
             case c: SetReadySign =>
               Effect.reply(c.replyTo)(Bad(onReview.error()))
+            case c: UnsetReadySign =>
+              Effect.reply(c.replyTo)(Bad(onReview.error()))
             case c: Resolve =>
               if !review.composing.inspectors(c.inspector) then
                 Effect.reply(c.replyTo)(Bad(notInspector.error()))
@@ -393,6 +402,8 @@ object QuizEntity:
               composing.copy(inspectors = composing.inspectors - inspector)
             case ReadySignSet(author) =>
               composing.copy(readinessSigns = composing.readinessSigns + author)
+            case ReadySignUnset(author) =>
+              composing.copy(readinessSigns = composing.readinessSigns - author)
             case GoneForReview =>
               Review(composing, Set.empty, Set.empty)
             case SCIncrement =>

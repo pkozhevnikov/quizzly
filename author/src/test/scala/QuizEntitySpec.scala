@@ -331,6 +331,14 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
           defState.copy(authors = defState.authors + author3 - author1, readinessSigns = Set.empty)
       }
 
+      "set/unset ready sign" in {
+        val defResult = createComposing
+        kit.runCommand(SetReadySign(author1, _))
+        val result = kit.runCommand(UnsetReadySign(author1, _))
+        result.reply shouldBe Resp.OK
+        result.state shouldBe defResult.state
+      }
+
       "set ready sign and move to review" in {
         val defResult = createComposing
         val result1 = kit.runCommand(SetReadySign(author1, _))
@@ -667,6 +675,14 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
         failed.reply shouldBe Bad(onReview.error())
         failed.stateOfType[Review].composing.readinessSigns should not contain author3
       }
+
+      "reject unset ready sign" in {
+        createComposing.stateOfType[Composing].signForReview
+        val failed = kit.runCommand(UnsetReadySign(author1, _))
+        failed.reply shouldBe Bad(onReview.error())
+        failed.stateOfType[Review].composing.readinessSigns should contain allOf(author1, author2)
+      }
+        
 
       "resolve to release" in {
         val composing = createComposing.stateOfType[Composing]
