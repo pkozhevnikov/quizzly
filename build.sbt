@@ -57,6 +57,25 @@ lazy val author = project
     libraryDependencies ++= commonDependencies
   )
 
+lazy val authorClient = (project in file("clients/author"))
+  .settings(
+    name := "author-client",
+    packMain := Map("author-client" -> "author.Main"),
+    fork := true,
+    testOptions += Tests.Argument(jupiterTestFramework, "--display-mode=tree"),
+    libraryDependencies ++= Seq(
+      "org.openjfx" % "javafx-base" % "19",
+      "org.openjfx" % "javafx-controls" % "19",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.1",
+      "org.pdfsam.rxjava3" % "rxjavafx" % "3.+",
+
+      "net.aichler" % "jupiter-interface" % JupiterKeys.jupiterVersion.value % Test,
+      "org.testfx" % "testfx-junit5" % "4.0.16-alpha" % Test,
+      "org.mockito" % "mockito-core" % "3.+" % Test,
+      "org.hamcrest" % "hamcrest" % "2.1" % Test
+    )
+  )
+
 lazy val school = project.settings(
   libraryDependencies ++= commonDependencies
 )
