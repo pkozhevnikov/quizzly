@@ -3,16 +3,18 @@ package author.panes;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.geometry.*;
+import javafx.event.*;
 
 import java.util.function.Consumer;
 
-import author.Auth;
+import author.events.LoginEvent;
+import author.requests.LoginRequest;
 
-import static io.reactivex.rxjavafx.observables.JavaFxObservable.*;
+import io.reactivex.rxjava3.core.Observable;
+
+import static org.pdfsam.rxjavafx.observables.JavaFxObservable.*;
 
 public class LoginPane extends VBox {
-
-  private Auth auth = Auth.NULL;
 
   public LoginPane(Observable<LoginEvent> events, Consumer<LoginRequest> requests) {
     super();
@@ -29,35 +31,32 @@ public class LoginPane extends VBox {
     password.setId("password");
     password.setPromptText("Password");
     button.setId("button");
-    message.setStyle("-fx-text-fill:FIREBRICK");
     message.setId("message");
 
-    button.setOnAction(e -> {
-      message.setText(null);
-      button.setDisable(true);
-      if (!auth.login(username.getText(), password.getText())) {
-        message.setText("Wrong username or password");
-        button.setDisable(false);
-        password.setText(null);
-      }
-    });
     VBox elems = new VBox(10);
     elems.setAlignment(Pos.CENTER_RIGHT);
     elems.getChildren().addAll(username, password, button);
-
     getChildren().addAll(message, elems);
 
     Observable<ActionEvent> click = actionEventsOf(button);
-    click.map(e -> null).subscribe(message::setText);
-    click.map(e -> true).subscribe(button::setDisable);
-    click.map(e -> new LoginRequest(username.getText(), password.getText()))
-      .subscribe(requests::accept);
+    click.subscribe(e -> {
+      requests.accept(new LoginRequest(username.getText(), password.getText()));
+      message.setText(null);
+      password.setText(null);
+      button.setDisable(true);
+    });
 
-    events.onType(LoginEvent.Success.class).map(
-  }
-
-  public void setAuth(Auth auth) {
-    this.auth = auth;
+    events.ofType(LoginEvent.Success.class).subscribe(e -> {
+      message.setText("Logged in successfully");
+      message.setStyle("-fx-text-fill:green");
+    });
+    events.ofType(LoginEvent.Failure.class).subscribe(e -> {
+      message.setText("Wrong username or password");
+      message.setStyle("-fx-text-fill:red");
+      button.setDisable(false);
+      password.setText(null);
+    });
+    
   }
 
 }
