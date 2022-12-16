@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+<HBox xmlns:fx="http:/javafx.com/fxml">
+  <VBox HBox.hgrow="ALWAYS">
+    <TableView fx:id="list" VBox.vgrow="ALWAYS">
+      <columns>
+        <TableColumn fx:id="listId" text="ID" sortable="true" prefWidth="${list.width * 0.2}" />
+        <TableColumn fx:id="listTitle" text="Title" sortable="true"
+        prefWidth="${list.width * 0.6}" />
+        <TableColumn fx:id="listStatus" text="Status" sortable="true"
+        prefWidth="${list.width * 0.2}" />
+      </columns>
+    </TableView>
+    <GridPane fx:id="newForm" hgap="5" vgap="5">
+      <padding>
+        <Insets left="10" top="10" right="10" bottom="10" />
+      </padding>
+      <Label text="ID" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+      <TextField fx:id="newId" minWidth="150" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+      <Label text="Title" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+      <TextField fx:id="newTitle" GridPane.hgrow="ALWAYS" GridPane.columnIndex="3"
+      GridPane.rowIndex="0" />
+      <HBox GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="4" spacing="10"
+      maxHeight="160" GridPane.hgrow="ALWAYS">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+          <HBox spacing="5" alignment="CENTER">
+            <Label text="Authors" />
+            <Separator HBox.hgrow="ALWAYS" />
+          </HBox>
+          <ListView fx:id="newAuthors"></ListView>
+          <HBox>
+            <ComboBox fx:id="newSelectedAuthor" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+            <Button fx:id="newAddAuthor" text="Add" />
+          </HBox>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+          <HBox spacing="5" alignment="CENTER">
+            <Label text="Inspectors" />
+            <Separator HBox.hgrow="ALWAYS" />
+          </HBox>
+          <ListView fx:id="newInspectors"></ListView>
+          <HBox>
+            <ComboBox fx:id="newSelectedInspector" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+            <Button fx:id="newAddInspector" text="Add" />
+          </HBox>
+        </VBox>
+      </HBox>
+      <Separator GridPane.columnSpan="4" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+      <Button fx:id="newSave" text="Save quiz" GridPane.columnIndex="0" GridPane.rowIndex="3"
+      GridPane.columnSpan="2" />
+      <Button fx:id="newCancel" text="Cancel" GridPane.columnIndex="3" GridPane.rowIndex="3"
+      GridPane.halignment="RIGHT" />
+    </GridPane>
+    <HBox fx:id="createBox" visible="false">
+      <padding>
+        <Insets left="10" top="10" right="10" bottom="10" />
+      </padding>
+      <Button fx:id="createButton" text="Create new quiz"/>
+    </HBox>
+  </VBox>
+  <VBox minWidth="250" spacing="5">
+    <padding>
+      <Insets left="10" top="10" right="10" bottom="10" />
+    </padding>
+    <HBox spacing="5" alignment="CENTER">
+      <Label text="Status" />
+      <Separator HBox.hgrow="ALWAYS" />
+    </HBox>
+    <Label fx:id="status" text="Composing" style="-fx-font-weight:bold" />
+    <HBox spacing="5" alignment="CENTER">
+      <Label text="Curator" />
+      <Separator HBox.hgrow="ALWAYS" />
+    </HBox>
+    <Label fx:id="curatorName" text="Ivan Pomidorov" style="-fx-font-weight:bold" />
+    <HBox spacing="5" alignment="CENTER">
+      <Label text="Authors" />
+      <Separator HBox.hgrow="ALWAYS" />
+    </HBox>
+    <ListView fx:id="authors"></ListView>
+    <HBox>
+      <ComboBox fx:id="selectedAuthor" HBox.hgrow="ALWAYS" maxWidth="250"></ComboBox>
+      <Button fx:id="addAuthor" text="Add" />
+    </HBox>
+    <HBox spacing="5" alignment="CENTER">
+      <Label text="Inspectors" />
+      <Separator HBox.hgrow="ALWAYS" />
+    </HBox>
+    <ListView fx:id="inspectors"></ListView>
+    <HBox>
+      <ComboBox fx:id="selectedInspector" HBox.hgrow="ALWAYS" maxWidth="250"></ComboBox>
+      <Button fx:id="addInspector" text="Add" />
+    </HBox>
+    <Button fx:id="setObsolete" text="Set obsolete"/>
+  </VBox>
+</HBox>
