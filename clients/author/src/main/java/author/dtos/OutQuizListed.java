@@ -14,7 +14,7 @@ public class OutQuizListed {
     public final OutPerson curator;
     public final Set<OutPerson> authors;
     public final Set<OutPerson> inspectors;
-    public final OutQuizState state;
+    public final String state;
 
     @JsonCreator
     public OutQuizListed(
@@ -24,7 +24,7 @@ public class OutQuizListed {
         @JsonProperty("curator") OutPerson curator,
         @JsonProperty("authors") Set<OutPerson> authors,
         @JsonProperty("inspectors") Set<OutPerson> inspectors,
-        @JsonProperty("state") OutQuizState state
+        @JsonProperty("state") String state
     ) {
         this.curator = curator;
         this.inspectors = inspectors;

@@ -64,6 +64,25 @@ class ListPaneTest {
   @Test
   @DisplayName("initialized in correct state")
   void initialized(FxRobot robot) {
+    Lookup lu = new Lookup(robot);
+
+    assertThat(lu.input("#newTitle")).isDisabled();
+    assertThat(lu.input("#newId")).isDisabled();
+    assertThat(lu.button("#newSave")).isDisabled();
+    assertThat(lu.button("#newAddAuthor")).isDisabled();
+    assertThat(lu.button("#newAddInspector")).isDisabled();
+
+    assertThat(lu.button("#addAuthor")).isDisabled();
+    assertThat(lu.button("#addInspector")).isDisabled();
+    assertThat(lu.button("#setObsolete")).isDisabled();
+
   }
 
+  @Test
+  @DisplayName("displays lists on response")
+  void displayList(FxRobot robot) {
+    Lookup lu = new Lookup(robot);
+    pushEvent(new ApiResponse.QuizList(TestData.list));
+  }
+    
 }
