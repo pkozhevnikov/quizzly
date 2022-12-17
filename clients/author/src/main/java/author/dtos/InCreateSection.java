@@ -1,17 +1,10 @@
 package author.dtos;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
+@lombok.Value
 public class InCreateSection {
 
-    public final String title;
+    String title;
 
-    @JsonCreator
-    public InCreateSection(
-        @JsonProperty("title") String title
-    ) {
-        this.title = title;
-    }
 
 }

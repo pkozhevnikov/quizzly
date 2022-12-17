@@ -16,10 +16,10 @@ public class TestData {
   public static List<OutQuizListed> list = List.of(
     new OutQuizListed("q1", "q1 title", false, curator,
       Set.of(author1, author2), Set.of(inspector1, inspector2), "Composing"), 
-    new OutQuizListed("q1", "q1 title", false, curator,
-      Set.of(author1, author2), Set.of(inspector1, inspector2), "Composing"), 
-    new OutQuizListed("q1", "q1 title", false, curator,
-      Set.of(author1, author2), Set.of(inspector1, inspector2), "Composing")
+    new OutQuizListed("q2", "q2 title", false, author1,
+      Set.of(curator, author2), Set.of(inspector1, inspector2), "Review"), 
+    new OutQuizListed("q3", "q3 title", true, inspector1,
+      Set.of(author1, author2), Set.of(curator, inspector2), "Released")
   );
 
 }

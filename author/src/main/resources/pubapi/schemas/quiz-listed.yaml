@@ -45,7 +45,3 @@ properties:
       - id
   state:
     type: string
-    enum: 
-    - COMPOSING
-    - REVIEW
-    - RELEASED

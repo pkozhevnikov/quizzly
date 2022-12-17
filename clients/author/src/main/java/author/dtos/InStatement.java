@@ -1,20 +1,11 @@
 package author.dtos;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
+@lombok.Value
 public class InStatement {
 
-    public final String text;
-    public final String image;
+    String text;
+    String image;
 
-    @JsonCreator
-    public InStatement(
-        @JsonProperty("text") String text,
-        @JsonProperty("image") String image
-    ) {
-        this.image = image;
-        this.text = text;
-    }
 
 }

@@ -63,11 +63,13 @@ lazy val authorClient = (project in file("clients/author"))
     packMain := Map("author-client" -> "author.Main"),
     fork := true,
     testOptions += Tests.Argument(jupiterTestFramework, "--display-mode=tree"),
+    javacOptions ++= Seq("-Xlint"),
     libraryDependencies ++= Seq(
       "org.openjfx" % "javafx-base" % "19",
       "org.openjfx" % "javafx-controls" % "19",
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.1",
       "org.pdfsam.rxjava3" % "rxjavafx" % "3.+",
+      "org.projectlombok" % "lombok" % "1.18.24" % Provided,
 
       "net.aichler" % "jupiter-interface" % JupiterKeys.jupiterVersion.value % Test,
       "org.testfx" % "testfx-junit5" % "4.0.16-alpha" % Test,

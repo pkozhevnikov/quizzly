@@ -1,30 +1,15 @@
 package author.events;
 
+import lombok.Value;
+
 public interface LoginEvent {
-
+  @Value
   class Failure implements LoginEvent {
-    public final String username;
-    public Failure(String username) {
-      this.username = username;
-    }
-    public String username() {
-      return username;
-    }
+    String username;
   }
-
+  @Value
   class Success implements LoginEvent {
-    public final String username;
-    public final String name;
-    public Success(String username, String name) {
-      this.username = username;
-      this.name = name;
-    }
-    public String username() {
-      return username;
-    }
-    public String name() {
-      return name;
-    }
+    String username;
+    String name;
   }
-
 }

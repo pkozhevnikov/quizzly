@@ -2,71 +2,44 @@ package author.events;
 
 import java.util.List;
 import author.dtos.*;
+import lombok.Value;
 
 public interface ApiResponse {
-
+  @Value
   class QuizList implements ApiResponse {
-    public final List<OutQuizListed> list;
-    public QuizList(List<OutQuizListed> list) {
-      this.list = list;
-    }
+    List<OutQuizListed> list;
   }
-
+  @Value
   class PersonList implements ApiResponse {
-    public final List<OutPerson> list;
-    public PersonList(List<OutPerson> list) {
-      this.list = list;
-    }
+    List<OutPerson> list;
   }
-
+  @Value
   class QuizCreated implements ApiResponse {
-    public final OutQuizListed quiz;
-    public QuizCreated(OutQuizListed quiz) {
-      this.quiz = quiz;
-    }
+    OutQuizListed quiz;
   }
-  
+  @Value
   class AuthorAdded implements ApiResponse {
-    public final String quizId;
-    public final String personId;
-    public AuthorAdded(String quizId, String personId) {
-      this.quizId = quizId;
-      this.personId = personId;
-    }
+    String quizId;
+    String personId;
   }
-
+  @Value
   class AuthorRemoved implements ApiResponse {
-    public final String quizId;
-    public final String personId;
-    public AuthorRemoved(String quizId, String personId) {
-      this.quizId = quizId;
-      this.personId = personId;
-    }
+    String quizId;
+    String personId;
   }
-
+  @Value
   class InspectorAdded implements ApiResponse {
-    public final String quizId;
-    public final String personId;
-    public InspectorAdded(String quizId, String personId) {
-      this.quizId = quizId;
-      this.personId = personId;
-    }
+    String quizId;
+    String personId;
   }
-
+  @Value
   class InspectorRemoved implements ApiResponse {
-    public final String quizId;
-    public final String personId;
-    public InspectorRemoved(String quizId, String personId) {
-      this.quizId = quizId;
-      this.personId = personId;
-    }
+    String quizId;
+    String personId;
   }
-
+  @Value
   class GotObsolete implements ApiResponse {
-    public final String quizId;
-    public GotObsolete(String quizId) {
-      this.quizId = quizId;
-    }
+    String quizId;
   }
 
 }

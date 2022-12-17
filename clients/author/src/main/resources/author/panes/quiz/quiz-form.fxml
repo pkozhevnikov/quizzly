@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+<VBox xmlns:fx="http:/javafx.com/fxml" minWidth="250" spacing="5">
+  <padding>
+    <Insets left="10" top="10" right="10" bottom="10" />
+  </padding>
+  <HBox spacing="5" alignment="CENTER">
+    <Label text="Status" />
+    <Separator HBox.hgrow="ALWAYS" />
+  </HBox>
+  <Label fx:id="status" text="Composing" style="-fx-font-weight:bold" />
+  <HBox spacing="5" alignment="CENTER">
+    <Label text="Curator" />
+    <Separator HBox.hgrow="ALWAYS" />
+  </HBox>
+  <Label fx:id="curatorName" text="Ivan Pomidorov" style="-fx-font-weight:bold" />
+  <HBox spacing="5" alignment="CENTER">
+    <Label text="Authors" />
+    <Separator HBox.hgrow="ALWAYS" />
+  </HBox>
+  <ListView fx:id="authors"></ListView>
+  <HBox>
+    <ComboBox fx:id="selectedAuthor" HBox.hgrow="ALWAYS" maxWidth="250"></ComboBox>
+    <Button fx:id="addAuthor" text="Add" />
+  </HBox>
+  <HBox spacing="5" alignment="CENTER">
+    <Label text="Inspectors" />
+    <Separator HBox.hgrow="ALWAYS" />
+  </HBox>
+  <ListView fx:id="inspectors"></ListView>
+  <HBox>
+    <ComboBox fx:id="selectedInspector" HBox.hgrow="ALWAYS" maxWidth="250"></ComboBox>
+    <Button fx:id="addInspector" text="Add" />
+  </HBox>
+  <Button fx:id="setObsolete" text="Set obsolete"/>
+</VBox>

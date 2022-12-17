@@ -5,8 +5,8 @@ paths:
   /v1/quiz:
     post: /create-quiz.yaml
   /v1/quiz/*:
-    put: /update-quiz.yaml
     post: /create-section.yaml
+    put: /update-quiz.yaml
   /v1/quiz/*/ready:
   /v1/quiz/*/resolve:
   /v1/section/*:

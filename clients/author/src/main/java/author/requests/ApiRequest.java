@@ -1,60 +1,45 @@
 package author.requests;
 
 import author.dtos.*;
+import java.util.Set;
+
+import lombok.*;
 
 public interface ApiRequest {
 
   ApiRequest GET_LIST = new ApiRequest() {};
   ApiRequest GET_STAFF = new ApiRequest() {};
 
+  @Value
   class Create implements ApiRequest {
-    public final InCreateQuiz content;
-    public Create(InCreateQuiz content) {
-      this.content = content;
-    }
+    String id;
+    String title;
+    Set<String> authors;
+    Set<String> inspectors;
   }
-
+  @Value
   class AddAuthor implements ApiRequest {
-    public final String quizId;
-    public final String personId;
-    public AddAuthor(String quizId, String personId) {
-      this.quizId = quizId;
-      this.personId = personId;
-    }
+    String quizId;
+    String personId;
   }
-
+  @Value
   class RemoveAuthor implements ApiRequest {
-    public final String quizId;
-    public final String personId;
-    public RemoveAuthor(String quizId, String personId) {
-      this.quizId = quizId;
-      this.personId = personId;
-    }
+    String quizId;
+    String personId;
   }
-
+  @Value
   class AddInspector implements ApiRequest {
-    public final String quizId;
-    public final String personId;
-    public AddInspector(String quizId, String personId) {
-      this.quizId = quizId;
-      this.personId = personId;
-    }
+    String quizId;
+    String personId;
   }
-
+  @Value
   class RemoveInspector implements ApiRequest {
-    public final String quizId;
-    public final String personId;
-    public RemoveInspector(String quizId, String personId) {
-      this.quizId = quizId;
-      this.personId = personId;
-    }
+    String quizId;
+    String personId;
   }
-
+  @Value
   class SetObsolete implements ApiRequest {
-    public final String quizId;
-    public SetObsolete(String quizId) {
-      this.quizId = quizId;
-    }
+    String quizId;
   }
 
 }
