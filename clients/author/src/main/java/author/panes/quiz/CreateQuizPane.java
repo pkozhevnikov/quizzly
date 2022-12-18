@@ -19,6 +19,8 @@ import io.reactivex.rxjava3.core.Observable;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import lombok.val;
+
 public class CreateQuizPane implements FxmlController {
 
   @FXML private TextField title;
@@ -51,6 +53,16 @@ public class CreateQuizPane implements FxmlController {
   
   @Override
   public void initialize(URL location, ResourceBundle resource) {
+    val comboCellFactory = Factories.listCellFactory(OutPerson::name);
+    val listCellFactory = Factories.listCellFactory(OutPerson::name, "X", 
+      (list, p) -> list.getItems().remove(p));
+    authors.setCellFactory(listCellFactory);
+    selectedAuthor.setButtonCell(comboCellFactory.call(null));
+    selectedAuthor.setCellFactory(comboCellFactory);
+    inspectors.setCellFactory(listCellFactory);
+    selectedInspector.setCellFactory(comboCellFactory);
+    selectedInspector.setButtonCell(comboCellFactory.call(null));
+
     uiBus.in().filter(v -> v == Quizzes.CLEAR_CREATE_PANE)
       .subscribe(m -> clear());
     apiBus.in().ofType(ApiResponse.PersonList.class)

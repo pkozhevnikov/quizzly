@@ -120,14 +120,36 @@ class CreateQuizPaneTest {
         .type(KeyCode.DOWN, 1)
         .type(KeyCode.ENTER)
         .clickOn("#addAuthor")
+      .clickOn("#selectedAuthor")
+        .type(KeyCode.DOWN, 1)
+        .type(KeyCode.ENTER)
+        .clickOn("#addAuthor")
       .clickOn("#selectedInspector")
         .type(KeyCode.DOWN, 3)
         .type(KeyCode.ENTER)
         .clickOn("#addInspector")
-      .clickOn("#save")
+      .clickOn("#selectedInspector")
+        .type(KeyCode.DOWN, 1)
+        .type(KeyCode.ENTER)
+        .clickOn("#addInspector")
       ;
+    assertThat(robot.lookup("#authors").<OutPerson>queryListView().getItems())
+      .containsExactly(TestData.author1, TestData.author2);
+    assertThat(robot.lookup("#inspectors").<OutPerson>queryListView().getItems())
+      .containsExactly(TestData.inspector1, TestData.inspector2);
+
+    robot.clickOn(robot.lookup("#authors")
+        .lookup(".list-cell").lookup(LabeledMatchers.hasText("author1 name")).queryParent()
+          .lookup(".remove-item"))
+          ;
+    robot.clickOn(robot.lookup("#inspectors")
+        .lookup(".list-cell").lookup(LabeledMatchers.hasText("inspector1 name")).queryParent()
+          .lookup(".remove-item"))
+          ;
+      
+    robot.clickOn("#save");  
     assertThat(apiBus.poll()).isEqualTo(new ApiRequest.Create("TQ",
-      "the TQ title", Set.of("author1"), Set.of("inspector1")));
+      "the TQ title", Set.of("author2"), Set.of("inspector2")));
   }
 
 }

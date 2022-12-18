@@ -38,9 +38,9 @@ public class ListPane implements FxmlController {
   public void initialize(URL location, ResourceBundle resource) {
     
       list.getItems().clear();
-      id.setCellValueFactory(Factories.cellFactory(OutQuizListed::id));
-      title.setCellValueFactory(Factories.cellFactory(OutQuizListed::title));
-      status.setCellValueFactory(Factories.cellFactory(OutQuizListed::state));
+      id.setCellValueFactory(Factories.tableCellFactory(OutQuizListed::id));
+      title.setCellValueFactory(Factories.tableCellFactory(OutQuizListed::title));
+      status.setCellValueFactory(Factories.tableCellFactory(OutQuizListed::state));
       apiBus.in().ofType(ApiResponse.QuizList.class)
         .subscribe(l -> list.getItems().addAll(l.list()));
 
