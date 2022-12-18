@@ -117,6 +117,7 @@ class CreateQuizPaneTest {
       .clickOn("#id").write("TQ")
       .clickOn("#title").write("the TQ title")
       .clickOn("#selectedAuthor")
+        //.clickOn(robot.lookup("#selectedAuthor").lookup("author1 name").queryLabeled())
         .type(KeyCode.DOWN, 1)
         .type(KeyCode.ENTER)
         .clickOn("#addAuthor")
