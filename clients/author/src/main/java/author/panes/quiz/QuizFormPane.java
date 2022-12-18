@@ -94,6 +94,22 @@ public class QuizFormPane implements FxmlController {
     addAuthor.setOnAction(e -> apiBus.out().accept(
       new ApiRequest.AddAuthor(current.id(), selectedAuthor.getValue().id())));
 
+    apiBus.in().ofType(ApiResponse.InspectorAdded.class)
+      .filter(s -> current != null)
+      .filter(s -> current.id().equals(s.quizId()))
+      .subscribe(s -> {
+        selectedInspector.getItems().stream().filter(a -> a.id().equals(s.personId())).findAny()
+          .ifPresent(inspectors.getItems()::add);
+      });
+
+    apiBus.in().ofType(ApiResponse.InspectorRemoved.class)
+      .filter(s -> current != null)
+      .filter(s -> current.id().equals(s.quizId()))
+      .subscribe(s -> inspectors.getItems().removeIf(a -> a.id().equals(s.personId())));
+    addInspector.setOnAction(e -> apiBus.out().accept(
+      new ApiRequest.AddInspector(current.id(), selectedInspector.getValue().id())));
+
+
   }
 
   private OutQuizListed current = null;

@@ -137,12 +137,14 @@ class QuizFormPaneTest {
 
   @Test @DisplayName("displays new author on api event")
   void showNewAuthor(FxRobot robot) {
+    putStaff();
     uiBus.emulIn(new Quizzes.ShowQuiz(TestData.list.get(0)));
-    apiBus.emulIn(new ApiResponse.AuthorAdded("q1", TestData.inspector1.id()));
-    assertThat(robot.lookup("#authors").queryListView().getItems()).contains(TestData.inspector1);
 
     apiBus.emulIn(new ApiResponse.AuthorAdded("another", TestData.inspector1.id()));
     assertThat(robot.lookup("#authors").queryListView().getItems()).doesNotContain(TestData.inspector1);
+
+    apiBus.emulIn(new ApiResponse.AuthorAdded("q1", TestData.inspector1.id()));
+    assertThat(robot.lookup("#authors").queryListView().getItems()).contains(TestData.inspector1);
   }
 
 
@@ -167,12 +169,48 @@ class QuizFormPaneTest {
     
 
 
-  @Test @DisplayName("adds inspector")
-  void addInspector(FxRobot robot) {
+  @Test @DisplayName("sends 'add inspector' request")
+  void addInspectorRequest(FxRobot robot) {
+    putStaff();
+    uiBus.emulIn(new Quizzes.ShowQuiz(TestData.list.get(0)));
+    robot
+      .clickOn("#selectedInspector")
+        .type(KeyCode.DOWN, 1)
+        .type(KeyCode.ENTER)
+        .clickOn("#addInspector")
+        ;
+    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.AddInspector("q1", "author1"));
   }
 
-  @Test @DisplayName("removes inspector")
+  @Test @DisplayName("displays new inspector on api event")
+  void showNewInspector(FxRobot robot) {
+    putStaff();
+    uiBus.emulIn(new Quizzes.ShowQuiz(TestData.list.get(0)));
+
+    apiBus.emulIn(new ApiResponse.InspectorAdded("another", TestData.author1.id()));
+    assertThat(robot.lookup("#inspectors").queryListView().getItems()).doesNotContain(TestData.author1);
+
+    apiBus.emulIn(new ApiResponse.InspectorAdded("q1", TestData.author1.id()));
+    assertThat(robot.lookup("#inspectors").queryListView().getItems()).contains(TestData.author1);
+  }
+
+  @Test @DisplayName("sends 'remove inspector' request")
   void removeInspector(FxRobot robot) {
+    uiBus.emulIn(new Quizzes.ShowQuiz(TestData.list.get(0)));
+    robot.clickOn(robot.lookup("#inspectors")
+        .lookup(".list-cell").lookup(LabeledMatchers.hasText("inspector1 name")).queryParent()
+          .lookup(".remove-item"))
+          ;
+    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.RemoveInspector("q1", "inspector1"));
+  }
+
+  @Test @DisplayName("removes inspector on api event")
+  void showRemoveInspector(FxRobot robot) {
+    uiBus.emulIn(new Quizzes.ShowQuiz(TestData.list.get(0)));
+    apiBus.emulIn(new ApiResponse.InspectorRemoved("another", TestData.inspector1.id()));
+    assertThat(robot.lookup("#inspectors").queryListView().getItems()).contains(TestData.inspector1);
+    apiBus.emulIn(new ApiResponse.InspectorRemoved("q1", TestData.inspector1.id()));
+    assertThat(robot.lookup("#inspectors").queryListView().getItems()).doesNotContain(TestData.inspector1);
   }
 
 }
