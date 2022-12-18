@@ -65,6 +65,7 @@ lazy val authorClient = (project in file("clients/author"))
     testOptions += Tests.Argument(jupiterTestFramework, "--display-mode=tree"),
     javacOptions ++= Seq("-Xlint"),
     libraryDependencies ++= Seq(
+      "ch.qos.logback" % "logback-classic" % "1.3.0-alpha16",
       "org.openjfx" % "javafx-base" % "19",
       "org.openjfx" % "javafx-controls" % "19",
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.1",

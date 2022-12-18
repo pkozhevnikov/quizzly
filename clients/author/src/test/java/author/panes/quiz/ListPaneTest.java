@@ -6,11 +6,10 @@ import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.*;
 import org.testfx.matcher.control.*;
 import org.testfx.assertions.api.*;
-import org.testfx.util.*;
 
 import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.layout.StackPane;
+import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 
 import static org.mockito.Mockito.*;
@@ -18,30 +17,27 @@ import static org.testfx.api.FxAssert.*;
 import static org.hamcrest.Matchers.*;
 import static org.testfx.assertions.api.Assertions.*;
 
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.subjects.PublishSubject;
-import io.reactivex.rxjava3.observers.TestObserver;
-
-import java.util.function.Consumer;
-import java.util.LinkedList;
-import java.util.Queue;
-
 import author.panes.quiz.ListPane;
+import author.panes.quiz.Quizzes;
 import author.events.ApiResponse;
 import author.requests.ApiRequest;
+import author.util.*;
 
 import author.testutil.*;
 import author.TestData;
+
+import lombok.val;
 
 @ExtendWith(ApplicationExtension.class)
 @DisplayName("List pane")
 class ListPaneTest {
 
   TestBus<ApiResponse, ApiRequest> apiBus = new TestBus<>();
+  TestBus<Quizzes.UIMessage, Quizzes.UIMessage> uiBus = new TestBus<>();
 
   @Start
-  private void start(Stage stage) throws Exception {
-    Node sut = ListPane.create(apiBus);
+  private void start(Stage stage) {
+    Node sut = Factories.nodeWith(new ListPane(apiBus, uiBus));
     stage.setScene(new Scene((Parent) sut, 1000, 700));
     stage.show();
   }
@@ -50,7 +46,7 @@ class ListPaneTest {
   void displayList(FxRobot robot) {
     Lookup lu = new Lookup(robot);
     apiBus.emulIn(new ApiResponse.QuizList(TestData.list));
-    assertThat(lu.table("#list"))
+    assertThat(robot.lookup("#list").queryTableView())
       .hasExactlyNumRows(3)
       .containsRow("q1", "q1 title", "Composing")
       .containsRow("q2", "q2 title", "Review")
@@ -60,10 +56,24 @@ class ListPaneTest {
 
   @Test @DisplayName("sends show quiz message on quiz selection")
   void showQuiz(FxRobot robot) throws Exception {
-    Lookup lu = new Lookup(robot);
     apiBus.emulIn(new ApiResponse.QuizList(TestData.list));
-    robot.clickOn(TableViewMatchers.hasTableCell("q3"));
-    //assertThat(uiBus.poll()).sameAs(new ListPane.ShowQuiz(TestData.list.get(2)));
+    robot.clickOn(LabeledMatchers.hasText("q2"));
+    assertThat(uiBus.poll()).isEqualTo(new Quizzes.ShowQuiz(TestData.list.get(1)));
+    robot.press(KeyCode.CONTROL).clickOn(LabeledMatchers.hasText("q2"));
+    assertThat(uiBus.poll()).isEqualTo(new Quizzes.ShowQuiz(null));
+  }
+
+  @Test @DisplayName("adds row when new quiz created")
+  void addRow(FxRobot robot) {
+    apiBus.emulIn(new ApiResponse.QuizList(TestData.list));
+    val list = robot.lookup("#list").queryTableView();
+    assertThat(list).hasExactlyNumRows(3);
+    apiBus.emulIn(new ApiResponse.QuizAdded(TestData.newQuiz));
+    assertThat(list)
+      .hasExactlyNumRows(4)
+      .containsRow("q4", "q4 title", "Composing")
+      ;
+    assertThat(uiBus.poll()).isEqualTo(new Quizzes.ShowQuiz(TestData.newQuiz));
   }
     
 }

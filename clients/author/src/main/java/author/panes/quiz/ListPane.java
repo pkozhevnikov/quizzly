@@ -1,11 +1,9 @@
 package author.panes.quiz;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.*;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -15,47 +13,46 @@ import author.events.ApiResponse;
 import author.requests.ApiRequest;
 import author.util.*;
 
-import io.reactivex.rxjava3.core.Observable;
-import java.util.function.Consumer;
-
-public class ListPane implements Initializable {
+public class ListPane implements FxmlController {
 
   
   @FXML private TableView<OutQuizListed> list;
-  @FXML private TableColumn<OutQuizListed, String> listId;
-  @FXML private TableColumn<OutQuizListed, String> listTitle;
-  @FXML private TableColumn<OutQuizListed, String> listStatus;
+  @FXML private TableColumn<OutQuizListed, String> id;
+  @FXML private TableColumn<OutQuizListed, String> title;
+  @FXML private TableColumn<OutQuizListed, String> status;
 
-  @FXML private HBox createBox;
-  @FXML private Button createButton;
-  
-  public ListPane(Bus<ApiResponse, ApiRequest> apiBus) {
+  public ListPane(Bus<ApiResponse, ApiRequest> apiBus, Bus<Quizzes.UIMessage, Quizzes.UIMessage> uiBus) {
     this.apiBus = apiBus;
+    this.uiBus = uiBus;
   }
 
   private Bus<ApiResponse, ApiRequest> apiBus;
+  private Bus<Quizzes.UIMessage, Quizzes.UIMessage> uiBus;
 
-  public interface UIMessage {}
-  public static final UIMessage CLEAR_CREATE_PANE = new UIMessage() {};
-  public static final UIMessage HIDE_CREATE_PANE = new UIMessage() {};
+  @Override
+  public String fxml() {
+    return "/author/panes/quiz/list-pane.fxml";
+  }
 
   @Override
   public void initialize(URL location, ResourceBundle resource) {
     
       list.getItems().clear();
-      listId.setCellValueFactory(Factories.cellFactory(OutQuizListed::id));
-      listTitle.setCellValueFactory(Factories.cellFactory(OutQuizListed::title));
-      listStatus.setCellValueFactory(Factories.cellFactory(OutQuizListed::state));
+      id.setCellValueFactory(Factories.cellFactory(OutQuizListed::id));
+      title.setCellValueFactory(Factories.cellFactory(OutQuizListed::title));
+      status.setCellValueFactory(Factories.cellFactory(OutQuizListed::state));
       apiBus.in().ofType(ApiResponse.QuizList.class)
         .subscribe(l -> list.getItems().addAll(l.list()));
 
+      list.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+        uiBus.out().accept(new Quizzes.ShowQuiz(nv));
+      });
+      apiBus.in().ofType(ApiResponse.QuizAdded.class)
+        .subscribe(q -> {
+          list.getItems().add(q.quiz());
+          list.getSelectionModel().select(q.quiz());
+        });
+
   }
 
-  public static Node create(Bus<ApiResponse, ApiRequest> apiBus) 
-        throws Exception {
-    FXMLLoader loader = new FXMLLoader(ListPane.class.getResource("/author/panes/quiz/list-pane.fxml"));
-    loader.setController(new ListPane(apiBus));
-    return loader.load();
-  }
-    
 }

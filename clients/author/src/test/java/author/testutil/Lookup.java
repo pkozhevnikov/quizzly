@@ -9,8 +9,8 @@ public class Lookup {
   public Labeled label(String id) { return robot.lookup(id).queryLabeled(); }
   public TextInputControl input(String id) { return robot.lookup(id).queryTextInputControl(); }
   public Button button(String id) { return robot.lookup(id).queryButton(); }
-  public TableView<?> table(String id) { return robot.lookup(id).queryTableView(); }
-  public ComboBox<?> combo(String id) { return robot.lookup(id).queryComboBox(); }
-  public ListView<?> list(String id) { return robot.lookup(id).queryListView(); }
+  public <T> TableView<T> table(String id) { return robot.lookup(id).queryTableView(); }
+  public <T> ComboBox<T> combo(String id) { return robot.lookup(id).queryComboBox(); }
+  public <T> ListView<T> list(String id) { return robot.lookup(id).queryListView(); }
 }
 

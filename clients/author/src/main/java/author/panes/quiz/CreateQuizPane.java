@@ -17,41 +17,72 @@ import author.util.*;
 
 import io.reactivex.rxjava3.core.Observable;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-public class CreateQuizPane implements Initializable {
+public class CreateQuizPane implements FxmlController {
 
-  @FXML private GridPane newForm;
-  @FXML private TextField newTitle;
-  @FXML private TextField newId;
-  @FXML private ListView<OutPerson> newAuthors;
-  @FXML private ComboBox<OutPerson> newSelectedAuthor;
-  @FXML private Button newAddAuthor;
-  @FXML private ListView<OutPerson> newInspectors;
-  @FXML private ComboBox<OutPerson> newSelectedInspector;
-  @FXML private Button newAddInspector;
-  @FXML private Button newSave;
-  @FXML private Button newCancel;
+  @FXML private TextField title;
+  @FXML private TextField id;
+  @FXML private ListView<OutPerson> authors;
+  @FXML private ComboBox<OutPerson> selectedAuthor;
+  @FXML private Button addAuthor;
+  @FXML private ListView<OutPerson> inspectors;
+  @FXML private ComboBox<OutPerson> selectedInspector;
+  @FXML private Button addInspector;
+  @FXML private Button save;
+  @FXML private Button cancel;
 
 
-  private CreateQuizPane(Bus<ListPane.UIMessage, ListPane.UIMessage> uiBus,
-    Bus<ApiResponse, ApiRequest> apiBus) {
+  public CreateQuizPane(
+    Bus<ApiResponse, ApiRequest> apiBus,
+    Bus<Quizzes.UIMessage, Quizzes.UIMessage> uiBus
+  ) {
     this.uiBus = uiBus;
     this.apiBus = apiBus;
   }
 
-  private final Bus<ListPane.UIMessage, ListPane.UIMessage> uiBus;
+  private final Bus<Quizzes.UIMessage, Quizzes.UIMessage> uiBus;
   private final Bus<ApiResponse, ApiRequest> apiBus;
 
-  
-  public static Node create(Bus<ListPane.UIMessage, ListPane.UIMessage> uiBus,
-      Bus<ApiResponse, ApiRequest> apiBus) throws Exception {
-    FXMLLoader loader = new FXMLLoader(CreateQuizPane.class.getResource("/author/panes/quiz/create-quiz.fxml"));
-    loader.setController(new CreateQuizPane(uiBus, apiBus));
-    return loader.load();
+  @Override
+  public String fxml() {
+    return "/author/panes/quiz/create-quiz.fxml";
   }
-    
-
+  
   @Override
   public void initialize(URL location, ResourceBundle resource) {
+    uiBus.in().filter(v -> v == Quizzes.CLEAR_CREATE_PANE)
+      .subscribe(m -> clear());
+    apiBus.in().ofType(ApiResponse.PersonList.class)
+      .subscribe(l -> {
+        selectedAuthor.getItems().clear();
+        selectedAuthor.getItems().addAll(l.list());
+        selectedInspector.getItems().clear();
+        selectedInspector.getItems().addAll(l.list());
+      });
+
+    addAuthor.setOnAction(e -> authors.getItems().add(selectedAuthor.getValue()));
+    addInspector.setOnAction(e -> inspectors.getItems().add(selectedInspector.getValue()));
+
+    cancel.setOnAction(e -> {
+      clear();
+      uiBus.out().accept(Quizzes.HIDE_CREATE_PANE);
+    });
+
+    save.setOnAction(e -> {
+      apiBus.out().accept(new ApiRequest.Create(id.getText(), title.getText(),
+        authors.getItems().stream().map(OutPerson::id).collect(Collectors.toSet()),
+        inspectors.getItems().stream().map(OutPerson::id).collect(Collectors.toSet())
+      ));
+    });
+
   }
+
+  private void clear() {
+    title.setText("");
+    id.setText("");
+    selectedAuthor.getSelectionModel().clearSelection();
+    selectedInspector.getSelectionModel().clearSelection();
+  }
+
 }

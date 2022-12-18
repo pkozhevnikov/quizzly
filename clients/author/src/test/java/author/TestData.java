@@ -21,5 +21,7 @@ public class TestData {
     new OutQuizListed("q3", "q3 title", true, inspector1,
       Set.of(author1, author2), Set.of(curator, inspector2), "Released")
   );
-
+  
+  public static OutQuizListed newQuiz = new OutQuizListed("q4", "q4 title", false, author2,
+    Set.of(curator, author1), Set.of(inspector1, inspector2), "Composing");
 }

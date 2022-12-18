@@ -3,22 +3,12 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.*?>
-<HBox xmlns:fx="http:/javafx.com/fxml">
-  <VBox HBox.hgrow="ALWAYS">
-    <TableView fx:id="list" VBox.vgrow="ALWAYS">
-      <columns>
-        <TableColumn fx:id="listId" text="ID" sortable="true" prefWidth="${list.width * 0.2}" />
-        <TableColumn fx:id="listTitle" text="Title" sortable="true"
-        prefWidth="${list.width * 0.6}" />
-        <TableColumn fx:id="listStatus" text="Status" sortable="true"
-        prefWidth="${list.width * 0.2}" />
-      </columns>
-    </TableView>
-    <HBox fx:id="createBox" visible="false">
-      <padding>
-        <Insets left="10" top="10" right="10" bottom="10" />
-      </padding>
-      <Button fx:id="createButton" text="Create new quiz"/>
-    </HBox>
-  </VBox>
-</HBox>
+<TableView fx:id="list" VBox.vgrow="ALWAYS" xmlns:fx="http:/javafx.com/fxml">
+  <columns>
+    <TableColumn fx:id="id" text="ID" sortable="true" prefWidth="${list.width * 0.2}" />
+    <TableColumn fx:id="title" text="Title" sortable="true"
+    prefWidth="${list.width * 0.6}" />
+    <TableColumn fx:id="status" text="Status" sortable="true"
+    prefWidth="${list.width * 0.2}" />
+  </columns>
+</TableView>
