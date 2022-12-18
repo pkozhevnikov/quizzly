@@ -8,17 +8,11 @@ import org.testfx.matcher.control.*;
 import org.testfx.assertions.api.*;
 
 import javafx.scene.*;
-import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 
-import static org.mockito.Mockito.*;
-import static org.testfx.api.FxAssert.*;
-import static org.hamcrest.Matchers.*;
 import static org.testfx.assertions.api.Assertions.*;
 
 import author.panes.quiz.CreateButtonBox;
-import author.panes.quiz.Quizzes;
 import author.events.ApiResponse;
 import author.requests.ApiRequest;
 
@@ -28,7 +22,7 @@ import author.TestData;
 import lombok.val;
 
 @ExtendWith(ApplicationExtension.class)
-@DisplayName("List pane")
+@DisplayName("Create button box")
 class CreateButtonBoxTest {
 
   TestBus<ApiResponse, ApiRequest> apiBus = new TestBus<>();
