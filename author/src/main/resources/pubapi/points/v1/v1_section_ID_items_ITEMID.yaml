@@ -1,35 +1,3 @@
-delete:
-  tags:
-  - v1
-  summary: remove item
-  description: |
-    Removes item
-  operationId: removeitem
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: section ID
-    type: string
-  -
-    in: path
-    name: itemId
-    required: true
-    description: item ID
-    type: string
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    204:
-      description: item removed
-    422:
-      description: error
-
 patch:
   tags:
   - v1
@@ -71,6 +39,38 @@ patch:
         type: array
         items:
           $ref: /pubapi/schemas/sc.yaml
+    422:
+      description: error
+
+delete:
+  tags:
+  - v1
+  summary: remove item
+  description: |
+    Removes item
+  operationId: removeitem
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+  -
+    in: path
+    name: itemId
+    required: true
+    description: item ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    204:
+      description: item removed
     422:
       description: error
 

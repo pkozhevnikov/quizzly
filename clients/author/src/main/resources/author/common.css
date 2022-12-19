@@ -1,0 +1,7 @@
+.check {
+  -fx-graphic: url("approved.png")
+}
+.uncheck {
+  -fx-graphic: url("disapproved.png")
+}
+

@@ -1,7 +1,6 @@
 package author.dtos;
 
 import author.dtos.OutPerson;
-import author.dtos.OutQuizState;
 import author.dtos.OutSection;
 import java.util.List;
 import java.util.Set;
@@ -21,7 +20,7 @@ public class OutFullQuiz {
     Set<OutPerson> disapprovals;
     Boolean obsolete;
     List<OutSection> sections;
-    OutQuizState state;
+    String state;
 
 
 }

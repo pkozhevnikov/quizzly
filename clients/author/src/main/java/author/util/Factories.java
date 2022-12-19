@@ -33,7 +33,7 @@ public class Factories {
           button = new Hyperlink(buttonCaption);
           button.getStyleClass().add(buttonClass);
           button.setOnAction(e -> onClick.accept(column, getItem()));
-          button.setPadding(new Insets(0, 0, 0, 0));
+          button.setPadding(new Insets(0));
           tableRowProperty().addListener((p, o, n) -> {
             if (n != null) {
               n.setOnMouseEntered(e -> button.setVisible(true));
@@ -78,7 +78,7 @@ public class Factories {
         button = new Hyperlink(buttonCaption);
         button.getStyleClass().add(linkClassName);
         button.setOnAction(e -> onButtonClick.accept(list, getItem()));
-        button.setPadding(new Insets(0, 0, 0, 0));
+        button.setPadding(new Insets(0));
         setOnMouseEntered(e -> button.setVisible(true));
         setOnMouseExited(e -> button.setVisible(false));
         button.setVisible(false);

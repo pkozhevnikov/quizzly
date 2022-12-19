@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+<VBox fx:id="quizPane" xmlns:fx="http:/javafx.com/fxml" spacing="10" stylesheets="/author/common.css">
+  <padding><Insets left="20" top="20" right="20" bottom="20"/></padding>
+  <HBox alignment="CENTER_LEFT" spacing="20">
+    <Label fx:id="id" style="-fx-font-weight:bold;-fx-font-size:20" text="TST-1"/>
+    <Label fx:id="status" style="-fx-font-weight:bold;-fx-font-size:16" text="Composing"/>
+  </HBox>
+  <GridPane vgap="5" hgap="5">
+    <TextField fx:id="title" GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.hgrow="ALWAYS"/>
+    <Label text="Intro" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.hgrow="ALWAYS"/>
+    <TextArea fx:id="intro"  GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.hgrow="ALWAYS"
+        GridPane.vgrow="ALWAYS"/>
+    <HBox alignment="CENTER_LEFT" spacing="10" GridPane.rowIndex="3" GridPane.columnIndex="0"
+            GridPane.hgrow="ALWAYS">
+      <Label text="Recommended length, minutes" />
+      <TextField fx:id="recommendedLength" maxWidth="70" />
+    </HBox>
+
+    <HBox spacing="15" GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.columnSpan="2">
+      <padding><Insets left="15"/></padding>
+      <Label text="Curator" />
+      <Label text="Ivan Pomidorov" style="-fx-font-weight:bold"/>
+    </HBox>
+    <VBox GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.rowSpan="3" minWidth="200">
+      <padding><Insets left="15"/></padding>
+      <Label text="Readiness"/>
+      <Separator/>
+      <VBox fx:id="readiness">
+        <Label text="Winston Smith" style="-fx-font-weight:bold" styleClass="check" />
+        <Label text="John Doe" style="-fx-font-weight:bold" styleClass="check" />
+      </VBox>
+    </VBox>
+    <VBox GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.rowSpan="3" minWidth="200">
+      <padding><Insets left="15"/></padding>
+      <Label text="Approvals"/>
+      <Separator/>
+      <VBox fx:id="approvals">
+        <Label text="John Doe" style="-fx-font-weight:bold" styleClass="uncheck" />
+        <Label text="Winston Smith" style="-fx-font-weight:bold" styleClass="check" />
+      </VBox>
+    </VBox>
+  </GridPane>
+  <Separator/>
+  <HBox spacing="10">
+    <Button fx:id="save" text="Save changes" />
+    <HBox spacing="10" alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
+      <Button fx:id="setReady" text="Set ready"/>
+      <Button fx:id="unsetReady" text="Unset ready"/>
+      <Button fx:id="approve" text="Approve"/>
+      <Button fx:id="disapprove" text="Disapprove"/>
+    </HBox>
+  </HBox>
+  <Separator/>
+  <Label text="Sections"/>
+  <ListView fx:id="sections" VBox.vgrow="ALWAYS" />
+</VBox>

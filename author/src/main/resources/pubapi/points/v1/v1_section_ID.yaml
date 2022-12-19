@@ -1,3 +1,81 @@
+put:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  summary: update section
+  description: |
+    Updates section
+  operationId: updatesection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+  -
+    in: body
+    name: section-main
+    required: true
+    schema:
+      $ref: /pubapi/schemas/update-section.yaml
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    204:
+      description: section updated
+    422:
+      description: error
+
+patch:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: move section
+  description: |
+    Moves section
+  operationId: movesection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+  -
+    in: query
+    name: up
+    required: true
+    description: move section up, true or false
+    type: string
+  -
+    in: query
+    name: qid
+    required: true
+    description: quiz ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: section moved, response is new order of section IDs
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/sc.yaml
+    422:
+      description: error
+
 get:
   tags:
   - v1
@@ -53,84 +131,6 @@ delete:
   responses:
     204:
       description: section removed
-    422:
-      description: error
-
-patch:
-  tags:
-  - v1
-  produces:
-  - application/json
-  summary: move section
-  description: |
-    Moves section
-  operationId: movesection
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: section ID
-    type: string
-  -
-    in: query
-    name: up
-    required: true
-    description: move section up, true or false
-    type: string
-  -
-    in: query
-    name: qid
-    required: true
-    description: quiz ID
-    type: string
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    200:
-      description: section moved, response is new order of section IDs
-      schema: 
-        type: array
-        items:
-          $ref: /pubapi/schemas/sc.yaml
-    422:
-      description: error
-
-put:
-  tags:
-  - v1
-  consumes:
-  - application/json
-  summary: update section
-  description: |
-    Updates section
-  operationId: updatesection
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: section ID
-    type: string
-  -
-    in: body
-    name: section-main
-    required: true
-    schema:
-      $ref: /pubapi/schemas/update-section.yaml
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    204:
-      description: section updated
     422:
       description: error
 
