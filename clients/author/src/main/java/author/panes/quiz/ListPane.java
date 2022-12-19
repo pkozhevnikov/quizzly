@@ -23,8 +23,8 @@ import lombok.val;
 
 public class ListPane implements FxmlController {
 
-  
   @FXML private TableView<OutQuizListed> list;
+  @FXML private TableColumn<OutQuizListed, String> link;
   @FXML private TableColumn<OutQuizListed, String> id;
   @FXML private TableColumn<OutQuizListed, String> title;
   @FXML private TableColumn<OutQuizListed, String> status;
@@ -49,7 +49,11 @@ public class ListPane implements FxmlController {
   public void initialize(URL location, ResourceBundle resource) {
     
       list.getItems().clear();
-      id.setCellValueFactory(Factories.tableCellFactory(OutQuizListed::id));
+      val idFactory = Factories.tableCellFactory(OutQuizListed::id);
+      link.setCellValueFactory(idFactory);
+      link.setCellFactory(Factories.hyperlinkCellFactory("Goto", "goto-quiz", (column, id) ->
+        uiBus.out().accept(new Quizzes.GotoQuiz(id))));
+      id.setCellValueFactory(idFactory);
       title.setCellValueFactory(Factories.tableCellFactory(OutQuizListed::title));
       status.setCellValueFactory(Factories.tableCellFactory(OutQuizListed::state));
       obsolete.setCellValueFactory(Factories.tableCellFactory(q -> q.obsolete() ? "+" : ""));
@@ -114,17 +118,14 @@ public class ListPane implements FxmlController {
     Observable<Tuple2<OutQuizListed, UnaryOperator<OutQuizListed>>>
       forPersonedType(Class<Typ> clazz, 
         Observable<Tuple2<ApiResponse.WithQuizId, OutQuizListed>> withQuiz,
-        Function<OutPerson, UnaryOperator<OutQuizListed>> memberMod) {
+          Function<OutPerson, UnaryOperator<OutQuizListed>> memberMod) {
     return withQuiz
       .filter(wq -> clazz.isInstance(wq._1()))
-      .map(wq -> {
-        val e = (Typ) wq._1();
-        val found = staff.stream().filter(p -> p.id().equals(e.personId())).findFirst();
-        if (found.isPresent())
-          return Tuple.of(wq._2(), memberMod.apply(found.get()));
-        else
-          return Tuple.of(wq._2(), UnaryOperator.identity());
-      });
+      .map(wq -> staff.stream()
+              .filter(p -> p.id().equals(((Typ) wq._1()).personId())).findFirst()
+          .map(p -> Tuple.of(wq._2(), memberMod.apply(p)))
+          .orElse(Tuple.of(wq._2(), UnaryOperator.identity()))
+      );
   }
 
 }

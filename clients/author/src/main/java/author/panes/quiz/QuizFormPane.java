@@ -52,7 +52,7 @@ public class QuizFormPane implements FxmlController {
   public void initialize(URL location, ResourceBundle resource) {
     
     val comboCellFactory = Factories.listCellFactory(OutPerson::name);
-    val listCellFactory = Factories.listCellFactory(OutPerson::name, "X", (list, p) -> {
+    val listCellFactory = Factories.listCellFactory(OutPerson::name, "X", "remove-item", (list, p) -> {
         if (list == authors)
           apiBus.out().accept(new ApiRequest.RemoveAuthor(current.id(), p.id()));
         else

@@ -51,11 +51,19 @@ class ListPaneTest {
     apiBus.emulIn(new ApiResponse.QuizList(TestData.list));
     assertThat(robot.lookup("#list").queryTableView())
       .hasExactlyNumRows(4)
-      .containsRow("q1", "q1 title", "Composing", "")
-      .containsRow("q2", "q2 title", "Review", "")
-      .containsRow("q3", "q3 title", "Released", "+")
-      .containsRow("q4", "q4 title", "Released", "")
+      .containsRow("q1", "q1", "q1 title", "Composing", "")
+      .containsRow("q2", "q2", "q2 title", "Review", "")
+      .containsRow("q3", "q3", "q3 title", "Released", "+")
+      .containsRow("q4", "q4", "q4 title", "Released", "")
       ;
+  }
+
+  @Test @DisplayName("sends 'goto quiz' message on link click")
+  void gotoQuiz(FxRobot robot) {
+    apiBus.emulIn(new ApiResponse.QuizList(TestData.list));
+    val go = robot.from(robot.lookup("q3 title").query().getParent()).lookup(".goto-quiz").query();
+    robot.clickOn(go);
+    assertThat(uiBus.poll()).isEqualTo(new Quizzes.GotoQuiz("q3"));
   }
 
   @Test @DisplayName("reacts on got obsolete event")
@@ -63,10 +71,10 @@ class ListPaneTest {
     Lookup lu = new Lookup(robot);
     apiBus.emulIn(new ApiResponse.QuizList(TestData.list));
     assertThat(lu.table("#list"))
-      .containsRow("q4", "q4 title", "Released", "");
+      .containsRow("q4", "q4", "q4 title", "Released", "");
     apiBus.emulIn(new ApiResponse.GotObsolete("q4"));
     assertThat(lu.table("#list"))
-      .containsRow("q4", "q4 title", "Released", "+");
+      .containsRow("q4", "q4", "q4 title", "Released", "+");
   }
 
   @Test @DisplayName("reacts on addition/removal authors and inspectors")
@@ -112,7 +120,7 @@ class ListPaneTest {
     apiBus.emulIn(new ApiResponse.QuizAdded(TestData.newQuiz));
     assertThat(list)
       .hasExactlyNumRows(5)
-      .containsRow("q5", "q5 title", "Composing")
+      .containsRow("q5", "q5", "q5 title", "Composing")
       ;
     assertThat(uiBus.poll()).isEqualTo(new Quizzes.ShowQuiz(TestData.newQuiz));
   }

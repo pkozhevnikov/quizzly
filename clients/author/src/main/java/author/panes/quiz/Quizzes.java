@@ -22,6 +22,10 @@ public class Quizzes {
   static class ShowQuiz implements UIMessage {
     OutQuizListed quiz;
   }
+  @lombok.Value
+  static class GotoQuiz implements UIMessage {
+    String quizId;
+  }
 
   private final Bus<UIMessage, UIMessage> uiBus = new PipeBus<>();
   private final Bus<ApiResponse, ApiRequest> apiBus;

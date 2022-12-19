@@ -24,6 +24,37 @@ public class Factories {
     };
   }
 
+  public static <Row, Column> Callback<TableColumn<Row, Column>, TableCell<Row, Column>>
+    hyperlinkCellFactory(String buttonCaption, 
+          String buttonClass, BiConsumer<TableColumn<Row, Column>, Column> onClick) {
+      return column -> new TableCell<>() {
+        Hyperlink button;
+        {
+          button = new Hyperlink(buttonCaption);
+          button.getStyleClass().add(buttonClass);
+          button.setOnAction(e -> onClick.accept(column, getItem()));
+          button.setPadding(new Insets(0, 0, 0, 0));
+          tableRowProperty().addListener((p, o, n) -> {
+            if (n != null) {
+              n.setOnMouseEntered(e -> button.setVisible(true));
+              n.setOnMouseExited(e -> button.setVisible(false));
+            }
+          });
+          button.setVisible(false);
+        }
+        @Override
+        protected void updateItem(Column item, boolean empty) {
+          super.updateItem(item, empty);
+          setText(null);
+          if (item == null || empty) {
+            setGraphic(null);
+          } else {
+            setGraphic(button);
+          }
+        }
+      };
+    }
+
   public static <E> Callback<ListView<E>, ListCell<E>> listCellFactory(Function<E, String> getter) {
     return ignore -> new ListCell<>() {
       @Override
@@ -39,14 +70,15 @@ public class Factories {
   }
 
   public static <E> Callback<ListView<E>, ListCell<E>> 
-      listCellFactory(Function<E, String> getter, String buttonCaption,
+      listCellFactory(Function<E, String> getter, String buttonCaption, String linkClassName,
         BiConsumer<ListView<E>, E> onButtonClick) {
     return list -> new ListCell<>() {
       Hyperlink button;
       {
         button = new Hyperlink(buttonCaption);
-        button.getStyleClass().add("remove-item");
+        button.getStyleClass().add(linkClassName);
         button.setOnAction(e -> onButtonClick.accept(list, getItem()));
+        button.setPadding(new Insets(0, 0, 0, 0));
         setOnMouseEntered(e -> button.setVisible(true));
         setOnMouseExited(e -> button.setVisible(false));
         button.setVisible(false);
