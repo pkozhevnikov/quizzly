@@ -9,6 +9,8 @@
     <TableColumn fx:id="title" text="Title" sortable="true"
     prefWidth="${list.width * 0.6}" />
     <TableColumn fx:id="status" text="Status" sortable="true"
-    prefWidth="${list.width * 0.2}" />
+    prefWidth="${list.width * 0.15}" />
+    <TableColumn fx:id="obsolete" text="Obs" sortable="true"
+    prefWidth="${list.width * 0.05}" />
   </columns>
 </TableView>

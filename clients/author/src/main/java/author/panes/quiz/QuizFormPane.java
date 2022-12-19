@@ -109,7 +109,12 @@ public class QuizFormPane implements FxmlController {
     addInspector.setOnAction(e -> apiBus.out().accept(
       new ApiRequest.AddInspector(current.id(), selectedInspector.getValue().id())));
 
-
+    apiBus.in().ofType(ApiResponse.GotObsolete.class)
+      .filter(s -> current != null)
+      .filter(s -> current.id().equals(s.quizId()))
+      .subscribe(s -> set(current.withObsolete(true)));
+    setObsolete.setOnAction(e -> apiBus.out().accept(new ApiRequest.SetObsolete(current.id())));
+      
   }
 
   private OutQuizListed current = null;
@@ -135,7 +140,7 @@ public class QuizFormPane implements FxmlController {
     authors.getItems().addAll(quiz.authors());
     inspectors.getItems().clear();
     inspectors.getItems().addAll(quiz.inspectors());
-    setObsolete.setDisable(!quiz.state().equals("Released"));
+    setObsolete.setDisable(quiz.obsolete() || !quiz.state().equals("Released"));
     addAuthor.setDisable(false);
     addInspector.setDisable(false);
   }

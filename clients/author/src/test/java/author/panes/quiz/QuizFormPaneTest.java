@@ -116,9 +116,29 @@ class QuizFormPaneTest {
     val lu = new Lookup(robot);
     uiBus.emulIn(new Quizzes.ShowQuiz(TestData.list.get(0)));
     assertThat(lu.button("#setObsolete")).isDisabled();
-    uiBus.emulIn(new Quizzes.ShowQuiz(TestData.list.get(2)));
-    assertThat(lu.button("#setObsolete")).isEnabled();
     uiBus.emulIn(new Quizzes.ShowQuiz(TestData.list.get(1)));
+    assertThat(lu.button("#setObsolete")).isDisabled();
+    uiBus.emulIn(new Quizzes.ShowQuiz(TestData.list.get(2)));
+    assertThat(lu.button("#setObsolete")).isDisabled();
+    uiBus.emulIn(new Quizzes.ShowQuiz(TestData.list.get(3)));
+    assertThat(lu.button("#setObsolete")).isEnabled();
+  }
+
+  @Test @DisplayName("sends 'set obsolete' request on button click")
+  void setObsoleteRequest(FxRobot robot) {
+    uiBus.emulIn(new Quizzes.ShowQuiz(TestData.list.get(3)));
+    robot.clickOn(robot.lookup("#setObsolete").queryButton());
+    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.SetObsolete("q4"));
+  }
+
+  @Test @DisplayName("reacts on obsolete api event")
+  void showObsolete(FxRobot robot) {
+    val lu = new Lookup(robot);
+    uiBus.emulIn(new Quizzes.ShowQuiz(TestData.list.get(3)));
+    assertThat(lu.button("#setObsolete")).isEnabled();
+    apiBus.emulIn(new ApiResponse.GotObsolete("another"));
+    assertThat(lu.button("#setObsolete")).isEnabled();
+    apiBus.emulIn(new ApiResponse.GotObsolete("q4"));
     assertThat(lu.button("#setObsolete")).isDisabled();
   }
 

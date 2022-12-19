@@ -21,28 +21,34 @@ public interface ApiResponse {
   class QuizCreated implements ApiResponse {
     OutQuizListed quiz;
   }
+  interface WithQuizId extends ApiResponse {
+    String quizId();
+  }
+  interface WithPersonId extends ApiResponse {
+    String personId();
+  }
   @Value
-  class AuthorAdded implements ApiResponse {
+  class AuthorAdded implements WithQuizId, WithPersonId {
     String quizId;
     String personId;
   }
   @Value
-  class AuthorRemoved implements ApiResponse {
+  class AuthorRemoved implements WithQuizId, WithPersonId {
     String quizId;
     String personId;
   }
   @Value
-  class InspectorAdded implements ApiResponse {
+  class InspectorAdded implements WithQuizId, WithPersonId {
     String quizId;
     String personId;
   }
   @Value
-  class InspectorRemoved implements ApiResponse {
+  class InspectorRemoved implements WithQuizId, WithPersonId {
     String quizId;
     String personId;
   }
   @Value
-  class GotObsolete implements ApiResponse {
+  class GotObsolete implements WithQuizId {
     String quizId;
   }
 

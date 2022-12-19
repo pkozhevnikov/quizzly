@@ -12,6 +12,8 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 
+import java.util.List;
+
 import static org.mockito.Mockito.*;
 import static org.testfx.api.FxAssert.*;
 import static org.hamcrest.Matchers.*;
@@ -22,6 +24,7 @@ import author.panes.quiz.Quizzes;
 import author.events.ApiResponse;
 import author.requests.ApiRequest;
 import author.util.*;
+import author.dtos.*;
 
 import author.testutil.*;
 import author.TestData;
@@ -47,11 +50,49 @@ class ListPaneTest {
     Lookup lu = new Lookup(robot);
     apiBus.emulIn(new ApiResponse.QuizList(TestData.list));
     assertThat(robot.lookup("#list").queryTableView())
-      .hasExactlyNumRows(3)
-      .containsRow("q1", "q1 title", "Composing")
-      .containsRow("q2", "q2 title", "Review")
-      .containsRow("q3", "q3 title", "Released")
+      .hasExactlyNumRows(4)
+      .containsRow("q1", "q1 title", "Composing", "")
+      .containsRow("q2", "q2 title", "Review", "")
+      .containsRow("q3", "q3 title", "Released", "+")
+      .containsRow("q4", "q4 title", "Released", "")
       ;
+  }
+
+  @Test @DisplayName("reacts on got obsolete event")
+  void obsoleteEvent(FxRobot robot) {
+    Lookup lu = new Lookup(robot);
+    apiBus.emulIn(new ApiResponse.QuizList(TestData.list));
+    assertThat(lu.table("#list"))
+      .containsRow("q4", "q4 title", "Released", "");
+    apiBus.emulIn(new ApiResponse.GotObsolete("q4"));
+    assertThat(lu.table("#list"))
+      .containsRow("q4", "q4 title", "Released", "+");
+  }
+
+  @Test @DisplayName("reacts on addition/removal authors and inspectors")
+  void addRemoveEvents(FxRobot robot) {
+    val list = robot.lookup("#list").<OutQuizListed>queryTableView().getItems();
+    apiBus.emulIn(new ApiResponse.PersonList(List.of(TestData.curator, TestData.author1, 
+      TestData.author2, TestData.author3,
+      TestData.inspector1, TestData.inspector2, TestData.inspector3)));
+    apiBus.emulIn(new ApiResponse.QuizList(TestData.list));
+    assertThat(list.get(0).authors())
+      .containsExactlyInAnyOrder(TestData.author1, TestData.author2);
+    apiBus.emulIn(new ApiResponse.AuthorAdded("q1", TestData.author3.id()));
+    assertThat(list.get(0).authors())
+      .containsExactlyInAnyOrder(TestData.author1, TestData.author2, TestData.author3);
+    apiBus.emulIn(new ApiResponse.AuthorRemoved("q1", TestData.author1.id()));
+    assertThat(list.get(0).authors())
+      .containsExactlyInAnyOrder(TestData.author3, TestData.author2);
+
+    assertThat(list.get(0).inspectors())
+      .containsExactlyInAnyOrder(TestData.inspector1, TestData.inspector2);
+    apiBus.emulIn(new ApiResponse.InspectorAdded("q1", TestData.inspector3.id()));
+    assertThat(list.get(0).inspectors())
+      .containsExactlyInAnyOrder(TestData.inspector1, TestData.inspector2, TestData.inspector3);
+    apiBus.emulIn(new ApiResponse.InspectorRemoved("q1", TestData.inspector1.id()));
+    assertThat(list.get(0).inspectors())
+      .containsExactlyInAnyOrder(TestData.inspector2, TestData.inspector3);
   }
 
   @Test @DisplayName("sends show quiz message on quiz selection")
@@ -67,11 +108,11 @@ class ListPaneTest {
   void addRow(FxRobot robot) {
     apiBus.emulIn(new ApiResponse.QuizList(TestData.list));
     val list = robot.lookup("#list").queryTableView();
-    assertThat(list).hasExactlyNumRows(3);
+    assertThat(list).hasExactlyNumRows(4);
     apiBus.emulIn(new ApiResponse.QuizAdded(TestData.newQuiz));
     assertThat(list)
-      .hasExactlyNumRows(4)
-      .containsRow("q4", "q4 title", "Composing")
+      .hasExactlyNumRows(5)
+      .containsRow("q5", "q5 title", "Composing")
       ;
     assertThat(uiBus.poll()).isEqualTo(new Quizzes.ShowQuiz(TestData.newQuiz));
   }
