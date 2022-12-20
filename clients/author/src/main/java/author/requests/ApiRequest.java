@@ -53,5 +53,28 @@ public interface ApiRequest {
     String quizId;
   }
 
+  @Value
+  class UpdateQuiz implements ApiRequest {
+    String title;
+    String intro;
+    int recommendedLength;
+  }
+  @Value
+  class SetReady implements ApiRequest {
+    String quizId;
+  }
+  @Value
+  class UnsetReady implements ApiRequest {
+    String quizId;
+  }
+  @Value
+  class Approve implements ApiRequest {
+    String quizId;
+  }
+  @Value
+  class Disapprove implements ApiRequest {
+    String quizId;
+  }
+
 }
 

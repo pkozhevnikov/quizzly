@@ -50,6 +50,26 @@ public interface ApiResponse {
   @Value
   class GotObsolete implements WithQuizId {
     String quizId;
+  } 
+  @Value
+  class ReadySet implements WithQuizId, WithPersonId {
+    String quizId;
+    String personId;
+  }
+  @Value
+  class ReadyUnset implements WithQuizId, WithPersonId {
+    String quizId;
+    String personId;
+  }
+  @Value
+  class Approved implements WithQuizId, WithPersonId {
+    String quizId;
+    String personId;
+  }
+  @Value
+  class Disapproved implements WithQuizId, WithPersonId {
+    String quizId;
+    String personId;
   }
 
 }

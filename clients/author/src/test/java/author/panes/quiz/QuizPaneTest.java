@@ -2,6 +2,8 @@ package author.panes.quiz;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.provider.*;
+import org.junit.jupiter.params.*;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.*;
 import org.testfx.matcher.control.*;
@@ -11,6 +13,7 @@ import javafx.scene.*;
 import javafx.stage.Stage;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.input.*;
 
 import java.util.*;
 import java.util.stream.*;
@@ -45,6 +48,7 @@ class QuizPaneTest {
     stage.show();
   }
 
+  @SuppressWarnings("unchecked")
   private void checkReadiness(FxRobot robot, OutFullQuiz quiz) {
     val labels = robot.lookup("#readiness").queryAs(VBox.class).getChildren();
     assertThat(labels).allSatisfy(l -> assertThat(l.getStyleClass()).contains("check"));
@@ -54,6 +58,7 @@ class QuizPaneTest {
     assertThat(labels).satisfiesExactlyInAnyOrder(textIs);
   }
 
+  @SuppressWarnings("unchecked")
   private void checkApprovals(FxRobot robot, OutFullQuiz quiz) {
     val labels = robot.lookup("#approvals").queryAs(VBox.class).getChildren();
     val sats = Stream.concat(
@@ -73,11 +78,15 @@ class QuizPaneTest {
     assertThat(labels).satisfiesExactlyInAnyOrder(sats);
   }
 
+  private void putQuizForUser(OutFullQuiz quiz, OutPerson user) {
+    uiBus.emulIn(new MainUIMessage.ActingAs(user));
+    uiBus.emulIn(new MainUIMessage.SetQuiz(quiz));
+  }
+    
   @Test @DisplayName("correct visual state on quiz set")
   void quizSet(FxRobot robot) {
     var lu = new Lookup(robot);
-    uiBus.emulIn(new MainUIMessage.ActingAs(TestData.author1));
-    uiBus.emulIn(new MainUIMessage.SetQuiz(TestData.fullQuiz1));
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
     assertThat(lu.label("#id")).hasText("q1");
     assertThat(lu.label("#status")).hasText("Composing");
     assertThat(lu.input("#title")).hasText("q1 title");
@@ -97,8 +106,7 @@ class QuizPaneTest {
 
   @Test @DisplayName("sends edit request on link click")
   void editClick(FxRobot robot) {
-    uiBus.emulIn(new MainUIMessage.ActingAs(TestData.author1));
-    uiBus.emulIn(new MainUIMessage.SetQuiz(TestData.fullQuiz1));
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
     val go = robot.from(robot.lookup("section 2 title").query().getParent()).lookup(".edit-section").query();
     robot.clickOn(go);
     assertThat(uiBus.poll()).isEqualTo(new MainUIMessage.EditSection(TestData.section2));
@@ -106,8 +114,7 @@ class QuizPaneTest {
 
   @Test @DisplayName("sends section up request on link click")
   void sectionUp(FxRobot robot) {
-    uiBus.emulIn(new MainUIMessage.ActingAs(TestData.author1));
-    uiBus.emulIn(new MainUIMessage.SetQuiz(TestData.fullQuiz1));
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
     val go = robot.from(robot.lookup("section 3 title").query().getParent()).lookup(".section-up").query();
     robot.clickOn(go);
     assertThat(apiBus.poll()).isEqualTo(new ApiRequest.MoveSection("q1-3", true));
@@ -115,8 +122,7 @@ class QuizPaneTest {
 
   @Test @DisplayName("sends section down request on link click")
   void sectionDown(FxRobot robot) throws Exception {
-    uiBus.emulIn(new MainUIMessage.ActingAs(TestData.author1));
-    uiBus.emulIn(new MainUIMessage.SetQuiz(TestData.fullQuiz1));
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
     val go = robot.from(robot.lookup("section 1 title").query().getParent()).lookup(".section-down").query();
     robot.clickOn(go);
     assertThat(apiBus.poll()).isEqualTo(new ApiRequest.MoveSection("q1-1", false));
@@ -124,12 +130,150 @@ class QuizPaneTest {
 
   @Test @DisplayName("sends remove section request on link click")
   void sectionRemove(FxRobot robot) {
-    uiBus.emulIn(new MainUIMessage.ActingAs(TestData.author1));
-    uiBus.emulIn(new MainUIMessage.SetQuiz(TestData.fullQuiz1));
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
     val go = robot.from(robot.lookup("section 2 title").query().getParent()).lookup(".remove-section").query();
     robot.clickOn(go);
     assertThat(apiBus.poll()).isEqualTo(new ApiRequest.RemoveSection("q1-2", "q1"));
   }
 
+  private static Stream<Arguments> enableButtons_args() {
+    return Stream.of(
+      Arguments.of("Composing state, author already signed",
+        TestData.fullQuiz1, TestData.author2, true, false, true, false, false),
+      Arguments.of("Composing state, author hasn't signed yet",
+        TestData.fullQuiz1, TestData.author1, true, true, false, false, false),
+      Arguments.of("Composing state, user not on list", 
+        TestData.fullQuiz1, TestData.inspector3, false, false, false, false, false),
+      Arguments.of("Composing state, user is inspector",
+        TestData.fullQuiz1, TestData.inspector1, false, false, false, false, false),
+      Arguments.of("Review state, user not on list",
+        TestData.fullQuiz1.withState("Review"), TestData.curator,
+          false, false, false, false, false),
+      Arguments.of("Review state, user is author",
+        TestData.fullQuiz1.withState("Review"), TestData.author1,
+          false, false, false, false, false),
+      Arguments.of("Review state, user is inspector",
+        TestData.fullQuiz1.withState("Review"), TestData.inspector1,
+          false, false, false, true, true),
+      Arguments.of("Released state, user not on list",
+        TestData.fullQuiz1.withState("Released"), TestData.author3,
+          false, false, false, false, false),
+      Arguments.of("Released state, user is author",
+        TestData.fullQuiz1.withState("Released"), TestData.author1,
+          false, false, false, false, false),
+      Arguments.of("Released state, user is inspector",
+        TestData.fullQuiz1.withState("Released"), TestData.inspector1,
+          false, false, false, false, false)
+    );
+  }
+
+  @ParameterizedTest(name = "{0}") 
+  @DisplayName("buttons enabled/disabled state depends on quiz and current user")
+  @MethodSource("enableButtons_args")
+  void enabledButtons(String name, OutFullQuiz quiz, OutPerson user, 
+      boolean save, boolean setReady, boolean unsetReady, boolean approve, boolean disapprove,
+      FxRobot robot) {
+    putQuizForUser(quiz, user);
+    var lu = new Lookup(robot);
+    assertThat(lu.button("#save").isDisabled()).isNotEqualTo(save);
+    assertThat(lu.button("#setReady").isDisabled()).isNotEqualTo(setReady);
+    assertThat(lu.button("#unsetReady").isDisabled()).isNotEqualTo(unsetReady);
+    assertThat(lu.button("#approve").isDisabled()).isNotEqualTo(approve);
+    assertThat(lu.button("#disapprove").isDisabled()).isNotEqualTo(disapprove);
+
+  }
+
+  @Test @DisplayName("sends correct request on save click")
+  @Disabled
+  void saveRequest(FxRobot robot) throws Exception {
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
+    var lu = new Lookup(robot);
+    robot
+      .clickOn(lu.input("#title")).press(KeyCode.CONTROL).type(KeyCode.A).write("title plus")
+      .clickOn(lu.input("#intro")).press(KeyCode.CONTROL).type(KeyCode.A).write("intro plus")
+      .clickOn(lu.input("#recommendedLength")).press(KeyCode.CONTROL).type(KeyCode.A).write("93")
+      ;
+    val b = robot.lookup("#save").queryButton();
+    System.out.println("disabled " + b.isDisabled());
+    robot.clickOn(b);
+    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.UpdateQuiz("title plus", "intro plus", 93));
+  }
+
+  private static Stream<Arguments> buttonRequest_args() {
+    return Stream.of(
+      Arguments.of(TestData.fullQuiz1, "setReady", TestData.author1, new ApiRequest.SetReady("q1")),
+      Arguments.of(TestData.fullQuiz1, "unsetReady", TestData.author2, new ApiRequest.UnsetReady("q1")),
+      Arguments.of(TestData.fullQuiz1.withState("Review"), "approve", TestData.inspector1, 
+            new ApiRequest.Approve("q1")),
+      Arguments.of(TestData.fullQuiz1.withState("Review"), "disapprove", TestData.inspector2, 
+            new ApiRequest.Disapprove("q1"))
+    );
+  }
+    
+  @ParameterizedTest(name = "{1}")
+  @DisplayName("sends correct request on button click")
+  @MethodSource("buttonRequest_args")
+  void setReadyRequest(OutFullQuiz quiz, String buttonId, OutPerson user, 
+          ApiRequest expectedRequest, FxRobot robot) {
+    putQuizForUser(quiz, user);
+    robot.clickOn(robot.lookup("#" + buttonId).queryButton());
+    assertThat(apiBus.poll()).isEqualTo(expectedRequest);
+  }
+
+  @Test @DisplayName("updates readiness list on set ready")
+  void setReady(FxRobot robot) {
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
+    apiBus.emulIn(new ApiResponse.ReadySet("q2", TestData.author3.id()));
+    checkReadiness(robot, TestData.fullQuiz1);
+    apiBus.emulIn(new ApiResponse.ReadySet("q1", TestData.author1.id()));
+    val readinessPlus = new HashSet<>(TestData.fullQuiz1.readinessSigns());
+    readinessPlus.add(TestData.author1);
+    checkReadiness(robot, TestData.fullQuiz1.withReadinessSigns(readinessPlus));
+    assertThat(robot.lookup("#setReady").queryButton()).isDisabled();
+    assertThat(robot.lookup("#unsetReady").queryButton()).isEnabled();
+  }
+
+  @Test @DisplayName("upodates readiness list on unset ready")
+  void unsetReady(FxRobot robot) {
+    putQuizForUser(TestData.fullQuiz1, TestData.author2);
+    apiBus.emulIn(new ApiResponse.ReadyUnset("q2", TestData.author2.id()));
+    checkReadiness(robot, TestData.fullQuiz1);
+    apiBus.emulIn(new ApiResponse.ReadyUnset("q1", TestData.author2.id()));
+    val readinessMinus = new HashSet<>(TestData.fullQuiz1.readinessSigns());
+    readinessMinus.remove(TestData.author2);
+    checkReadiness(robot, TestData.fullQuiz1.withReadinessSigns(readinessMinus));
+    assertThat(robot.lookup("#setReady").queryButton()).isEnabled();
+    assertThat(robot.lookup("#unsetReady").queryButton()).isDisabled();
+  }
+
+  @Test @DisplayName("updates approvals on approve")
+  void approve(FxRobot robot) {
+    putQuizForUser(TestData.fullQuiz1, TestData.inspector2);
+    apiBus.emulIn(new ApiResponse.Approved("q2", TestData.inspector2.id()));
+    checkApprovals(robot, TestData.fullQuiz1);
+    apiBus.emulIn(new ApiResponse.Approved("q1", TestData.inspector2.id()));
+    val approvals = new HashSet<>(TestData.fullQuiz1.approvals());
+    val disapprovals = new HashSet<>(TestData.fullQuiz1.disapprovals());
+    approvals.add(TestData.inspector2);
+    disapprovals.remove(TestData.inspector2);
+    checkApprovals(robot, TestData.fullQuiz1.withApprovals(approvals)
+      .withDisapprovals(disapprovals));
+  }
+
+  @Test @DisplayName("updates approvals on disapprove")
+  void disapprove(FxRobot robot) {
+    putQuizForUser(TestData.fullQuiz1, TestData.inspector1);
+    apiBus.emulIn(new ApiResponse.Disapproved("q2", TestData.inspector1.id()));
+    checkApprovals(robot, TestData.fullQuiz1);
+    apiBus.emulIn(new ApiResponse.Disapproved("q1", TestData.inspector1.id()));
+    val approvals = new HashSet<>(TestData.fullQuiz1.approvals());
+    val disapprovals = new HashSet<>(TestData.fullQuiz1.disapprovals());
+    approvals.remove(TestData.inspector1);
+    disapprovals.add(TestData.inspector1);
+    checkApprovals(robot, TestData.fullQuiz1.withApprovals(approvals)
+      .withDisapprovals(disapprovals));
+  }
+    
+  
 }
 

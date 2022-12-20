@@ -6,8 +6,8 @@
 <VBox fx:id="quizPane" xmlns:fx="http:/javafx.com/fxml" spacing="10" stylesheets="/author/common.css">
   <padding><Insets left="20" top="20" right="20" bottom="20"/></padding>
   <HBox alignment="CENTER_LEFT" spacing="20">
-    <Label fx:id="id" style="-fx-font-weight:bold;-fx-font-size:20" text="TST-1"/>
-    <Label fx:id="status" style="-fx-font-weight:bold;-fx-font-size:16" text="Composing"/>
+    <Label fx:id="id" style="-fx-font-weight:bold;-fx-font-size:20"/>
+    <Label fx:id="status" style="-fx-font-weight:bold;-fx-font-size:16"/>
   </HBox>
   <GridPane vgap="5" hgap="5">
     <TextField fx:id="title" GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.hgrow="ALWAYS"/>
@@ -23,15 +23,13 @@
     <HBox spacing="15" GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.columnSpan="2">
       <padding><Insets left="15"/></padding>
       <Label text="Curator" />
-      <Label fx:id="curatorName" text="Ivan Pomidorov" style="-fx-font-weight:bold"/>
+      <Label fx:id="curatorName" style="-fx-font-weight:bold"/>
     </HBox>
     <VBox GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.rowSpan="3" minWidth="200">
       <padding><Insets left="15"/></padding>
       <Label text="Readiness"/>
       <Separator/>
       <VBox fx:id="readiness">
-        <Label text="Winston Smith" styleClass="check" />
-        <Label text="John Doe" styleClass="check" />
       </VBox>
     </VBox>
     <VBox GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.rowSpan="3" minWidth="200">
@@ -39,8 +37,6 @@
       <Label text="Approvals"/>
       <Separator/>
       <VBox fx:id="approvals">
-        <Label text="John Doe" styleClass="uncheck" />
-        <Label text="Winston Smith" styleClass="check" />
       </VBox>
     </VBox>
   </GridPane>

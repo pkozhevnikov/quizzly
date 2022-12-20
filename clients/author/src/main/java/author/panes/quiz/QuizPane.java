@@ -20,6 +20,7 @@ import author.util.*;
 import author.messages.*;
 
 import io.reactivex.rxjava3.core.Observable;
+import static org.pdfsam.rxjavafx.observables.JavaFxObservable.*;
 
 import lombok.val;
 
@@ -79,13 +80,72 @@ public class QuizPane implements FxmlController {
     up.setCellFactory(Factories.hyperlinkCellFactory("Up", "section-up",
       (col, section) -> apiBus.out().accept(new ApiRequest.MoveSection(section.sc(), true))));
     down.setCellFactory(Factories.hyperlinkCellFactory("Down", "section-down",
-      (col, section) -> {
-        apiBus.out().accept(new ApiRequest.MoveSection(section.sc(), false));
-      }));
+      (col, section) -> apiBus.out().accept(new ApiRequest.MoveSection(section.sc(), false))));
     remove.setCellFactory(Factories.hyperlinkCellFactory("Remove", "remove-section",
       (col, section) -> apiBus.out().accept(new ApiRequest.RemoveSection(section.sc(), quiz.id()))));
 
     sectionTitle.setCellValueFactory(Factories.tableCellFactory(OutSection::title));
+
+    //actionEventsOf(save).subscribe(System.out::println);
+    save.setOnAction(e -> {
+      System.out.println("save clicked");
+      apiBus.out().accept(new ApiRequest.UpdateQuiz(
+        title.getText(),
+        intro.getText(),
+        Integer.parseInt(recommendedLength.getText())
+      ));
+    });
+    setReady.setOnAction(e -> apiBus.out().accept(new ApiRequest.SetReady(quiz.id())));
+    unsetReady.setOnAction(e -> apiBus.out().accept(new ApiRequest.UnsetReady(quiz.id())));
+    approve.setOnAction(e -> apiBus.out().accept(new ApiRequest.Approve(quiz.id())));
+    disapprove.setOnAction(e -> apiBus.out().accept(new ApiRequest.Disapprove(quiz.id())));
+
+    apiBus.in().ofType(ApiResponse.ReadySet.class)
+      .filter(e -> e.quizId().equals(quiz.id())).subscribe(e -> 
+        quiz.authors().stream().filter(a -> a.id().equals(e.personId())).findFirst()
+          .ifPresent(a -> {
+            val ready = new HashSet<>(quiz.readinessSigns());
+            ready.add(a);
+            quiz = quiz.withReadinessSigns(ready);
+            updateReadiness();
+            updateButtons();
+          })
+        );
+    apiBus.in().ofType(ApiResponse.ReadyUnset.class)
+      .filter(e -> e.quizId().equals(quiz.id())).subscribe(e ->
+        quiz.authors().stream().filter(a -> a.id().equals(e.personId())).findFirst()
+          .ifPresent(a -> {
+            val ready = new HashSet<>(quiz.readinessSigns());
+            ready.remove(a);
+            quiz = quiz.withReadinessSigns(ready);
+            updateReadiness();
+            updateButtons();
+          })
+        );
+    apiBus.in().ofType(ApiResponse.Approved.class)
+      .filter(e -> e.quizId().equals(quiz.id())).subscribe(e ->
+        quiz.inspectors().stream().filter(i -> i.id().equals(e.personId())).findAny()
+          .ifPresent(i -> {
+            val apps = new HashSet<>(quiz.approvals());
+            val disapps = new HashSet<>(quiz.disapprovals());
+            apps.add(i);
+            disapps.remove(i);
+            quiz = quiz.withApprovals(apps).withDisapprovals(disapps);
+            updateApprovals();
+          })
+        );
+    apiBus.in().ofType(ApiResponse.Disapproved.class)
+      .filter(e -> e.quizId().equals(quiz.id())).subscribe(e ->
+        quiz.inspectors().stream().filter(i -> i.id().equals(e.personId())).findAny()
+          .ifPresent(i -> {
+            val apps = new HashSet<>(quiz.approvals());
+            val disapps = new HashSet<>(quiz.disapprovals());
+            apps.remove(i);
+            disapps.add(i);
+            quiz = quiz.withApprovals(apps).withDisapprovals(disapps);
+            updateApprovals();
+          })
+        );
   }
 
   private void set(OutFullQuiz quiz) {
@@ -95,12 +155,26 @@ public class QuizPane implements FxmlController {
     intro.setText(quiz.intro());
     recommendedLength.setText(quiz.recommendedLength().toString());
     curatorName.setText(quiz.curator().name());
+    status.setText(quiz.state());
+    sections.getItems().clear();
+    sections.getItems().addAll(quiz.sections());
+
+    updateReadiness();
+    updateApprovals();
+    updateButtons();
+
+  }
+
+  private void updateReadiness() {
     readiness.getChildren().clear();
     quiz.readinessSigns().stream().map(a -> {
       val l = new Label(a.name());
       l.getStyleClass().add("check");
       return l;
     }).forEach(readiness.getChildren()::add);
+  }
+
+  private void updateApprovals() {
     approvals.getChildren().clear();
     Stream.concat(
       quiz.approvals().stream().map(i -> {
@@ -114,9 +188,9 @@ public class QuizPane implements FxmlController {
         return l;
       })
     ).forEach(approvals.getChildren()::add);
-    sections.getItems().clear();
-    sections.getItems().addAll(quiz.sections());
+  }
 
+  private void updateButtons() {
     save.setDisable(
       (!"Composing".equals(quiz.state())) ||
       !quiz.authors().contains(user)
@@ -139,7 +213,6 @@ public class QuizPane implements FxmlController {
       !"Review".equals(quiz.state()) ||
       !quiz.inspectors().contains(user)
     );
-
   }
 
 }
