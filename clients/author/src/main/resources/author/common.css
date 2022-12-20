@@ -1,7 +1,18 @@
 .check {
-  -fx-graphic: url("approved.png")
+  -fx-graphic: url("approved.png");
+  -fx-font-weight: bold;
 }
 .uncheck {
-  -fx-graphic: url("disapproved.png")
+  -fx-graphic: url("disapproved.png");
+  -fx-font-weight: bold;
 }
+
+.table-row-cell .hl-button {
+  visibility: hidden;
+  -fx-cursor: hand;
+}
+.table-row-cell:hover .hl-button {
+  visibility: visible;
+}
+
 

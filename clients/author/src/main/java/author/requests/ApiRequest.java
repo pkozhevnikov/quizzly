@@ -42,5 +42,16 @@ public interface ApiRequest {
     String quizId;
   }
 
+  @Value
+  class MoveSection implements ApiRequest {
+    String sc;
+    boolean up;
+  }
+  @Value
+  class RemoveSection implements ApiRequest {
+    String sc;
+    String quizId;
+  }
+
 }
 

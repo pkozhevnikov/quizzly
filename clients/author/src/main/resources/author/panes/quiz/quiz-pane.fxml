@@ -23,15 +23,15 @@
     <HBox spacing="15" GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.columnSpan="2">
       <padding><Insets left="15"/></padding>
       <Label text="Curator" />
-      <Label text="Ivan Pomidorov" style="-fx-font-weight:bold"/>
+      <Label fx:id="curatorName" text="Ivan Pomidorov" style="-fx-font-weight:bold"/>
     </HBox>
     <VBox GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.rowSpan="3" minWidth="200">
       <padding><Insets left="15"/></padding>
       <Label text="Readiness"/>
       <Separator/>
       <VBox fx:id="readiness">
-        <Label text="Winston Smith" style="-fx-font-weight:bold" styleClass="check" />
-        <Label text="John Doe" style="-fx-font-weight:bold" styleClass="check" />
+        <Label text="Winston Smith" styleClass="check" />
+        <Label text="John Doe" styleClass="check" />
       </VBox>
     </VBox>
     <VBox GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.rowSpan="3" minWidth="200">
@@ -39,8 +39,8 @@
       <Label text="Approvals"/>
       <Separator/>
       <VBox fx:id="approvals">
-        <Label text="John Doe" style="-fx-font-weight:bold" styleClass="uncheck" />
-        <Label text="Winston Smith" style="-fx-font-weight:bold" styleClass="check" />
+        <Label text="John Doe" styleClass="uncheck" />
+        <Label text="Winston Smith" styleClass="check" />
       </VBox>
     </VBox>
   </GridPane>
@@ -56,5 +56,14 @@
   </HBox>
   <Separator/>
   <Label text="Sections"/>
-  <ListView fx:id="sections" VBox.vgrow="ALWAYS" />
+  <TableView fx:id="sections" VBox.vgrow="ALWAYS">
+    <columns>
+      <TableColumn fx:id="edit" prefWidth="${sections.width * 0.05}" resizable="false" sortable="false"/>
+      <TableColumn fx:id="sectionTitle" text="Title"
+        prefWidth="${sections.width * 0.75}" resizable="false" sortable="false"/>
+      <TableColumn fx:id="up" prefWidth="${sections.width * 0.05}" resizable="false" sortable="false"/>
+      <TableColumn fx:id="down" prefWidth="${sections.width * 0.05}" resizable="false" sortable="false"/>
+      <TableColumn fx:id="remove" prefWidth="${sections.width * 0.07}" resizable="false" sortable="false"/>
+    </columns>
+  </TableView>
 </VBox>

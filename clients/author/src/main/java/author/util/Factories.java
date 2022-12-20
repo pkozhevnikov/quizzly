@@ -31,16 +31,9 @@ public class Factories {
         Hyperlink button;
         {
           button = new Hyperlink(buttonCaption);
-          button.getStyleClass().add(buttonClass);
+          button.getStyleClass().addAll("hl-button", buttonClass);
           button.setOnAction(e -> onClick.accept(column, getItem()));
           button.setPadding(new Insets(0));
-          tableRowProperty().addListener((p, o, n) -> {
-            if (n != null) {
-              n.setOnMouseEntered(e -> button.setVisible(true));
-              n.setOnMouseExited(e -> button.setVisible(false));
-            }
-          });
-          button.setVisible(false);
         }
         @Override
         protected void updateItem(Column item, boolean empty) {

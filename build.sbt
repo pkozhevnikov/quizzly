@@ -75,7 +75,8 @@ lazy val authorClient = (project in file("clients/author"))
       "net.aichler" % "jupiter-interface" % JupiterKeys.jupiterVersion.value % Test,
       "org.testfx" % "testfx-junit5" % "4.0.16-alpha" % Test,
       "org.mockito" % "mockito-core" % "3.+" % Test,
-      "org.hamcrest" % "hamcrest" % "2.1" % Test
+      "org.hamcrest" % "hamcrest" % "2.1" % Test,
+      "org.assertj" % "assertj-core" % "3.23.1" % Test
     )
   )
 
