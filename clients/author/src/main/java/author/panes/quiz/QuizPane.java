@@ -100,55 +100,44 @@ public class QuizPane implements FxmlController {
     approve.setOnAction(e -> apiBus.out().accept(new ApiRequest.Approve(quiz.id())));
     disapprove.setOnAction(e -> apiBus.out().accept(new ApiRequest.Disapprove(quiz.id())));
 
-    apiBus.in().ofType(ApiResponse.ReadySet.class)
-      .filter(e -> e.quizId().equals(quiz.id())).subscribe(e -> 
-        quiz.authors().stream().filter(a -> a.id().equals(e.personId())).findFirst()
-          .ifPresent(a -> {
-            val ready = new HashSet<>(quiz.readinessSigns());
-            ready.add(a);
-            quiz = quiz.withReadinessSigns(ready);
-            updateReadiness();
-            updateButtons();
-          })
-        );
-    apiBus.in().ofType(ApiResponse.ReadyUnset.class)
-      .filter(e -> e.quizId().equals(quiz.id())).subscribe(e ->
-        quiz.authors().stream().filter(a -> a.id().equals(e.personId())).findFirst()
-          .ifPresent(a -> {
-            val ready = new HashSet<>(quiz.readinessSigns());
-            ready.remove(a);
-            quiz = quiz.withReadinessSigns(ready);
-            updateReadiness();
-            updateButtons();
-          })
-        );
-    apiBus.in().ofType(ApiResponse.Approved.class)
-      .filter(e -> e.quizId().equals(quiz.id())).subscribe(e ->
-        quiz.inspectors().stream().filter(i -> i.id().equals(e.personId())).findAny()
-          .ifPresent(i -> {
-            val apps = new HashSet<>(quiz.approvals());
-            val disapps = new HashSet<>(quiz.disapprovals());
-            apps.add(i);
-            disapps.remove(i);
-            quiz = quiz.withApprovals(apps).withDisapprovals(disapps);
-            updateApprovals();
-          })
-        );
-    apiBus.in().ofType(ApiResponse.Disapproved.class)
-      .filter(e -> e.quizId().equals(quiz.id())).subscribe(e ->
-        quiz.inspectors().stream().filter(i -> i.id().equals(e.personId())).findAny()
-          .ifPresent(i -> {
-            val apps = new HashSet<>(quiz.approvals());
-            val disapps = new HashSet<>(quiz.disapprovals());
-            apps.remove(i);
-            disapps.add(i);
-            quiz = quiz.withApprovals(apps).withDisapprovals(disapps);
-            updateApprovals();
-          })
-        );
+    listenReadySign(apiBus.in().ofType(ApiResponse.ReadySet.class), Set::add);
+    listenReadySign(apiBus.in().ofType(ApiResponse.ReadyUnset.class), Set::remove);
+    listenApproval(apiBus.in().ofType(ApiResponse.Approved.class), Set::add, Set::remove);
+    listenApproval(apiBus.in().ofType(ApiResponse.Disapproved.class), Set::remove, Set::add);
   }
 
-  private void set(OutFullQuiz quiz) {
+  private <T extends ApiResponse.WithQuizId & ApiResponse.WithPersonId> void listenReadySign(
+    Observable<T> in,
+    BiConsumer<Set<OutPerson>, OutPerson> readyMod
+  ) {
+    in.filter(e -> e.quizId().equals(quiz.id())).subscribe(e ->
+      quiz.authors().stream().filter(i -> i.id().equals(e.personId())).findAny()
+        .ifPresent(a -> {
+          val ready = new HashSet<>(quiz.readinessSigns());
+          readyMod.accept(ready, a);
+          set(quiz.withReadinessSigns(ready));
+        })
+      );
+    }
+
+  private <T extends ApiResponse.WithQuizId & ApiResponse.WithPersonId> void listenApproval(
+    Observable<T> in,
+    BiConsumer<Set<OutPerson>, OutPerson> approvalsMod,
+    BiConsumer<Set<OutPerson>, OutPerson> disapprovalsMod
+  ) {
+    in.filter(e -> e.quizId().equals(quiz.id())).subscribe(e ->
+      quiz.inspectors().stream().filter(i -> i.id().equals(e.personId())).findAny()
+        .ifPresent(i -> {
+          val apps = new HashSet<>(quiz.approvals());
+          val disapps = new HashSet<>(quiz.disapprovals());
+          approvalsMod.accept(apps, i);
+          disapprovalsMod.accept(disapps, i);
+          set(quiz.withApprovals(apps).withDisapprovals(disapps));
+        })
+      );
+  }
+
+  private synchronized void set(OutFullQuiz quiz) {
     this.quiz = quiz;
     id.setText(quiz.id());
     title.setText(quiz.title());
@@ -159,22 +148,12 @@ public class QuizPane implements FxmlController {
     sections.getItems().clear();
     sections.getItems().addAll(quiz.sections());
 
-    updateReadiness();
-    updateApprovals();
-    updateButtons();
-
-  }
-
-  private void updateReadiness() {
     readiness.getChildren().clear();
     quiz.readinessSigns().stream().map(a -> {
       val l = new Label(a.name());
       l.getStyleClass().add("check");
       return l;
     }).forEach(readiness.getChildren()::add);
-  }
-
-  private void updateApprovals() {
     approvals.getChildren().clear();
     Stream.concat(
       quiz.approvals().stream().map(i -> {
@@ -188,9 +167,6 @@ public class QuizPane implements FxmlController {
         return l;
       })
     ).forEach(approvals.getChildren()::add);
-  }
-
-  private void updateButtons() {
     save.setDisable(
       (!"Composing".equals(quiz.state())) ||
       !quiz.authors().contains(user)
