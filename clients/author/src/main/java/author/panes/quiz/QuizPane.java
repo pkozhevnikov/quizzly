@@ -34,7 +34,7 @@ public class QuizPane implements FxmlController {
   @FXML private Label curatorName;
   @FXML private VBox readiness;
   @FXML private VBox approvals;
-  @FXML private Button save;
+  @FXML private Button saveChanges;
   @FXML private Button setReady;
   @FXML private Button unsetReady;
   @FXML private Button approve;
@@ -86,9 +86,7 @@ public class QuizPane implements FxmlController {
 
     sectionTitle.setCellValueFactory(Factories.tableCellFactory(OutSection::title));
 
-    //actionEventsOf(save).subscribe(System.out::println);
-    save.setOnAction(e -> {
-      System.out.println("save clicked");
+    saveChanges.setOnAction(e -> {
       apiBus.out().accept(new ApiRequest.UpdateQuiz(
         title.getText(),
         intro.getText(),
@@ -167,7 +165,7 @@ public class QuizPane implements FxmlController {
         return l;
       })
     ).forEach(approvals.getChildren()::add);
-    save.setDisable(
+    saveChanges.setDisable(
       (!"Composing".equals(quiz.state())) ||
       !quiz.authors().contains(user)
     );

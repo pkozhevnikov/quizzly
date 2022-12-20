@@ -93,7 +93,7 @@ class QuizPaneTest {
     assertThat(lu.input("#intro")).hasText("q1 intro");
     assertThat(lu.input("#recommendedLength")).hasText("65");
     assertThat(lu.label("#curatorName")).hasText("curator name");
-    assertThat(lu.button("#save")).isEnabled();
+    assertThat(lu.button("#saveChanges")).isEnabled();
     assertThat(lu.button("#setReady")).isEnabled();
     assertThat(lu.button("#unsetReady")).isDisabled();
     assertThat(lu.button("#approve")).isDisabled();
@@ -175,7 +175,7 @@ class QuizPaneTest {
       FxRobot robot) {
     putQuizForUser(quiz, user);
     var lu = new Lookup(robot);
-    assertThat(lu.button("#save").isDisabled()).isNotEqualTo(save);
+    assertThat(lu.button("#saveChanges").isDisabled()).isNotEqualTo(save);
     assertThat(lu.button("#setReady").isDisabled()).isNotEqualTo(setReady);
     assertThat(lu.button("#unsetReady").isDisabled()).isNotEqualTo(unsetReady);
     assertThat(lu.button("#approve").isDisabled()).isNotEqualTo(approve);
@@ -184,20 +184,21 @@ class QuizPaneTest {
   }
 
   @Test @DisplayName("sends correct request on save click")
-  @Disabled
   void saveRequest(FxRobot robot) throws Exception {
     putQuizForUser(TestData.fullQuiz1, TestData.author1);
-    var lu = new Lookup(robot);
+    val lu = new Lookup(robot);
     robot
-      .clickOn(lu.input("#title")).press(KeyCode.CONTROL).type(KeyCode.A).write("title plus")
-      .clickOn(lu.input("#intro")).press(KeyCode.CONTROL).type(KeyCode.A).write("intro plus")
-      .clickOn(lu.input("#recommendedLength")).press(KeyCode.CONTROL).type(KeyCode.A).write("93")
+      .clickOn(lu.input("#title"))
+        .press(KeyCode.CONTROL).type(KeyCode.A).release(KeyCode.CONTROL).write("title plus")
+      .clickOn(lu.input("#intro"))
+        .press(KeyCode.CONTROL).type(KeyCode.A).release(KeyCode.CONTROL).write("intro plus")
+      .clickOn(lu.input("#recommendedLength"))
+        .press(KeyCode.CONTROL).type(KeyCode.A).release(KeyCode.CONTROL).write("93")
+      .clickOn(lu.button("#saveChanges"))
       ;
-    val b = robot.lookup("#save").queryButton();
-    System.out.println("disabled " + b.isDisabled());
-    robot.clickOn(b);
     assertThat(apiBus.poll()).isEqualTo(new ApiRequest.UpdateQuiz("title plus", "intro plus", 93));
   }
+
 
   private static Stream<Arguments> buttonRequest_args() {
     return Stream.of(
