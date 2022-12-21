@@ -26,6 +26,7 @@ import lombok.val;
 
 public class QuizPane implements FxmlController {
 
+  @FXML private VBox quizPane;
   @FXML private Label id;
   @FXML private Label status;
   @FXML private TextField title;
@@ -46,6 +47,13 @@ public class QuizPane implements FxmlController {
   @FXML private TableColumn<OutSection, OutSection> down;
   @FXML private TableColumn<OutSection, OutSection> remove;
 
+  @FXML private HBox buttonBox;
+  @FXML private Button newSection;
+  @FXML private HBox createSectionForm;
+  @FXML private TextField newSectionTitle;
+  @FXML private Button createSection;
+  @FXML private Button cancelCreateSection;
+
   @Override
   public String fxml() {
     return "/author/panes/quiz/quiz-pane.fxml";
@@ -65,10 +73,26 @@ public class QuizPane implements FxmlController {
   private OutPerson user;
   private OutFullQuiz quiz;
 
+  private void showCreateSection() {
+    if (user != null && quiz != null) {
+      quizPane.getChildren().remove(createSectionForm);
+      quizPane.getChildren().remove(buttonBox);
+      if (quiz.state().equals("Composing") && quiz.authors().contains(user)) {
+        quizPane.getChildren().add(buttonBox);
+      }
+    }
+  }
+
   @Override
   public void initialize(URL location, ResourceBundle resources) {
-    uiBus.in().ofType(MainUIMessage.ActingAs.class).subscribe(e -> user = e.person());
-    uiBus.in().ofType(MainUIMessage.SetQuiz.class).subscribe(e -> set(e.quiz()));
+    uiBus.in().ofType(MainUIMessage.ActingAs.class).subscribe(e -> {
+      user = e.person();
+      showCreateSection();
+    });
+    uiBus.in().ofType(MainUIMessage.SetQuiz.class).subscribe(e -> {
+      set(e.quiz());
+      showCreateSection();
+    });
 
     val idFactory = Factories.tableCellFactory((OutSection s) -> s);
     edit.setCellValueFactory(idFactory);
@@ -102,6 +126,21 @@ public class QuizPane implements FxmlController {
     listenReadySign(apiBus.in().ofType(ApiResponse.ReadyUnset.class), Set::remove);
     listenApproval(apiBus.in().ofType(ApiResponse.Approved.class), Set::add, Set::remove);
     listenApproval(apiBus.in().ofType(ApiResponse.Disapproved.class), Set::remove, Set::add);
+
+    newSection.setOnAction(e -> {
+      quizPane.getChildren().remove(buttonBox);
+      quizPane.getChildren().add(createSectionForm);
+      newSectionTitle.setText("");
+    });
+    cancelCreateSection.setOnAction(e -> {
+      quizPane.getChildren().remove(createSectionForm);
+      quizPane.getChildren().add(buttonBox);
+    });
+    createSection.setOnAction(e -> apiBus.out().accept(new ApiRequest.CreateSection(
+      quiz.id(), newSectionTitle.getText())));
+    apiBus.in().ofType(ApiResponse.SectionCreated.class)
+      .filter(e -> e.quizId().equals(quiz.id()))
+      .subscribe(e -> showCreateSection());
   }
 
   private <T extends ApiResponse.WithQuizId & ApiResponse.WithPersonId> void listenReadySign(

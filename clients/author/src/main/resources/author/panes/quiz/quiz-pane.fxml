@@ -3,7 +3,8 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.*?>
-<VBox fx:id="quizPane" xmlns:fx="http:/javafx.com/fxml" spacing="10" stylesheets="/author/common.css">
+<VBox fx:id="quizPane" xmlns:fx="http:/javafx.com/fxml" spacing="10" 
+    stylesheets="/author/common.css">
   <padding><Insets left="20" top="20" right="20" bottom="20"/></padding>
   <HBox alignment="CENTER_LEFT" spacing="20">
     <Label fx:id="id" style="-fx-font-weight:bold;-fx-font-size:20"/>
@@ -62,4 +63,14 @@
       <TableColumn fx:id="remove" prefWidth="${sections.width * 0.07}" resizable="false" sortable="false"/>
     </columns>
   </TableView>
+
+  <HBox fx:id="buttonBox">
+    <Button fx:id="newSection" text="Create new section"/>
+  </HBox>
+  <HBox fx:id="createSectionForm" spacing="10" alignment="CENTER_RIGHT">
+    <Label text="Title"/>
+    <TextField fx:id="newSectionTitle" HBox.hgrow="ALWAYS"/>
+    <Button fx:id="createSection" text="Create"/>
+    <Button fx:id="cancelCreateSection" text="Cancel"/>
+  </HBox>
 </VBox>

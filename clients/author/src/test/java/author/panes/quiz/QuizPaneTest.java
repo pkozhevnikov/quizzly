@@ -275,6 +275,65 @@ class QuizPaneTest {
       .withDisapprovals(disapprovals));
   }
     
-  
+
+  @Test @DisplayName("section button box is show depending on quiz state and current user")
+  void sectionButtonBoxVisibility(FxRobot robot) {
+    putQuizForUser(TestData.fullQuiz1, TestData.author3);
+    assertThat(robot.lookup("#buttonBox").tryQuery()).isEmpty();
+    putQuizForUser(TestData.fullQuiz1, TestData.curator);
+    assertThat(robot.lookup("#buttonBox").tryQuery()).isEmpty();
+    putQuizForUser(TestData.fullQuiz1, TestData.inspector1);
+    assertThat(robot.lookup("#buttonBox").tryQuery()).isEmpty();
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
+    assertThat(robot.lookup("#buttonBox").tryQuery()).isPresent();
+
+    putQuizForUser(TestData.fullQuiz1.withState("Review"), TestData.author1);
+    assertThat(robot.lookup("#buttonBox").tryQuery()).isEmpty();
+    putQuizForUser(TestData.fullQuiz1.withState("Review"), TestData.curator);
+    assertThat(robot.lookup("#buttonBox").tryQuery()).isEmpty();
+    putQuizForUser(TestData.fullQuiz1.withState("Review"), TestData.inspector1);
+    assertThat(robot.lookup("#buttonBox").tryQuery()).isEmpty();
+    
+    putQuizForUser(TestData.fullQuiz1.withState("Released"), TestData.author1);
+    assertThat(robot.lookup("#buttonBox").tryQuery()).isEmpty();
+    putQuizForUser(TestData.fullQuiz1.withState("Released"), TestData.curator);
+    assertThat(robot.lookup("#buttonBox").tryQuery()).isEmpty();
+    putQuizForUser(TestData.fullQuiz1.withState("Released"), TestData.inspector1);
+    assertThat(robot.lookup("#buttonBox").tryQuery()).isEmpty();
+  }
+
+  @Test @DisplayName("shows and hides 'create section'")
+  void showCreateSection(FxRobot robot) {
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
+    assertThat(robot.lookup("#buttonBox").tryQuery()).isPresent();
+    assertThat(robot.lookup("#createSectionForm").tryQuery()).isEmpty();
+    robot.clickOn("#newSection");
+    assertThat(robot.lookup("#buttonBox").tryQuery()).isEmpty();
+    assertThat(robot.lookup("#createSectionForm").tryQuery()).isPresent();
+    assertThat(robot.lookup("#newSectionTitle").queryTextInputControl()).hasText("");
+    robot.clickOn("#cancelCreateSection");
+    assertThat(robot.lookup("#buttonBox").tryQuery()).isPresent();
+    assertThat(robot.lookup("#createSectionForm").tryQuery()).isEmpty();
+  }
+
+  @Test @DisplayName("sends 'create section' request on button click")
+  void createSectionRequest(FxRobot robot) {
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
+    robot.clickOn("#newSection");
+    robot.clickOn("#newSectionTitle").write("new section title")
+      .clickOn("#createSection");
+    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.CreateSection("q1", "new section title"));
+  }
+
+  @Test @DisplayName("hides create section form on 'section created' response")
+  void hideSectionForm(FxRobot robot) {
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
+    robot.clickOn("#newSection");
+    apiBus.emulIn(new ApiResponse.SectionCreated("q2", "q2-1"));
+    assertThat(robot.lookup("#createSectionForm").tryQuery()).isPresent();
+    apiBus.emulIn(new ApiResponse.SectionCreated("q1", "q1-1"));
+    assertThat(robot.lookup("#createSectionForm").tryQuery()).isEmpty();
+  }
+
 }
 

@@ -72,5 +72,10 @@ public interface ApiResponse {
     String personId;
   }
 
+  @Value
+  class SectionCreated implements WithQuizId {
+    String quizId;
+    String sc;
+  }
 }
 

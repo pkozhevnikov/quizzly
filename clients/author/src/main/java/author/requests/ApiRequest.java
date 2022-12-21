@@ -76,5 +76,10 @@ public interface ApiRequest {
     String quizId;
   }
 
+  @Value
+  class CreateSection implements ApiRequest {
+    String quizId;
+    String title;
+  }
 }
 
