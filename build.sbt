@@ -66,6 +66,7 @@ lazy val authorClient = (project in file("clients/author"))
     javacOptions ++= Seq("-Xlint"),
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.3.0-alpha16",
+      "org.slf4j" % "slf4j-api" % "2.0.0-alpha7",
       "org.openjfx" % "javafx-base" % "19",
       "org.openjfx" % "javafx-controls" % "19",
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.1",

@@ -30,6 +30,9 @@ public class TestBus<In, Out> implements Bus<In, Out> {
   }
 
   public Out poll() { return outQueue.poll(); }
+  public void emulInCT(In i) {
+    in.onNext(i);
+  }
   public TestObserver<In> emulIn(In i) {
     TestObserver<In> sub = TestObserver.create();
     in.subscribe(sub);

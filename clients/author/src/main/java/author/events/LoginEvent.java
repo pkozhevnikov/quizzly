@@ -15,5 +15,10 @@ public interface LoginEvent {
     OutPerson user;
   }
 
-  static LoginEvent ACCESS_DENIED = new LoginEvent() {};
+  @Value
+  class LoggedOut implements LoginEvent {
+    String username;
+    OutPerson user;
+  }
+
 }

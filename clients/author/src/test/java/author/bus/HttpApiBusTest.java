@@ -26,6 +26,9 @@ import org.mockserver.integration.ClientAndServer;
 import static org.mockserver.model.HttpRequest.*;
 import static org.mockserver.model.HttpResponse.*;
 import static org.mockserver.model.Header.*;
+import static org.mockserver.model.JsonBody.*;
+
+import io.reactivex.rxjava3.subscribers.TestSubscriber;
 
 import lombok.val;
 
@@ -58,8 +61,31 @@ public class HttpApiBusTest {
     client
       .when(request().withMethod(GET).withPath("/v1/quiz").withHeaders(header("p", "notauth")))
       .respond(response().withStatusCode(401));
+    emulLoginAs(new OutPerson("notauth", ""));
     sut.out().accept(ApiRequest.GET_LIST);
-    assertThat(uiBus.poll()).isEqualTo(LoginEvent.ACCESS_DENIED);
+    assertThat(uiBus.poll()).isEqualTo(RootUIMessage.ACCESS_DENIED);
+  }
+
+  @Test @DisplayName("not logged in")
+  void notLoggedIn() {
+    sut.out().accept(ApiRequest.GET_LIST);
+    assertThat(uiBus.poll()).isEqualTo(RootUIMessage.NOT_LOGGED_IN);
+  }
+
+  private void emulLoginAs(OutPerson user) {
+    loginBus.emulInCT(new LoginEvent.Success(user.id(), user));
+  }
+
+  @Test @DisplayName("get list")
+  void getList() {
+    client
+      .when(request().withMethod(GET).withPath("/v1/quiz").withHeaders(header("p", "author1")))
+      .respond(response().withStatusCode(200).withBody(json(TestData.list)));
+    emulLoginAs(TestData.author1);
+    val sub = TestSubscriber.<ApiResponse>create();
+    sut.out().accept(ApiRequest.GET_LIST);
+    sub.awaitCount(1);
+    sub.assertValue(new ApiResponse.QuizList(TestData.list));
   }
 
 
