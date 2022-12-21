@@ -77,6 +77,7 @@ lazy val authorClient = (project in file("clients/author"))
       "org.mockito" % "mockito-core" % "3.+" % Test,
       "org.hamcrest" % "hamcrest" % "2.1" % Test,
       "org.assertj" % "assertj-core" % "3.23.1" % Test,
+      "org.mock-server" % "mockserver-junit-jupiter-no-dependencies" % "5.14.0" % Test,
       "org.junit.jupiter" % "junit-jupiter-params" % "5.9.1" % Test
     )
   )

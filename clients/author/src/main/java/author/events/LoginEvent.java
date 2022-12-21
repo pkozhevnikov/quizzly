@@ -14,4 +14,6 @@ public interface LoginEvent {
     String username;
     OutPerson user;
   }
+
+  static LoginEvent ACCESS_DENIED = new LoginEvent() {};
 }
