@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.*?>
 <VBox fx:id="quizPane" xmlns:fx="http:/javafx.com/fxml" spacing="10" 
-    stylesheets="/author/common.css">
+    stylesheets="/author/common.css" style="-fx-border-style:solid hidden hidden hidden;-fx-border-color:gray">
   <padding><Insets left="20" top="20" right="20" bottom="20"/></padding>
   <HBox alignment="CENTER_LEFT" spacing="20">
     <Label fx:id="id" style="-fx-font-weight:bold;-fx-font-size:20"/>

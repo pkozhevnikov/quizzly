@@ -11,6 +11,11 @@ public interface ApiRequest {
   ApiRequest GET_STAFF = new ApiRequest() {};
 
   @Value
+  class GetQuiz implements ApiRequest {
+    String id;
+  }
+
+  @Value
   class Create implements ApiRequest {
     String id;
     String title;

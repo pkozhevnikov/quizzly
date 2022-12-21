@@ -15,4 +15,10 @@
   visibility: visible;
 }
 
+.home {
+  -fx-graphic: url("home.png");
+}
+.logout {
+  -fx-graphic: url("logout.png");
+}
 

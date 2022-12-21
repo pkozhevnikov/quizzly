@@ -63,7 +63,7 @@ class ListPaneTest {
     apiBus.emulIn(new ApiResponse.QuizList(TestData.list));
     val go = robot.from(robot.lookup("q3 title").query().getParent()).lookup(".goto-quiz").query();
     robot.clickOn(go);
-    assertThat(uiBus.poll()).isEqualTo(new Quizzes.GotoQuiz("q3"));
+    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.GetQuiz("q3"));
   }
 
   @Test @DisplayName("reacts on got obsolete event")

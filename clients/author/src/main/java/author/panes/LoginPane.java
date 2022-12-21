@@ -40,7 +40,7 @@ public class LoginPane extends VBox {
 
     Observable<ActionEvent> click = actionEventsOf(button);
     click.subscribe(e -> {
-      requests.accept(new LoginRequest(username.getText(), password.getText()));
+      requests.accept(new LoginRequest.Login(username.getText(), password.getText()));
       message.setText(null);
       password.setText(null);
       button.setDisable(true);

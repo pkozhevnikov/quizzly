@@ -276,7 +276,7 @@ class QuizPaneTest {
   }
     
 
-  @Test @DisplayName("section button box is show depending on quiz state and current user")
+  @Test @DisplayName("section button box is shown depending on quiz state and current user")
   void sectionButtonBoxVisibility(FxRobot robot) {
     putQuizForUser(TestData.fullQuiz1, TestData.author3);
     assertThat(robot.lookup("#buttonBox").tryQuery()).isEmpty();

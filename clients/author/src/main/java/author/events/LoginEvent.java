@@ -2,6 +2,8 @@ package author.events;
 
 import lombok.Value;
 
+import author.dtos.OutPerson;
+
 public interface LoginEvent {
   @Value
   class Failure implements LoginEvent {
@@ -10,6 +12,6 @@ public interface LoginEvent {
   @Value
   class Success implements LoginEvent {
     String username;
-    String name;
+    OutPerson user;
   }
 }

@@ -7,6 +7,8 @@ import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Queue;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import org.testfx.util.*;
 
@@ -14,7 +16,19 @@ public class TestBus<In, Out> implements Bus<In, Out> {
   private PublishSubject<In> in = PublishSubject.create();
   private Queue<Out> outQueue = new LinkedList<>();
   @Override public Observable<In> in() { return in; }
-  @Override public Consumer<Out> out() { return o -> outQueue.offer(o); }
+
+  private Map<Out, Response> responses = new ConcurrentHashMap<>();
+  
+  @Override public Consumer<Out> out() { 
+    return o -> {
+      outQueue.offer(o); 
+      if (responses.containsKey(o)) {
+        //emulIn(responses.get(o).emit);
+        javafx.application.Platform.runLater(() -> in.onNext(responses.get(o).emit));
+      }
+    };
+  }
+
   public Out poll() { return outQueue.poll(); }
   public TestObserver<In> emulIn(In i) {
     TestObserver<In> sub = TestObserver.create();
@@ -24,6 +38,22 @@ public class TestBus<In, Out> implements Bus<In, Out> {
     sub.dispose();
     WaitForAsyncUtils.waitForFxEvents();
     return sub;
+  }
+
+  public Response on(Out request, In response) {
+    Response resp = new Response();
+    resp.on = request;
+    resp.emit = response;
+    responses.put(request, resp);
+    return resp;
+  }
+
+  public class Response {
+    Out on;
+    In emit;
+    public void free() {
+      TestBus.this.responses.remove(on);
+    }
   }
 }
 

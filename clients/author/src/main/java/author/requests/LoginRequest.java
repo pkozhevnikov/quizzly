@@ -2,8 +2,16 @@ package author.requests;
 
 import java.util.Objects;
 
-@lombok.Value
-public class LoginRequest {
-  String username;
-  String password;
+import lombok.Value;
+
+public interface LoginRequest {
+
+  @Value
+  public class Login implements LoginRequest {
+    String username;
+    String password;
+  }
+
+  public static final LoginRequest LOGOUT = new LoginRequest() {};
+
 }

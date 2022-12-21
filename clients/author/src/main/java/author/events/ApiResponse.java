@@ -10,6 +10,10 @@ public interface ApiResponse {
     List<OutQuizListed> list;
   }
   @Value
+  class FullQuiz implements ApiResponse {
+    OutFullQuiz quiz;
+  }
+  @Value
   class QuizAdded implements ApiResponse {
     OutQuizListed quiz;
   }

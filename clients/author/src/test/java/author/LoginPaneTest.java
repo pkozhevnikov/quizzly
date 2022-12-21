@@ -81,7 +81,7 @@ class LoginPaneTest {
   void successLogin(FxRobot robot) {
     Labeled message = robot.lookup("#message").queryLabeled();
     assertThat(message.getText()).isEmpty();
-    pushEvent(new LoginEvent.Success("", ""));
+    pushEvent(new LoginEvent.Success("", TestData.author1));
     assertThat(message)
       .hasText("Logged in successfully")
       .hasStyle("-fx-text-fill:green");
@@ -99,7 +99,7 @@ class LoginPaneTest {
     assertThat(lu.button("#button")).isDisabled();
     assertThat(lu.input("#password").getText()).isNull();
     assertThat(lu.label("#message").getText()).isNull();
-    assertThat(requestsQueue.poll()).isEqualTo(new LoginRequest("somename", "somepass"));
+    assertThat(requestsQueue.poll()).isEqualTo(new LoginRequest.Login("somename", "somepass"));
   }
 
 }
