@@ -21,10 +21,6 @@ public interface ApiResponse {
   class PersonList implements ApiResponse {
     List<OutPerson> list;
   }
-  @Value
-  class QuizCreated implements ApiResponse {
-    OutQuizListed quiz;
-  }
   interface WithQuizId extends ApiResponse {
     String quizId();
   }

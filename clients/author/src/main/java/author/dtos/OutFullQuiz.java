@@ -5,7 +5,10 @@ import author.dtos.OutSection;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @lombok.Value
+@JsonIgnoreProperties({"hashCode", "toString"})
 public class OutFullQuiz {
 
     @lombok.With

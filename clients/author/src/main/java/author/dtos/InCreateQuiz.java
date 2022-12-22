@@ -2,7 +2,10 @@ package author.dtos;
 
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @lombok.Value
+@JsonIgnoreProperties({"hashCode", "toString"})
 public class InCreateQuiz {
 
     String id;

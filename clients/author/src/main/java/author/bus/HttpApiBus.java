@@ -18,6 +18,7 @@ import java.util.function.*;
 import java.util.concurrent.CompletableFuture;
 
 import java.util.*;
+import java.util.regex.*;
 import java.io.InputStream;
 import java.net.URI;
 
@@ -28,6 +29,7 @@ import java.net.http.HttpResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.introspect.DefaultAccessorNamingStrategy;
 
 import lombok.val;
 
@@ -36,6 +38,7 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
 
   private final ObjectMapper mapper = new ObjectMapper() {{
     configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    setAccessorNaming(new DefaultAccessorNamingStrategy.Provider().withGetterPrefix(""));
   }};
 
   private final String baseUrl;
@@ -99,6 +102,14 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
     }
   }
 
+  private byte[] toJson(Object content) {
+    try {
+      return mapper.writeValueAsBytes(content);
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
   private <T> List<T> jsonList(InputStream is, Class<T> clazz) {
     try {
       CollectionType ctype = mapper.getTypeFactory()
@@ -109,10 +120,16 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
     }
   }
 
-  private <Req extends ApiRequest> CompletableFuture<ApiResponse> process(Req request) {
+  private CompletableFuture<ApiResponse> process(ApiRequest request) {
     val call = forRequest(request);
-    return client.sendAsync(call.request.apply(request), HttpResponse.BodyHandlers.ofInputStream())
-      .thenApply(resp -> {
+    if (call == null) {
+      log.warn("call for {} not declared", request);
+      return CompletableFuture.completedFuture(NO_RESPONSE);
+    }
+    return client.sendAsync(
+        call.request.apply(request).header("p", user.id()).build(), 
+        HttpResponse.BodyHandlers.ofInputStream()
+      ).thenApply(resp -> {
         val fun = Optional.ofNullable(call.responses.get(resp.statusCode()))
           .map(f -> {
             log.debug("found resp mapper for {} {}", resp.statusCode(), request);
@@ -143,37 +160,65 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
       });
   }
 
-  private <Req extends ApiRequest> Call<Req> forRequest(Req req) {
-    if (req == ApiRequest.GET_LIST) 
+  private static final Pattern pathPattern = Pattern.compile("\\{[^}]*}");
+
+  private URI uri(String path, Object... segments) {
+    val matcher = pathPattern.matcher(path);
+    val sb = new StringBuilder();
+    int i = 0;
+    while (matcher.find())
+      matcher.appendReplacement(sb, segments[i++].toString());
+    matcher.appendTail(sb);
+    return URI.create(baseUrl + sb.toString());
+  }
+
+  private HttpRequest.Builder reqBuilder(String path, Object... segments) {
+    return HttpRequest.newBuilder().uri(uri(path, segments));
+  }
+
+  @SuppressWarnings("unchecked")
+  private <Req extends ApiRequest> Call<Req> forRequest(ApiRequest req) {
+    if (req == GET_LIST) 
       return (Call<Req>) new Call<ApiRequest>(
-        r -> HttpRequest.newBuilder()
-          .uri(URI.create(String.format("%s/quiz", baseUrl)))
-          .header("p", user.id())
-          .GET()
-          .build()
-          ,
+        r -> reqBuilder("/quiz").GET(),
         Map.of(
           200, (r, is) -> new QuizList(jsonList(is, OutQuizListed.class))
         )
       );
     else if (req instanceof GetQuiz) 
       return (Call<Req>) new Call<GetQuiz>(
-        r -> HttpRequest.newBuilder()
-          .uri(URI.create(String.format("%s/quiz/%s", baseUrl, r.id())))
-          .header("p", user.id())
-          .GET()
-          .build()
-          ,
+        r -> reqBuilder("/quiz/{}", r.id()).GET(),
         Map.of(
           200, (r, is) -> new FullQuiz(json(is, OutFullQuiz.class))
         )
       );
+    else if (req instanceof Create)
+      return (Call<Req>) new Call<Create>(
+        r -> reqBuilder("/quiz").header("content-type", "application/json")
+          .POST(HttpRequest.BodyPublishers.ofByteArray(toJson(new InCreateQuiz(
+            r.id(), r.title(), "", 30, r.authors(), r.inspectors())))),
+        Map.of(
+          200, (r, is) -> {
+            val details = json(is, OutCreateDetails.class);
+            return new QuizAdded(new OutQuizListed(r.id(), r.title(), false,
+              user, details.authors(), details.inspectors(), "Composing"));
+          }
+        )
+      );
+    else if (req == GET_STAFF)
+      return (Call<Req>) new Call<ApiRequest>(
+        r -> reqBuilder("/staff").GET(),
+        Map.of(
+          200, (r, is) -> new PersonList(jsonList(is, OutPerson.class))
+        )
+      );
+      
     return null;
   }
 
   @lombok.AllArgsConstructor
   private static class Call<Req extends ApiRequest> {
-    private Function<Req, HttpRequest> request;
+    private Function<Req, HttpRequest.Builder> request;
     private Map<Integer, BiFunction<Req, InputStream, ApiResponse>> responses;
   }
 

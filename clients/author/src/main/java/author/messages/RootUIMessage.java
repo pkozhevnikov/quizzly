@@ -23,7 +23,7 @@ public interface RootUIMessage {
 
   @Value
   class ProcessingError implements RootUIMessage {
-    Throwable throwabe;
+    Throwable cause;
   }
 
 }
