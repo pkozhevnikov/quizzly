@@ -10,7 +10,7 @@
     <neverBlock>true</neverBlock>
     <appender-ref ref="STDOUT"/>
   </appender>
-  <root level="ERROR">
+  <root level="error">
     <appender-ref ref="ASYNC"/>
   </root>
 </configuration>

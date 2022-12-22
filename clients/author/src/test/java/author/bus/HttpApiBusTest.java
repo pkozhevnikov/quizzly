@@ -28,18 +28,27 @@ import static org.mockserver.model.HttpResponse.*;
 import static org.mockserver.model.Header.*;
 import static org.mockserver.model.JsonBody.*;
 
-import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import io.reactivex.rxjava3.observers.TestObserver;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.DefaultAccessorNamingStrategy;
 
 import lombok.val;
 
 @ExtendWith(MockServerExtension.class)
 public class HttpApiBusTest {
 
+  ObjectMapper mapper = new ObjectMapper() {{
+    setAccessorNaming(new DefaultAccessorNamingStrategy.Provider().withGetterPrefix(""));
+  }};
+
   ClientAndServer client;
 
   TestBus<LoginEvent, LoginRequest> loginBus = new TestBus<>();
-  TestBus<RootUIMessage, RootUIMessage> uiBus = new TestBus<>();
+  Bus<RootUIMessage, RootUIMessage> uiBus = new PipeBus<>();
+  TestObserver<RootUIMessage> uiSubscriber = TestObserver.create();
   Bus<ApiResponse, ApiRequest> sut; 
+  TestObserver<ApiResponse> apiSubscriber = TestObserver.create();
 
   @BeforeEach
   void setup(ClientAndServer client) {
@@ -49,43 +58,55 @@ public class HttpApiBusTest {
       loginBus,
       uiBus.out()
     );
+    sut.in().subscribe(apiSubscriber);
+    uiBus.in().subscribe(uiSubscriber);
   }
 
   @AfterEach
   void teardown() {
-
+    apiSubscriber.dispose();
+    uiSubscriber.dispose();
   }
 
   @Test @DisplayName("not authenticated")
-  void notAuth() {
+  void notAuth() throws Exception {
     client
       .when(request().withMethod(GET).withPath("/v1/quiz").withHeaders(header("p", "notauth")))
       .respond(response().withStatusCode(401));
-    emulLoginAs(new OutPerson("notauth", ""));
+    emulLoginAs(new OutPerson("noname", "notauth"));
     sut.out().accept(ApiRequest.GET_LIST);
-    assertThat(uiBus.poll()).isEqualTo(RootUIMessage.ACCESS_DENIED);
+    uiSubscriber.awaitCount(1);
+    uiSubscriber.assertValue(RootUIMessage.ACCESS_DENIED);
   }
 
   @Test @DisplayName("not logged in")
-  void notLoggedIn() {
+  void notLoggedIn() throws Exception {
     sut.out().accept(ApiRequest.GET_LIST);
-    assertThat(uiBus.poll()).isEqualTo(RootUIMessage.NOT_LOGGED_IN);
+    uiSubscriber.awaitCount(1);
+    uiSubscriber.assertValue(RootUIMessage.NOT_LOGGED_IN);
   }
 
   private void emulLoginAs(OutPerson user) {
     loginBus.emulInCT(new LoginEvent.Success(user.id(), user));
   }
 
+  private String toJson(Object object) {
+    try {
+      return mapper.writeValueAsString(object);
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
   @Test @DisplayName("get list")
-  void getList() {
+  void getList() throws Exception {
     client
       .when(request().withMethod(GET).withPath("/v1/quiz").withHeaders(header("p", "author1")))
-      .respond(response().withStatusCode(200).withBody(json(TestData.list)));
+      .respond(response().withStatusCode(200).withBody(toJson(TestData.list)));
     emulLoginAs(TestData.author1);
-    val sub = TestSubscriber.<ApiResponse>create();
     sut.out().accept(ApiRequest.GET_LIST);
-    sub.awaitCount(1);
-    sub.assertValue(new ApiResponse.QuizList(TestData.list));
+    apiSubscriber.awaitCount(1);
+    apiSubscriber.assertValue(new ApiResponse.QuizList(TestData.list));
   }
 
 

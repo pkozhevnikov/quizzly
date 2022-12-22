@@ -7,8 +7,12 @@ import lombok.*;
 
 public interface ApiRequest {
 
-  ApiRequest GET_LIST = new ApiRequest() {};
-  ApiRequest GET_STAFF = new ApiRequest() {};
+  ApiRequest GET_LIST = new ApiRequest() {
+    @Override public String toString() { return "GET_LIST"; }
+  };
+  ApiRequest GET_STAFF = new ApiRequest() {
+    @Override public String toString() { return "GET_STAFF"; }
+  };
 
   @Value
   class GetQuiz implements ApiRequest {
