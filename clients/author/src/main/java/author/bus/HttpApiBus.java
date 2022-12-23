@@ -120,43 +120,47 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
     }
   }
 
-  private CompletableFuture<ApiResponse> process(ApiRequest request) {
-    val call = forRequest(request);
-    if (call == null) {
-      log.warn("call for {} not declared", request);
-      return CompletableFuture.completedFuture(NO_RESPONSE);
-    }
-    return client.sendAsync(
-        call.request.apply(request).header("p", user.id()).build(), 
-        HttpResponse.BodyHandlers.ofInputStream()
-      ).thenApply(resp -> {
-        val fun = Optional.ofNullable(call.responses.get(resp.statusCode()))
-          .map(f -> {
-            log.debug("found resp mapper for {} {}", resp.statusCode(), request);
-            return f;
+  @SuppressWarnings("unchecked")
+  private <Req extends ApiRequest> CompletableFuture<ApiResponse> process(Req request) {
+    return calls.stream().filter(c -> c.matcher.test(request)).findAny()
+      .map(call -> (Call<Req>) call)
+      .map(call -> {
+        return client.sendAsync(
+            call.request.apply(request).header("p", user.id()).build(), 
+            HttpResponse.BodyHandlers.ofInputStream()
+          ).thenApply(resp -> {
+            val fun = Optional.ofNullable(call.responses.get(resp.statusCode()))
+              .map(f -> {
+                log.debug("found resp mapper for {} {}", resp.statusCode(), request);
+                return f;
+              })
+              .orElse((req, is) -> {
+                switch (resp.statusCode()) {
+                  case 401:
+                    log.debug("send error on 401");
+                    errorOut.accept(RootUIMessage.ACCESS_DENIED);
+                    break;
+                  case 422:
+                    errorOut.accept(new RootUIMessage.ApiError(json(is, OutError.class)));
+                    break;
+                  default:
+                    log.warn("unprocessed status code {} for {}", resp.statusCode(), request);
+                }
+                return NO_RESPONSE;
+              });
+            val result = fun.apply(request, resp.body());
+            log.debug("mapped response to {}", result);
+            return result;
           })
-          .orElse((req, is) -> {
-            switch (resp.statusCode()) {
-              case 401:
-                log.debug("send error on 401");
-                errorOut.accept(RootUIMessage.ACCESS_DENIED);
-                break;
-              case 422:
-                errorOut.accept(new RootUIMessage.ApiError(json(is, OutError.class)));
-                break;
-              default:
-                log.warn("unprocessed status code {} for {}", resp.statusCode(), request);
-            }
+          .exceptionally(ex -> {
+            log.error("processing error", ex);
+            errorOut.accept(new RootUIMessage.ProcessingError(ex));
             return NO_RESPONSE;
           });
-        val result = fun.apply(request, resp.body());
-        log.debug("mapped response to {}", result);
-        return result;
       })
-      .exceptionally(ex -> {
-        log.error("processing error", ex);
-        errorOut.accept(new RootUIMessage.ProcessingError(ex));
-        return NO_RESPONSE;
+      .orElseGet(() -> {
+        log.warn("call for {} not declared", request);
+        return CompletableFuture.completedFuture(NO_RESPONSE);
       });
   }
 
@@ -176,48 +180,133 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
     return HttpRequest.newBuilder().uri(uri(path, segments));
   }
 
-  @SuppressWarnings("unchecked")
-  private <Req extends ApiRequest> Call<Req> forRequest(ApiRequest req) {
-    if (req == GET_LIST) 
-      return (Call<Req>) new Call<ApiRequest>(
-        r -> reqBuilder("/quiz").GET(),
-        Map.of(
-          200, (r, is) -> new QuizList(jsonList(is, OutQuizListed.class))
-        )
-      );
-    else if (req instanceof GetQuiz) 
-      return (Call<Req>) new Call<GetQuiz>(
-        r -> reqBuilder("/quiz/{}", r.id()).GET(),
-        Map.of(
-          200, (r, is) -> new FullQuiz(json(is, OutFullQuiz.class))
-        )
-      );
-    else if (req instanceof Create)
-      return (Call<Req>) new Call<Create>(
-        r -> reqBuilder("/quiz").header("content-type", "application/json")
-          .POST(HttpRequest.BodyPublishers.ofByteArray(toJson(new InCreateQuiz(
-            r.id(), r.title(), "", 30, r.authors(), r.inspectors())))),
-        Map.of(
-          200, (r, is) -> {
-            val details = json(is, OutCreateDetails.class);
-            return new QuizAdded(new OutQuizListed(r.id(), r.title(), false,
-              user, details.authors(), details.inspectors(), "Composing"));
-          }
-        )
-      );
-    else if (req == GET_STAFF)
-      return (Call<Req>) new Call<ApiRequest>(
-        r -> reqBuilder("/staff").GET(),
-        Map.of(
-          200, (r, is) -> new PersonList(jsonList(is, OutPerson.class))
-        )
-      );
-      
-    return null;
-  }
+  private List<Call<?>> calls = List.of(
+
+    new Call<ApiRequest>(
+      r -> r == GET_LIST,
+      r -> reqBuilder("/quiz").GET(),
+      Map.of(200, (r, is) -> new QuizList(jsonList(is, OutQuizListed.class)))
+    ),
+
+    new Call<GetQuiz>(
+      r -> r instanceof GetQuiz,
+      r -> reqBuilder("/quiz/{}", r.id()).GET(),
+      Map.of(200, (r, is) -> new FullQuiz(json(is, OutFullQuiz.class)))
+    ),
+
+    new Call<Create>(
+      r -> r instanceof Create,
+      r -> reqBuilder("/quiz").header("content-type", "application/json")
+        .POST(HttpRequest.BodyPublishers.ofByteArray(toJson(new InCreateQuiz(
+          r.id(), r.title(), "", 30, r.authors(), r.inspectors())))),
+      Map.of(
+        200, (r, is) -> {
+          val details = json(is, OutCreateDetails.class);
+          return new QuizAdded(new OutQuizListed(r.id(), r.title(), false,
+            user, details.authors(), details.inspectors(), "Composing"));
+        }
+      )
+    ),
+
+    new Call<UpdateQuiz>(
+      r -> r instanceof UpdateQuiz,
+      r -> reqBuilder("/quiz/{}", r.quizId()).header("content-type", "application/json")
+        .PUT(HttpRequest.BodyPublishers.ofByteArray(toJson(new InUpdateQuiz(
+          r.title(), r.intro(), r.recommendedLength())))),
+      Map.of(204, (r, is) -> NO_RESPONSE)
+    ),
+
+    new Call<ApiRequest>(
+      r -> r == GET_STAFF,
+      r -> reqBuilder("/staff").GET(),
+      Map.of(200, (r, is) -> new PersonList(jsonList(is, OutPerson.class)))
+    ),
+
+    new Call<SetObsolete>(
+      r -> r instanceof SetObsolete,
+      r -> reqBuilder("/quiz/{}", r.quizId()).DELETE(),
+      Map.of(204, (r, is) -> new GotObsolete(r.quizId()))
+    ),
+
+    new Call<AddAuthor>(
+      r -> r instanceof AddAuthor,
+      r -> reqBuilder("/quiz/{}/authors/{}", r.quizId(), r.personId())
+        .method("PATCH", HttpRequest.BodyPublishers.noBody()),
+      Map.of(204, (r, is) -> new AuthorAdded(r.quizId(), r.personId()))
+    ),
+
+    new Call<RemoveAuthor>(
+      r -> r instanceof RemoveAuthor,
+      r -> reqBuilder("/quiz/{}/authors/{}", r.quizId(), r.personId()).DELETE(),
+      Map.of(204, (r, is) -> new AuthorRemoved(r.quizId(), r.personId()))
+    ),
+
+    new Call<AddInspector>(
+      r -> r instanceof AddInspector,
+      r -> reqBuilder("/quiz/{}/inspectors/{}", r.quizId(), r.personId())
+        .method("PATCH", HttpRequest.BodyPublishers.noBody()),
+      Map.of(204, (r, is) -> new InspectorAdded(r.quizId(), r.personId()))
+    ),
+
+    new Call<RemoveInspector>(
+      r -> r instanceof RemoveInspector,
+      r -> reqBuilder("/quiz/{}/inspectors/{}", r.quizId(), r.personId()).DELETE(),
+      Map.of(204, (r, is) -> new InspectorRemoved(r.quizId(), r.personId()))
+    ),
+
+    new Call<CreateSection>(
+      r -> r instanceof CreateSection,
+      r -> reqBuilder("/quiz/{}", r.quizId())
+        .header("content-type", "application/json")
+        .POST(HttpRequest.BodyPublishers.ofByteArray(toJson(new InCreateSection(r.title())))),
+      Map.of(200, (r, is) -> new SectionCreated(r.quizId(), json(is, String.class)))
+    ),
+
+    new Call<MoveSection>(
+      r -> r instanceof MoveSection,
+      r -> reqBuilder("/section/{}?qid={}&up={}", r.sc(), r.quizId(), String.valueOf(r.up()))
+        .method("PATCH", HttpRequest.BodyPublishers.noBody()),
+      Map.of(200, (r, is) -> new SectionMoved(r.quizId(), json(is, OutStrList.class).list()))
+    ),
+
+    new Call<RemoveSection>(
+      r -> r instanceof RemoveSection,
+      r -> reqBuilder("/section/{}?qid={}", r.sc(), r.quizId()).DELETE(),
+      Map.of(204, (r, is) -> new SectionRemoved(r.quizId(), r.sc()))
+    ),
+
+    new Call<SetReady>(
+      r -> r instanceof SetReady,
+      r -> reqBuilder("/quiz/{}/ready", r.quizId())
+        .method("PATCH", HttpRequest.BodyPublishers.noBody()),
+      Map.of(204, (r, is) -> new ReadySet(r.quizId(), user.id()))
+    ),
+
+    new Call<UnsetReady>(
+      r -> r instanceof UnsetReady,
+      r -> reqBuilder("/quiz/{}/ready", r.quizId()).DELETE(),
+      Map.of(204, (r, is) -> new ReadyUnset(r.quizId(), user.id()))
+    ),
+
+    new Call<Approve>(
+      r -> r instanceof Approve,
+      r -> reqBuilder("/quiz/{}/resolve", r.quizId())
+        .method("PATCH", HttpRequest.BodyPublishers.noBody()),
+      Map.of(204, (r, is) -> new Approved(r.quizId(), user.id()))
+    ),
+
+    new Call<Disapprove>(
+      r -> r instanceof Disapprove,
+      r -> reqBuilder("/quiz/{}/resolve", r.quizId()).DELETE(),
+      Map.of(204, (r, is) -> new Disapproved(r.quizId(), user.id()))
+    )
+
+  );
+  
 
   @lombok.AllArgsConstructor
   private static class Call<Req extends ApiRequest> {
+    private Predicate<ApiRequest> matcher;
     private Function<Req, HttpRequest.Builder> request;
     private Map<Integer, BiFunction<Req, InputStream, ApiResponse>> responses;
   }

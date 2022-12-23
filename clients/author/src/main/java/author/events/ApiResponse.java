@@ -77,5 +77,15 @@ public interface ApiResponse {
     String quizId;
     String sc;
   }
+  @Value
+  class SectionMoved implements WithQuizId {
+    String quizId;
+    List<String> scs;
+  }
+  @Value
+  class SectionRemoved implements WithQuizId {
+    String quizId;
+    String sc;
+  }
 }
 

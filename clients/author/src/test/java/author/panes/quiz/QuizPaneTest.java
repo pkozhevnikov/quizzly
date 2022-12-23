@@ -117,7 +117,7 @@ class QuizPaneTest {
     putQuizForUser(TestData.fullQuiz1, TestData.author1);
     val go = robot.from(robot.lookup("section 3 title").query().getParent()).lookup(".section-up").query();
     robot.clickOn(go);
-    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.MoveSection("q1-3", true));
+    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.MoveSection("q1", "q1-3", true));
   }
 
   @Test @DisplayName("sends section down request on link click")
@@ -125,7 +125,7 @@ class QuizPaneTest {
     putQuizForUser(TestData.fullQuiz1, TestData.author1);
     val go = robot.from(robot.lookup("section 1 title").query().getParent()).lookup(".section-down").query();
     robot.clickOn(go);
-    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.MoveSection("q1-1", false));
+    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.MoveSection("q1", "q1-1", false));
   }
 
   @Test @DisplayName("sends remove section request on link click")
@@ -196,7 +196,7 @@ class QuizPaneTest {
         .press(KeyCode.CONTROL).type(KeyCode.A).release(KeyCode.CONTROL).write("93")
       .clickOn(lu.button("#saveChanges"))
       ;
-    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.UpdateQuiz("title plus", "intro plus", 93));
+    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.UpdateQuiz("q1", "title plus", "intro plus", 93));
   }
 
 

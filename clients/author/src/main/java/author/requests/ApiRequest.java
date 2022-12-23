@@ -53,6 +53,7 @@ public interface ApiRequest {
 
   @Value
   class MoveSection implements ApiRequest {
+    String quizId;
     String sc;
     boolean up;
   }
@@ -64,6 +65,7 @@ public interface ApiRequest {
 
   @Value
   class UpdateQuiz implements ApiRequest {
+    String quizId;
     String title;
     String intro;
     int recommendedLength;
