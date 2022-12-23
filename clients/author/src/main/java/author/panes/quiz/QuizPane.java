@@ -142,6 +142,18 @@ public class QuizPane implements FxmlController {
     apiBus.in().ofType(ApiResponse.SectionCreated.class)
       .filter(e -> e.quizId().equals(quiz.id()))
       .subscribe(e -> showCreateSection());
+    apiBus.in().ofType(ApiResponse.SectionMoved.class)
+      .filter(e -> e.quizId().equals(quiz.id()))
+      .subscribe(e -> {
+        val temp = new ArrayList<>(sections.getItems());
+        sections.getItems().clear();
+        for (String sc : e.scs()) 
+          temp.stream().filter(s -> s.sc().equals(sc)).findAny()
+            .ifPresent(sections.getItems()::add);
+      });
+    apiBus.in().ofType(ApiResponse.SectionRemoved.class)
+      .filter(e -> e.quizId().equals(quiz.id()))
+      .subscribe(e -> sections.getItems().removeIf(s -> s.sc().equals(e.sc())));
   }
 
   private <T extends ApiResponse.WithQuizId & ApiResponse.WithPersonId> void listenReadySign(

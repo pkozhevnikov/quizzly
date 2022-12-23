@@ -128,6 +128,24 @@ class QuizPaneTest {
     assertThat(apiBus.poll()).isEqualTo(new ApiRequest.MoveSection("q1", "q1-1", false));
   }
 
+  @Test @DisplayName("reacts on section move")
+  void onSectionMoved(FxRobot robot) {
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
+    apiBus.emulIn(new ApiResponse.SectionMoved("q2", List.of("q1-2", "q1-1", "q1-3")));
+    assertThat(robot.lookup("#sections").queryTableView().getItems().get(1)).isNotEqualTo(TestData.section1);
+    apiBus.emulIn(new ApiResponse.SectionMoved("q1", List.of("q1-2", "q1-1", "q1-3")));
+    assertThat(robot.lookup("#sections").queryTableView().getItems().get(1)).isEqualTo(TestData.section1);
+  }
+
+  @Test @DisplayName("reacts on section remove")
+  void onSectionRemoved(FxRobot robot) {
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
+    apiBus.emulIn(new ApiResponse.SectionRemoved("q2", "q1-2"));
+    assertThat(robot.lookup("#sections").queryTableView().getItems()).contains(TestData.section2);
+    apiBus.emulIn(new ApiResponse.SectionRemoved("q1", "q1-2"));
+    assertThat(robot.lookup("#sections").queryTableView().getItems()).doesNotContain(TestData.section2);
+  }
+
   @Test @DisplayName("sends remove section request on link click")
   void sectionRemove(FxRobot robot) {
     putQuizForUser(TestData.fullQuiz1, TestData.author1);
