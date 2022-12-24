@@ -102,5 +102,10 @@ public interface ApiResponse {
     String sectionSC;
     List<String> scs;
   }
+  @Value
+  class SectionOwned implements WithQuizId {
+    String quizId;
+    String sc;
+  }
 }
 

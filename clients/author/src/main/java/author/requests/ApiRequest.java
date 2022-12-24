@@ -123,5 +123,10 @@ public interface ApiRequest {
   class DischargeSection implements ApiRequest {
     String sectionSC;
   }
+  @Value
+  class OwnSection implements ApiRequest {
+    String quizId;
+    String sc;
+  }
 }
 

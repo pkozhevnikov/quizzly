@@ -346,7 +346,29 @@ public class HttpApiBusTest {
     assertApiEvent(res);
   }
 
-  
+  @Test @DisplayName("update section")
+  void updateSection() {
+    client
+      .when(request().withMethod(PUT).withPath("/v1/section/q1-1").withHeaders(header("p", "author1"))
+          .withBody(toJson(new InUpdateSection("title plus", "intro plus"))))
+      .respond(response().withStatusCode(204));
+    emulLoginAs(TestData.author1);
+    sut.out().accept(new ApiRequest.UpdateSection("q1-1", "title plus", "intro plus"));
+    assertNoUiEvents();
+    assertNoApiEvents();
+  }
+
+  @Test @DisplayName("own section")
+  void ownSection() {
+    client
+      .when(request().withMethod(PATCH).withPath("/v1/quiz/q1").withHeaders(header("p", "author1"))
+        .withQueryStringParameter("sc", "q1-1"))
+      .respond(response().withStatusCode(204));
+    emulLoginAs(TestData.author1);
+    sut.out().accept(new ApiRequest.OwnSection("q1", "q1-1"));
+    assertNoApiEvents();
+    assertApiEvent(new ApiResponse.SectionOwned("q1", "q1-1"));
+  }
 
 
 
