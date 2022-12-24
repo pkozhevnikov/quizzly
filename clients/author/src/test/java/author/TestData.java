@@ -31,21 +31,21 @@ public class TestData {
 
   public static OutItem item1 = new OutItem("1", "item 1 intro", 
     new OutStatement("item 1 definition", null), List.of(
-      new OutStatement("item 1 hint 1", null),
-      new OutStatement("item 1 hint 2", null),
-      new OutStatement("item 1 hint 3", null)
+      List.of(new OutStatement("item 1 hint 1", null)),
+      List.of(new OutStatement("item 1 hint 2", null)),
+      List.of(new OutStatement("item 1 hint 3", null))
     ), false, List.of(0, 2));
   public static OutItem item2 = new OutItem("2", "item 2 intro", 
     new OutStatement("item 2 definition", null), List.of(
-      new OutStatement("item 2 hint 1", null),
-      new OutStatement("item 2 hint 2", null),
-      new OutStatement("item 2 hint 3", null)
+      List.of(new OutStatement("item 2 hint 1", null)),
+      List.of(new OutStatement("item 2 hint 2", null)),
+      List.of(new OutStatement("item 2 hint 3", null))
     ), true, List.of(2));
   public static OutItem item3 = new OutItem("3", "item 3 intro", 
     new OutStatement("item 3 definition", null), List.of(
-      new OutStatement("item 3 hint 1", null),
-      new OutStatement("item 3 hint 2", null),
-      new OutStatement("item 3 hint 3", null)
+      List.of(new OutStatement("item 3 hint 1", null)),
+      List.of(new OutStatement("item 3 hint 2", null)),
+      List.of(new OutStatement("item 3 hint 3", null))
     ), false, List.of(1));
 
 

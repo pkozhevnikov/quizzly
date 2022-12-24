@@ -12,7 +12,7 @@ public class OutItem {
     String sc;
     String intro;
     OutStatement definition;
-    List<OutStatement> hints;
+    List<List<OutStatement>> hints;
     boolean hintsVisible;
     List<Integer> solutions;
 

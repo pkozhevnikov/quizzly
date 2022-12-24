@@ -7,17 +7,31 @@ import javafx.scene.layout.StackPane;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 
+import javafx.application.Platform;
+
 public class FormViewer extends Application {
 
   @Override
   public void start(Stage stage) throws Exception {
     String path = getParameters().getUnnamed().get(0);
-    FXMLLoader loader = new FXMLLoader(getClass().getResource(path + ".fxml"));
-    loader.setController(new NopController());
-    Node node = loader.load();
+    Node node = null;
+    if (path.contains(".")) {
+      try {
+        node = (Node) Class.forName(path).newInstance();
+      } catch (Exception ex) {
+        ex.printStackTrace();
+        Platform.exit();
+      }
+    } else {
+      FXMLLoader loader = new FXMLLoader(getClass().getResource(path + ".fxml"));
+      loader.setController(new NopController());
+      node = loader.load();
+    }
 
     StackPane pane = new StackPane(node);
-    stage.setScene(new Scene(pane, 1000, 700));
+    Scene scene = new Scene(pane, 1000, 700);
+    scene.getStylesheets().add("/author/common.css");
+    stage.setScene(scene);
     stage.setTitle("form viewer");
     stage.show();
   }

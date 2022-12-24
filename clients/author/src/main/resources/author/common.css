@@ -22,3 +22,30 @@
   -fx-graphic: url("logout.png");
 }
 
+.alt .btn {
+  visibility: hidden;
+}
+.alt:hover .btn {
+  visibility: visible;
+}
+
+.checked {
+  -fx-background-color: darkgray;
+  -fx-text-fill: white;
+}
+
+.hint-alternative .button {
+  visibility: hidden;
+}
+.hint-alternative:hover .button {
+  visibility: visible;
+}
+.plus {
+  -fx-graphic: url('plus.png');
+  -fx-padding: 2;
+}
+.minus {
+  -fx-graphic: url('minus.png');
+  -fx-padding: 2;
+}
+
