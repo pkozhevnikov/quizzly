@@ -118,9 +118,9 @@ class SectionPaneTest {
   }
 
   @Test @DisplayName("reacts on item move")
-  void itemMoved(FxRobot robot) {
+  void itemMoved(FxRobot robot) throws Exception {
     putTestSection();
-    apiBus.emulIn(new ApiResponse.ItemMoved("q1-1", List.of("2, 1, 3")));
+    apiBus.emulIn(new ApiResponse.ItemMoved("q1-1", List.of("2", "1", "3")));
     assertThat(itemDefinition(0, robot)).hasText("item 2 definition");
     assertThat(itemDefinition(1, robot)).hasText("item 1 definition");
     assertThat(itemDefinition(2, robot)).hasText("item 3 definition");

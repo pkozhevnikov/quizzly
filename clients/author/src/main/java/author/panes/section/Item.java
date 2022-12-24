@@ -56,6 +56,10 @@ public class Item extends VBox {
   private String sectionSC;
   private String sc;
 
+  String getSC() {
+    return sc;
+  }
+
   private OutItem getItem() {
     val solutions = new ArrayList<Integer>();
     val hintLists = new ArrayList<List<OutStatement>>();

@@ -4,6 +4,10 @@ import javafx.geometry.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Optional;
+
 import author.dtos.*;
 import author.util.*;
 import author.messages.MainUIMessage;
@@ -63,10 +67,37 @@ public class SectionPane extends VBox {
 
     uiBus.in().ofType(MainUIMessage.EditSection.class).subscribe(this::editSection);
 
+    save.setOnAction(e -> apiBus.out().accept(new ApiRequest.UpdateSection(
+      sc, title.getText(), intro.getText())));
+    addItem.setOnAction(e -> apiBus.out().accept(new ApiRequest.AddItem(sc)));
+    discharge.setOnAction(e -> apiBus.out().accept(new ApiRequest.DischargeSection(sc)));
+    apiBus.in().ofType(ApiResponse.ItemAdded.class)
+      .filter(e -> e.sectionSC().equals(sc))
+      .subscribe(e -> itemsBox.getChildren().add(new Item(
+        sc, new OutItem(e.sc(), "", 
+          new OutStatement("", null), Collections.emptyList(), false, Collections.emptyList()),
+        apiBus.out()::accept)));
+    apiBus.in().ofType(ApiResponse.ItemRemoved.class)
+      .filter(e -> e.sectionSC().equals(sc))
+      .subscribe(e -> itemsBox.getChildren().removeIf(item -> ((Item) item).getSC().equals(e.sc())));
+    apiBus.in().ofType(ApiResponse.ItemMoved.class)
+      .filter(e -> e.sectionSC().equals(sc))
+      .subscribe(e -> {
+        val items = new ArrayList<>(itemsBox.getChildren());
+        itemsBox.getChildren().clear();
+        e.scs().stream().map(sc -> items.stream().map(Item.class::cast)
+          .filter(i -> i.getSC().equals(sc)).findAny())
+          .filter(Optional::isPresent).map(Optional::get)
+          .forEach(itemsBox.getChildren()::add);
+      });
+
   }
+
+  private String sc;
 
   private void editSection(MainUIMessage.EditSection e) {
     val section = e.section();
+    this.sc = section.sc();
     title.setText(section.title());
     intro.setText(section.intro());
     itemsBox.getChildren().clear();
