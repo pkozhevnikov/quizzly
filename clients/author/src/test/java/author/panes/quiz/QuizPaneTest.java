@@ -104,7 +104,7 @@ class QuizPaneTest {
       TestData.section1, TestData.section2, TestData.section3);
   } 
 
-  @Test @DisplayName("sends edit request on link click")
+  @Test @DisplayName("sends edit section request on link click")
   void editClick(FxRobot robot) {
     putQuizForUser(TestData.fullQuiz1, TestData.author1);
     val go = robot.from(robot.lookup("section 2 title").query().getParent()).lookup(".edit-section").query();
