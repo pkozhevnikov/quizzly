@@ -109,5 +109,19 @@ public interface ApiRequest {
     String itemSC;
     boolean up;
   }
+  @Value
+  class UpdateSection implements ApiRequest {
+    String sectionSC;
+    String title;
+    String intro;
+  }
+  @Value
+  class AddItem implements ApiRequest {
+    String sectionSC;
+  }
+  @Value 
+  class DischargeSection implements ApiRequest {
+    String sectionSC;
+  }
 }
 

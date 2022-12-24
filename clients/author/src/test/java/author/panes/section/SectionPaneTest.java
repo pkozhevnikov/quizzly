@@ -51,11 +51,79 @@ class SectionPaneTest {
     stage.show();
   }
 
+  void putTestSection() {
+    uiBus.emulIn(new MainUIMessage.EditSection(TestData.section1));
+  }
+
+
   @Test @DisplayName("sets data correctly")
   void setData(FxRobot robot) throws Exception {
-    uiBus.emulIn(new MainUIMessage.EditSection(TestData.section1));
+    putTestSection();
     assertThat(robot.lookup("#title").queryTextInputControl()).hasText("section 1 title");
     assertThat(robot.lookup("#intro").queryTextInputControl()).hasText("section 1 intro");
+    assertThat(robot.lookup("#itemsBox").queryParent()).hasExactlyNumChildren(3);
+    assertThat(robot.lookup(".item").nth(0).lookup("#definition").queryTextInputControl())
+      .hasText("item 1 definition");
+  }
+
+  @Test @DisplayName("sends correct request on save click")
+  void saveChanges(FxRobot robot) throws Exception {
+    putTestSection();
+    robot
+      .clickOn("#title").press(KeyCode.CONTROL).type(KeyCode.A).release(KeyCode.CONTROL)
+        .write("title plus")
+      .clickOn("#intro").press(KeyCode.CONTROL).type(KeyCode.A).release(KeyCode.CONTROL)
+        .write("intro plus")
+      .clickOn("Save changes")
+      ;
+    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.UpdateSection("q1-1", "title plus", "intro plus"));
+  }
+
+  @Test @DisplayName("sends add item request")
+  void addItemRequest(FxRobot robot) {
+    putTestSection();
+    robot.clickOn("Add item");
+    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.AddItem("q1-1"));
+  }
+
+  @Test @DisplayName("reacts on add item response")
+  void addItemResponse(FxRobot robot) {
+    putTestSection();
+    apiBus.emulIn(new ApiResponse.ItemAdded("q1-1", "q1-1-4"));
+    assertThat(robot.lookup("#itemsBox").queryParent()).hasExactlyNumChildren(4);
+    assertThat(robot.lookup(".item").nth(3).lookup("#definition").queryTextInputControl()).hasText("");
+  }
+
+  @Test @DisplayName("sends discharge request")
+  void dischargeRequest(FxRobot robot) {
+    putTestSection();
+    robot.clickOn("Discharge");
+    assertThat(apiBus.poll()).isEqualTo(new ApiRequest.DischargeSection("q1-1"));
+  }
+
+  @Test @DisplayName("reacts on item removal response")
+  void removeItem(FxRobot robot) {
+    putTestSection();
+    assertThat(robot.lookup("#itemsBox").queryParent()).hasExactlyNumChildren(3);
+    apiBus.emulIn(new ApiResponse.ItemRemoved("q2-1", "2"));
+    assertThat(robot.lookup("#itemsBox").queryParent()).hasExactlyNumChildren(3);
+    apiBus.emulIn(new ApiResponse.ItemRemoved("q1-1", "2"));
+    assertThat(robot.lookup("#itemsBox").queryParent()).hasExactlyNumChildren(2);
+    assertThat(itemDefinition(0, robot)).hasText("item 1 definition");
+    assertThat(itemDefinition(1, robot)).hasText("item 3 definition");
+  }
+
+  TextInputControl itemDefinition(int itemIndex, FxRobot robot) {
+    return robot.lookup(".item").nth(itemIndex).lookup("#definition").queryTextInputControl();
+  }
+
+  @Test @DisplayName("reacts on item move")
+  void itemMoved(FxRobot robot) {
+    putTestSection();
+    apiBus.emulIn(new ApiResponse.ItemMoved("q1-1", List.of("2, 1, 3")));
+    assertThat(itemDefinition(0, robot)).hasText("item 2 definition");
+    assertThat(itemDefinition(1, robot)).hasText("item 1 definition");
+    assertThat(itemDefinition(2, robot)).hasText("item 3 definition");
   }
 
 }

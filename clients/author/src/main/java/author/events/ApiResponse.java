@@ -87,5 +87,20 @@ public interface ApiResponse {
     String quizId;
     String sc;
   }
+  @Value
+  class ItemAdded implements ApiResponse {
+    String sectionSC;
+    String sc;
+  }
+  @Value
+  class ItemRemoved implements ApiResponse {
+    String sectionSC;
+    String sc;
+  }
+  @Value
+  class ItemMoved implements ApiResponse {
+    String sectionSC;
+    List<String> scs;
+  }
 }
 

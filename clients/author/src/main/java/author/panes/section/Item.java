@@ -2,6 +2,7 @@ package author.panes.section;
 
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.geometry.*;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -17,9 +18,13 @@ public class Item extends VBox {
 
   public Item(String sectionSC, OutItem data, Consumer<ApiRequest> apiCommands) {
     setSpacing(10);
+    setPadding(new Insets(0, 0, 20, 0));
+    getStyleClass().add("item");
 
     definition = new TextArea();
     definition.setId("definition");
+    definition.setPrefHeight(100);
+    definition.setMinHeight(100);
     hints = new VBox();
     hints.setId("hints");
     hints.setSpacing(10);
@@ -34,9 +39,10 @@ public class Item extends VBox {
     val remove = new Button("Remove");
     HBox buttons = new HBox();
     buttons.setSpacing(10);
+    buttons.setAlignment(Pos.CENTER_LEFT);
     buttons.getChildren().addAll(hintsVisible, addHint, save, moveUp, moveDown, remove);
 
-    getChildren().addAll(definition, hints, buttons);
+    getChildren().addAll(definition, hints, buttons, new Separator());
 
     addHint.setOnAction(e -> addHint());
     save.setOnAction(e -> apiCommands.accept(new ApiRequest.SaveItem(this.sectionSC, getItem())));

@@ -18,8 +18,15 @@ public class SectionPane extends VBox {
   private TextField title;
   private TextArea intro;
   private VBox itemsBox;
+  private ScrollPane scroll;
+
+  private Bus<ApiResponse, ApiRequest> apiBus;
+  private Bus<MainUIMessage, MainUIMessage> uiBus;
 
   public SectionPane(Bus<ApiResponse, ApiRequest> apiBus, Bus<MainUIMessage, MainUIMessage> uiBus) {
+    this.apiBus = apiBus;
+    this.uiBus = uiBus;
+
     setId("sectionPane");
 
     val top = new VBox();
@@ -29,11 +36,14 @@ public class SectionPane extends VBox {
     title.setId("title");
     title.setPromptText("Title");
     intro = new TextArea();
+    intro.setPrefHeight(100);
+    intro.setMinHeight(100);
     intro.setId("intro");
     intro.setPromptText("Intro");
     itemsBox = new VBox();
     itemsBox.setId("itemsBox");
-    val scroll = new ScrollPane(itemsBox);
+    itemsBox.setPadding(new Insets(20));
+    scroll = new ScrollPane(itemsBox);
     scroll.setFitToWidth(true);
     scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
     scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
@@ -51,6 +61,20 @@ public class SectionPane extends VBox {
     getChildren().addAll(top, scroll);
     setVgrow(scroll, Priority.ALWAYS);
 
+    uiBus.in().ofType(MainUIMessage.EditSection.class).subscribe(this::editSection);
+
+  }
+
+  private void editSection(MainUIMessage.EditSection e) {
+    val section = e.section();
+    title.setText(section.title());
+    intro.setText(section.intro());
+    itemsBox.getChildren().clear();
+    for (val data : section.items()) {
+      val item = new Item(section.sc(), data, apiBus.out());
+      itemsBox.getChildren().add(item);
+    }
+    scroll.setVvalue(0);
   }
 
 }
