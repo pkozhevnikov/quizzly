@@ -92,5 +92,22 @@ public interface ApiRequest {
     String quizId;
     String title;
   }
+
+  @Value
+  class SaveItem implements ApiRequest {
+    String sectionSC;
+    OutItem item;
+  }
+  @Value
+  class RemoveItem implements ApiRequest {
+    String sectionSC;
+    String itemSC;
+  }
+  @Value
+  class MoveItem implements ApiRequest {
+    String sectionSC;
+    String itemSC;
+    boolean up;
+  }
 }
 

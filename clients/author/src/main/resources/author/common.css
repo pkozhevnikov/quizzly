@@ -34,10 +34,10 @@
   -fx-text-fill: white;
 }
 
-.hint-alternative .button {
+.hint-alt .button {
   visibility: hidden;
 }
-.hint-alternative:hover .button {
+.hint-alt:hover .button {
   visibility: visible;
 }
 .plus {

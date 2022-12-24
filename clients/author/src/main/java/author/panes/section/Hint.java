@@ -28,10 +28,12 @@ public class Hint extends HBox {
     solution.setSelected(isSolution);
     setIndex(index);
     statements = new VBox();
+    statements.getStyleClass().add("alts");
     getChildren().addAll(solution, statements);
     setHgrow(statements, Priority.ALWAYS);
 
     ContextMenu menu = new ContextMenu();
+    menu.getStyleClass().add("hint-menu");
     MenuItem moveUp = new MenuItem("Move up");
     moveUp.setOnAction(e -> item.moveHintUp(getIndex()));
     MenuItem moveDown = new MenuItem("Move down");
@@ -68,7 +70,7 @@ public class Hint extends HBox {
     }
   }
 
-  private List<OutStatement> getAlternatives() {
+  List<OutStatement> getAlternatives() {
     return statements.getChildren().stream()
       .map(s -> new OutStatement(((Statement) s).text.getText(), null))
       .collect(Collectors.toList());
@@ -82,6 +84,10 @@ public class Hint extends HBox {
     }
   }
 
+  boolean isSolution() {
+    return solution.isSelected();
+  }
+
 
   private static class Statement extends HBox {
 
@@ -91,7 +97,7 @@ public class Hint extends HBox {
 
     private Statement(Hint hint, boolean first) {
       this.hint = hint;
-      getStyleClass().add("hint-alternative");
+      getStyleClass().add("hint-alt");
       text = new TextField();
       setHgrow(text, Priority.ALWAYS);
       button = new Button();

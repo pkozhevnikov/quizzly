@@ -4,69 +4,117 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.function.Consumer;
 
 import author.dtos.*;
+import author.requests.ApiRequest;
 
 import lombok.val;
 
 public class Item extends VBox {
 
-  public Item() {
-    this(new OutItem(
-      "itemSC",
-      "",
-      new OutStatement("some intro", null),
-      List.of(
-        List.of(
-          new OutStatement("hint 1 alt 1", null),
-          new OutStatement("hint 1 alt 2", null)
-        ),
-        List.of(
-          new OutStatement("hint 2 alt 1", null)
-        ),
-        List.of(
-          new OutStatement("hint 3 alt 1", null),
-          new OutStatement("hint 3 alt 2", null),
-          new OutStatement("hint 3 alt 3", null)
-        )
-      ),
-      true,
-      List.of(0, 2)
-    ));
-  }
 
-  Item(OutItem data) {
+  public Item(String sectionSC, OutItem data, Consumer<ApiRequest> apiCommands) {
     setSpacing(10);
 
-    val statement = new TextArea(data.definition().text());
-    val hints = new VBox();
+    definition = new TextArea();
+    definition.setId("definition");
+    hints = new VBox();
+    hints.setId("hints");
     hints.setSpacing(10);
 
+
+    hintsVisible = new CheckBox("Hints visible");
+    hintsVisible.setId("hintsVisible");
+    val addHint = new Button("Add hint");
+    val save = new Button("Save item");
+    val moveUp = new Button("Move up");
+    val moveDown = new Button("Move down");
+    val remove = new Button("Remove");
+    HBox buttons = new HBox();
+    buttons.setSpacing(10);
+    buttons.getChildren().addAll(hintsVisible, addHint, save, moveUp, moveDown, remove);
+
+    getChildren().addAll(definition, hints, buttons);
+
+    addHint.setOnAction(e -> addHint());
+    save.setOnAction(e -> apiCommands.accept(new ApiRequest.SaveItem(this.sectionSC, getItem())));
+    remove.setOnAction(e -> apiCommands.accept(new ApiRequest.RemoveItem(this.sectionSC, sc)));
+    moveUp.setOnAction(e -> apiCommands.accept(new ApiRequest.MoveItem(this.sectionSC, sc, true)));
+    moveDown.setOnAction(e -> apiCommands.accept(new ApiRequest.MoveItem(this.sectionSC, sc, false)));
+
+    setData(sectionSC, data);
+  }
+
+  private String sectionSC;
+  private String sc;
+
+  private OutItem getItem() {
+    val solutions = new ArrayList<Integer>();
+    val hintLists = new ArrayList<List<OutStatement>>();
+    int index = 0;
+    for (val c : hints.getChildren()) {
+      val hint = (Hint) c;
+      if (hint.isSolution())
+        solutions.add(index++);
+      hintLists.add(hint.getAlternatives());
+    }
+    return new OutItem(
+      sc,
+      "",
+      new OutStatement(definition.getText(), null),
+      hintLists,
+      hintsVisible.isSelected(),
+      solutions
+    );
+  }
+
+  void setData(String sectionSC, OutItem data) {
+    this.sectionSC = sectionSC;
+    sc = data.sc();
+    definition.setText(data.definition().text());
+    hintsVisible.setSelected(data.hintsVisible());
+    hints.getChildren().clear();
     int i = 0;
     for (val hint : data.hints()) {
       hints.getChildren().add(new Hint(this, i, data.solutions().contains(i++), hint));
     }
-
-    val hintsVisible = new CheckBox("Hints visible");
-    hintsVisible.setSelected(data.hintsVisible());
-    val save = new Button("Save item");
-    HBox buttons = new HBox();
-    buttons.setSpacing(10);
-    buttons.getChildren().addAll(hintsVisible, save);
-
-    getChildren().addAll(statement, hints, buttons);
   }
 
+  private void addHint() {
+    hints.getChildren().add(new Hint(this, hints.getChildren().size(), false, List.of()));
+  }
+
+  private TextArea definition;
+  private VBox hints;
+  private CheckBox hintsVisible;
+
   void removeHint(int index) {
-    System.out.println("remove " + index);
+    hints.getChildren().remove(index);
+    updateIndexes();
+  }
+
+  private void updateIndexes() {
+    int i = 0;
+    for (val c : hints.getChildren())
+      ((Hint) c).setIndex(i++);
   }
 
   void moveHintUp(int index) {
-    System.out.println("move up " + index);
+    if (index == 0) return;
+    val c = hints.getChildren().get(index);
+    hints.getChildren().remove(index);
+    hints.getChildren().add(index - 1, c);
+    updateIndexes();
   }
 
   void moveHintDown(int index) {
-    System.out.println("move down " + index);
+    if (index == hints.getChildren().size() - 1) return;
+    val c = hints.getChildren().get(index);
+    hints.getChildren().remove(index);
+    hints.getChildren().add(index + 1, c);
+    updateIndexes();
   }
 
 }
