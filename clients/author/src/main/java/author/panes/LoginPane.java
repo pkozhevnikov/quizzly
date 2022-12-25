@@ -5,18 +5,17 @@ import javafx.scene.control.*;
 import javafx.geometry.*;
 import javafx.event.*;
 
-import java.util.function.Consumer;
-
 import author.events.LoginEvent;
 import author.requests.LoginRequest;
-
-import io.reactivex.rxjava3.core.Observable;
+import author.util.Bus;
 
 import static org.pdfsam.rxjavafx.observables.JavaFxObservable.*;
 
+import lombok.val;
+
 public class LoginPane extends VBox {
 
-  public LoginPane(Observable<LoginEvent> events, Consumer<LoginRequest> requests) {
+  public LoginPane(Bus<LoginEvent, LoginRequest> loginBus) {
     super();
     setPadding(new Insets(20, 20, 20, 20));
     setSpacing(10);
@@ -38,19 +37,19 @@ public class LoginPane extends VBox {
     elems.getChildren().addAll(username, password, button);
     getChildren().addAll(message, elems);
 
-    Observable<ActionEvent> click = actionEventsOf(button);
+    val click = actionEventsOf(button);
     click.subscribe(e -> {
-      requests.accept(new LoginRequest.Login(username.getText(), password.getText()));
+      loginBus.out().accept(new LoginRequest.Login(username.getText(), password.getText()));
       message.setText(null);
       password.setText(null);
       button.setDisable(true);
     });
 
-    events.ofType(LoginEvent.Success.class).subscribe(e -> {
+    loginBus.in().ofType(LoginEvent.Success.class).subscribe(e -> {
       message.setText("Logged in successfully");
       message.setStyle("-fx-text-fill:green");
     });
-    events.ofType(LoginEvent.Failure.class).subscribe(e -> {
+    loginBus.in().ofType(LoginEvent.Failure.class).subscribe(e -> {
       message.setText("Wrong username or password");
       message.setStyle("-fx-text-fill:red");
       button.setDisable(false);

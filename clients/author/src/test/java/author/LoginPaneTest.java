@@ -25,42 +25,25 @@ import java.util.function.Consumer;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import author.testutil.*;
+
 import author.panes.LoginPane;
 import author.events.LoginEvent;
 import author.requests.LoginRequest;
+
+import lombok.val;
 
 @ExtendWith(ApplicationExtension.class)
 @DisplayName("Login pane")
 class LoginPaneTest {
 
-  private LoginPane sut;
-
-  private PublishSubject<LoginEvent> loginEvents = PublishSubject.create();
-  private Queue<LoginRequest> requestsQueue = new LinkedList<>();
-  private Consumer<LoginRequest> requests = r -> requestsQueue.offer(r);
+  private TestBus<LoginEvent, LoginRequest> loginBus = new TestBus<>();
 
   @Start
   private void start(Stage stage) {
-    sut = new LoginPane(loginEvents, requests);
+    val sut = new LoginPane(loginBus);
     stage.setScene(new Scene(sut));
     stage.show();
-  }
-
-  private TestObserver<LoginEvent> pushEvent(LoginEvent e) {
-    TestObserver<LoginEvent> testsub = TestObserver.create();
-    loginEvents.subscribe(testsub);
-    javafx.application.Platform.runLater(() -> loginEvents.onNext(e));
-    testsub.awaitCount(1);
-    testsub.dispose();
-    return testsub;
-  }
-
-  private static class Lookup {
-    private FxRobot robot;
-    Lookup(FxRobot robot) { this. robot = robot; }
-    Labeled label(String id) { return robot.lookup(id).queryLabeled(); }
-    TextInputControl input(String id) { return robot.lookup(id).queryTextInputControl(); }
-    Button button(String id) { return robot.lookup(id).queryButton(); }
   }
 
   @Test
@@ -68,7 +51,7 @@ class LoginPaneTest {
   void wrongCreds(FxRobot robot) throws Exception {
     Lookup lookup = new Lookup(robot);
     assertThat(lookup.label("#message").getText()).isEmpty();
-    pushEvent(new LoginEvent.Failure(""));
+    loginBus.emulIn(new LoginEvent.Failure(""));
     assertThat(lookup.input("#password").getText()).isNull();
     assertThat(lookup.button("#button")).isEnabled();
     assertThat(lookup.label("#message"))
@@ -81,7 +64,7 @@ class LoginPaneTest {
   void successLogin(FxRobot robot) {
     Labeled message = robot.lookup("#message").queryLabeled();
     assertThat(message.getText()).isEmpty();
-    pushEvent(new LoginEvent.Success("", TestData.author1));
+    loginBus.emulIn(new LoginEvent.Success("", TestData.author1));
     assertThat(message)
       .hasText("Logged in successfully")
       .hasStyle("-fx-text-fill:green");
@@ -99,7 +82,7 @@ class LoginPaneTest {
     assertThat(lu.button("#button")).isDisabled();
     assertThat(lu.input("#password").getText()).isNull();
     assertThat(lu.label("#message").getText()).isNull();
-    assertThat(requestsQueue.poll()).isEqualTo(new LoginRequest.Login("somename", "somepass"));
+    assertThat(loginBus.poll()).isEqualTo(new LoginRequest.Login("somename", "somepass"));
   }
 
 }
