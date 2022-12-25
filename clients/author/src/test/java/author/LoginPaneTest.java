@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 
 import static org.mockito.Mockito.*;
 import static org.testfx.api.FxAssert.*;
+import static org.testfx.util.WaitForAsyncUtils.*;
 import static org.hamcrest.Matchers.*;
 import static org.testfx.assertions.api.Assertions.*;
 
@@ -50,24 +51,24 @@ class LoginPaneTest {
   @DisplayName("should behave correctly on login failure event")
   void wrongCreds(FxRobot robot) throws Exception {
     Lookup lookup = new Lookup(robot);
-    assertThat(lookup.label("#message").getText()).isEmpty();
+    assertThat(lookup.label("#message")).hasText("");
     loginBus.emulIn(new LoginEvent.Failure(""));
-    assertThat(lookup.input("#password").getText()).isNull();
+    assertThat(lookup.input("#password")).hasText("");
     assertThat(lookup.button("#button")).isEnabled();
     assertThat(lookup.label("#message"))
       .hasText("Wrong username or password")
-      .hasStyle("-fx-text-fill:red");
+      .hasStyle("-fx-text-fill:darkred");
   }
     
   @Test
   @DisplayName("should behave correctly on login success event")
   void successLogin(FxRobot robot) {
     Labeled message = robot.lookup("#message").queryLabeled();
-    assertThat(message.getText()).isEmpty();
+    assertThat(message).hasText("");
     loginBus.emulIn(new LoginEvent.Success("", TestData.author1));
     assertThat(message)
       .hasText("Logged in successfully")
-      .hasStyle("-fx-text-fill:green");
+      .hasStyle("-fx-text-fill:darkgreen");
   }
 
   @Test
@@ -78,10 +79,11 @@ class LoginPaneTest {
       .clickOn("#password").write("somepass")
       .clickOn("#button")
       ;
+    waitForFxEvents();
     Lookup lu = new Lookup(robot);
     assertThat(lu.button("#button")).isDisabled();
-    assertThat(lu.input("#password").getText()).isNull();
-    assertThat(lu.label("#message").getText()).isNull();
+    assertThat(lu.input("#password")).hasText("");
+    assertThat(lu.label("#message")).hasText("");
     assertThat(loginBus.poll()).isEqualTo(new LoginRequest.Login("somename", "somepass"));
   }
 

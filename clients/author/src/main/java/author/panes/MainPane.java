@@ -13,6 +13,7 @@ import java.util.ResourceBundle;
 import java.util.*;
 import java.util.stream.*;
 import java.util.function.*;
+import java.util.concurrent.CompletionException;
 
 import author.dtos.*;
 import author.events.*;
@@ -26,7 +27,6 @@ import author.panes.quiz.QuizPane;
 import author.panes.section.SectionPane;
 
 import io.reactivex.rxjava3.core.Observable;
-import static org.pdfsam.rxjavafx.observables.JavaFxObservable.*;
 
 import lombok.val;
 
@@ -39,12 +39,15 @@ public class MainPane extends BorderPane {
   private Button home;
   private Button logout;
   private Label userName;
+  private Label message;
 
-  private Bus<ApiResponse, ApiRequest> apiBus;
   private Bus<MainUIMessage, MainUIMessage> uiBus;
 
-  public MainPane(Bus<ApiResponse, ApiRequest> apiBus, Bus<LoginEvent, LoginRequest> loginBus) {
-    this.apiBus = apiBus;
+  public MainPane(
+    Bus<ApiResponse, ApiRequest> apiBus, 
+    Bus<LoginEvent, LoginRequest> loginBus,
+    Bus<RootUIMessage, RootUIMessage> rootUiBus
+  ) {
     this.uiBus = new PipeBus<>();
 
     getStylesheets().add("/author/common.css");
@@ -83,16 +86,48 @@ public class MainPane extends BorderPane {
     });
     apiBus.in().ofType(ApiResponse.SectionDischarged.class).subscribe(e -> setCenter(quizPane));
 
+    rootUiBus.in().subscribe(e -> {
+      String color = null;
+      if (e instanceof RootUIMessage.Info) color = "darkgreen";
+      else if (e instanceof RootUIMessage.Warn) color = "gold";
+      else color = "darkred";
+      message.setStyle("-fx-text-fill:" + color);
+    });
+    rootUiBus.in().subscribe(e -> {
+      if (e == RootUIMessage.NOT_LOGGED_IN)
+        message.setText("Not logged in");
+      else if (e == RootUIMessage.ACCESS_DENIED)
+        message.setText("Access denied");
+      else if (e instanceof RootUIMessage.ApiError) {
+        val ae = (RootUIMessage.ApiError) e;
+        message.setText(String.format("%s: %s (%s)",
+          ae.error().reason().code(),
+          ae.error().reason().phrase(),
+          ae.error().clues()
+        ));
+      } else if (e instanceof RootUIMessage.ProcessingError) {
+        val pe = (RootUIMessage.ProcessingError) e;
+        if (pe.cause() instanceof CompletionException) {
+          message.setText(pe.cause().getCause().getMessage());
+        } else {
+          message.setText(pe.cause().getMessage());
+        }
+      } else if (e == RootUIMessage.CLEAR)
+        message.setText("");
+    });
+
   }
 
   private Node initTop() {
     HBox topBar = new HBox();
-    topBar.setPadding(new Insets(5));
+    topBar.setSpacing(10);
     topBar.setAlignment(Pos.CENTER_LEFT);
     home = new Button();
     home.setId("home");
     home.getStyleClass().add("home");
     home.setTooltip(new Tooltip("To quiz list"));
+    message = new Label();
+    message.setId("message");
     HBox topRight = new HBox();
     topRight.setAlignment(Pos.CENTER_RIGHT);
     topRight.setSpacing(10);
@@ -104,7 +139,7 @@ public class MainPane extends BorderPane {
     logout.getStyleClass().add("logout");
     logout.setTooltip(new Tooltip("Logout"));
     topRight.getChildren().addAll(userName, logout);
-    topBar.getChildren().addAll(home, topRight);
+    topBar.getChildren().addAll(home, message, topRight);
     HBox.setHgrow(topRight, Priority.ALWAYS);
     return topBar;
   }

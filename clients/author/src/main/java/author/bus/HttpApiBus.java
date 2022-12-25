@@ -150,6 +150,7 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
               });
             val result = fun.apply(request, resp.body());
             log.debug("mapped response to {}", result);
+            //errorOut.accept(RootUIMessage.CLEAR);
             return result;
           })
           .exceptionally(ex -> {

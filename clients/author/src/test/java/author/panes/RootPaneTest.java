@@ -39,11 +39,12 @@ class RootPaneTest {
 
   TestBus<ApiResponse, ApiRequest> apiBus = new TestBus<>();
   TestBus<LoginEvent, LoginRequest> loginBus = new TestBus<>();
+  TestBus<RootUIMessage, RootUIMessage> rootUiBus = new TestBus<>();
 
 
   @Start
   private void start(Stage stage) throws Exception {
-    Node sut = new RootPane(apiBus, loginBus);
+    Node sut = new RootPane(apiBus, loginBus, rootUiBus);
     stage.setScene(new Scene((Parent) sut, 1000, 700));
     stage.show();
   }

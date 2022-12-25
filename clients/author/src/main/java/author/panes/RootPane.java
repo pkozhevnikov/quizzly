@@ -30,12 +30,16 @@ import lombok.val;
 
 public class RootPane extends BorderPane {
 
-  public RootPane(Bus<ApiResponse, ApiRequest> apiBus, Bus<LoginEvent, LoginRequest> loginBus) {
+  public RootPane(
+    Bus<ApiResponse, ApiRequest> apiBus, 
+    Bus<LoginEvent, LoginRequest> loginBus,
+    Bus<RootUIMessage, RootUIMessage> rootUiBus
+  ) {
 
     val loginPane = new LoginPane(loginBus);
     loginPane.setId("loginPane");
     loginPane.setMaxSize(300, 250);
-    val mainPane = new MainPane(apiBus, loginBus);
+    val mainPane = new MainPane(apiBus, loginBus, rootUiBus);
     mainPane.setId("mainPane");
 
     loginBus.in().ofType(LoginEvent.Success.class).subscribe(e -> setCenter(mainPane));

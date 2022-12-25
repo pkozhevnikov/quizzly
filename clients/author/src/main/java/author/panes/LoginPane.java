@@ -37,23 +37,24 @@ public class LoginPane extends VBox {
     elems.getChildren().addAll(username, password, button);
     getChildren().addAll(message, elems);
 
-    val click = actionEventsOf(button);
-    click.subscribe(e -> {
-      loginBus.out().accept(new LoginRequest.Login(username.getText(), password.getText()));
-      message.setText(null);
-      password.setText(null);
+    button.setOnAction(e -> {
+      val uname = username.getText();
+      val passw = password.getText();
+      message.setText("");
+      password.setText("");
       button.setDisable(true);
+      loginBus.out().accept(new LoginRequest.Login(uname, passw));
     });
 
     loginBus.in().ofType(LoginEvent.Success.class).subscribe(e -> {
       message.setText("Logged in successfully");
-      message.setStyle("-fx-text-fill:green");
+      message.setStyle("-fx-text-fill:darkgreen");
     });
     loginBus.in().ofType(LoginEvent.Failure.class).subscribe(e -> {
       message.setText("Wrong username or password");
-      message.setStyle("-fx-text-fill:red");
+      message.setStyle("-fx-text-fill:darkred");
       button.setDisable(false);
-      password.setText(null);
+      password.setText("");
     });
 
     loginBus.in().ofType(LoginEvent.LoggedOut.class).subscribe(e -> {

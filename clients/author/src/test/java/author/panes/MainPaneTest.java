@@ -18,6 +18,7 @@ import javafx.scene.input.*;
 import java.util.*;
 import java.util.stream.*;
 import java.util.function.*;
+import java.util.concurrent.CompletionException;
 
 import static org.testfx.assertions.api.Assertions.*;
 import org.assertj.core.api.*;
@@ -39,11 +40,12 @@ class MainPaneTest {
 
   TestBus<ApiResponse, ApiRequest> apiBus = new TestBus<>();
   TestBus<LoginEvent, LoginRequest> loginBus = new TestBus<>();
+  TestBus<RootUIMessage, RootUIMessage> rootUiBus = new TestBus<>();
 
 
   @Start
   private void start(Stage stage) throws Exception {
-    Node sut = new MainPane(apiBus, loginBus);
+    Node sut = new MainPane(apiBus, loginBus, rootUiBus);
     stage.setScene(new Scene((Parent) sut, 1000, 700));
     stage.show();
   }
@@ -130,5 +132,32 @@ class MainPaneTest {
     assertThat(robot.lookup("#quizPane").tryQuery()).isPresent();
     assertThat(robot.lookup("#sectionPane").tryQuery()).isEmpty();
   }
+
+  void assertMessage(String text, String color, FxRobot robot) {
+    assertThat(robot.lookup("#message").queryLabeled())
+      .hasText(text)
+      .hasStyle("-fx-text-fill:" + color)
+      ;
+  }
+
+  @Test @DisplayName("shows error messages from root bus")
+  void showErrors(FxRobot robot) {
+    assertThat(robot.lookup("#message").queryLabeled()).hasText("");
+    rootUiBus.emulIn(new RootUIMessage.ApiError(new OutError(
+      new OutErrorReason(100, "some api error"), List.of("clue1", "clue2"))));
+    assertMessage("100: some api error ([clue1, clue2])", "darkred", robot);
+    rootUiBus.emulIn(new RootUIMessage.ProcessingError(new CompletionException(
+      new Exception("could not complete"))));
+    assertMessage("could not complete", "darkred", robot);
+    rootUiBus.emulIn(new RootUIMessage.ProcessingError(new Exception("plain exception")));
+    assertMessage("plain exception", "darkred", robot);
+    rootUiBus.emulIn(RootUIMessage.ACCESS_DENIED);
+    assertMessage("Access denied", "darkred", robot);
+    rootUiBus.emulIn(RootUIMessage.NOT_LOGGED_IN);
+    assertMessage("Not logged in", "darkred", robot);
+    rootUiBus.emulIn(RootUIMessage.CLEAR);
+    assertMessage("", "darkgreen", robot);
+  }
+
     
 }
