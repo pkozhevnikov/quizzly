@@ -56,6 +56,8 @@ class ListPaneTest {
       .containsRow("q3", "q3", "q3 title", "Released", "+")
       .containsRow("q4", "q4", "q4 title", "Released", "")
       ;
+    apiBus.emulIn(new ApiResponse.QuizList(TestData.list));
+    assertThat(robot.lookup("#list").queryTableView()).hasExactlyNumRows(4);
   }
 
   @Test @DisplayName("sends 'goto quiz' message on link click")

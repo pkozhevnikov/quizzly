@@ -262,7 +262,15 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
       r -> reqBuilder("/quiz/{}", r.quizId())
         .header("content-type", "application/json")
         .POST(HttpRequest.BodyPublishers.ofByteArray(toJson(new InCreateSection(r.title())))),
-      Map.of(200, (r, is) -> new SectionCreated(r.quizId(), json(is, String.class)))
+      Map.of(200, (r, is) -> {
+        String sc = null;
+        try {
+          sc = new String(is.readAllBytes());
+        } catch (Exception ex) {
+          throw new RuntimeException("could not read section SC", ex);
+        }
+        return new SectionCreated(r.quizId(), sc);
+      })
     ),
 
     new Call<MoveSection>(

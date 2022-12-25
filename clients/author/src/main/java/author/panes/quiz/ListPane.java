@@ -63,7 +63,10 @@ public class ListPane implements FxmlController {
           staff.addAll(l.list());
         });
       apiBus.in().ofType(ApiResponse.QuizList.class)
-        .subscribe(l -> list.getItems().addAll(l.list()));
+        .subscribe(l -> {
+          list.getItems().clear();
+          list.getItems().addAll(l.list());
+        });
 
       list.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
         uiBus.out().accept(new Quizzes.ShowQuiz(nv));

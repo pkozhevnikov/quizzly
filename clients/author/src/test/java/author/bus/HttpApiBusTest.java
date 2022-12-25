@@ -10,6 +10,8 @@ import java.util.stream.*;
 import java.util.function.*;
 import java.util.concurrent.*;
 
+import javafx.application.Platform;
+
 import org.assertj.core.api.*;
 import static org.assertj.core.api.Assertions.*;
 
@@ -69,6 +71,15 @@ public class HttpApiBusTest {
   void teardown() {
     apiSubscriber.dispose();
     uiSubscriber.dispose();
+  }
+
+  @BeforeAll
+  static void before() {
+    Platform.startup(() -> {});
+  }
+  @AfterAll
+  static void after() {
+    Platform.exit();
   }
 
   private void assertNoUiEvents() {
@@ -278,7 +289,7 @@ public class HttpApiBusTest {
   void createSection() {
     client.when(request().withMethod(POST).withPath("/v1/quiz/q1").withHeaders(header("p", "author1"))
       .withContentType(MediaType.APPLICATION_JSON).withBody(toJson(new InCreateSection("new section"))))
-      .respond(response().withStatusCode(200).withBody("\"q1-1\""));
+      .respond(response().withStatusCode(200).withBody("q1-1"));
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.CreateSection("q1", "new section"));
     assertNoUiEvents();
