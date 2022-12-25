@@ -4,6 +4,8 @@ import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.core.Observable;
 import java.util.function.Consumer;
 
+import javafx.application.Platform;
+
 public class PipeBus<Same> implements Bus<Same, Same> {
 
   private final PublishSubject<Same> pipe = PublishSubject.create();
@@ -15,7 +17,7 @@ public class PipeBus<Same> implements Bus<Same, Same> {
 
   @Override
   public Consumer<Same> out() {
-    return message -> pipe.onNext(message);
+    return message -> Platform.runLater(() -> pipe.onNext(message));
   }
 
 }

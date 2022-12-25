@@ -63,6 +63,7 @@ public class MainPane extends BorderPane {
 
     loginBus.in().ofType(LoginEvent.Success.class).subscribe(e -> {
       userName.setText(e.user().name());
+      apiBus.out().accept(ApiRequest.GET_STAFF);
       apiBus.out().accept(ApiRequest.GET_LIST);
       uiBus.out().accept(new MainUIMessage.ActingAs(e.user()));
       setCenter(quizzes);

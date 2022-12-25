@@ -26,6 +26,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import javafx.application.Platform;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -78,7 +80,7 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
         process(r).thenAccept(resp -> {
           log.debug("finalize processing {}", resp);
           if (resp != NO_RESPONSE) {
-            subject.onNext(resp);
+            Platform.runLater(() -> subject.onNext(resp));
             log.debug("published {}", resp);
           }
         });
