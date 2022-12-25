@@ -107,5 +107,9 @@ public interface ApiResponse {
     String quizId;
     String sc;
   }
+  @Value
+  class SectionDischarged implements ApiResponse {
+    String sc;
+  }
 }
 

@@ -299,6 +299,47 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
       r -> r instanceof Disapprove,
       r -> reqBuilder("/quiz/{}/resolve", r.quizId()).DELETE(),
       Map.of(204, (r, is) -> new Disapproved(r.quizId(), user.id()))
+    ),
+
+    new Call<UpdateSection>(
+      r -> r instanceof UpdateSection,
+      r -> reqBuilder("/section/{}", r.sectionSC())
+        .header("content-type", "application/json")
+        .PUT(HttpRequest.BodyPublishers.ofByteArray(toJson(new InUpdateSection(r.title(), r.intro())))),
+      Map.of(204, (r, is) -> NO_RESPONSE)
+    ),
+
+    new Call<OwnSection>(
+      r -> r instanceof OwnSection,
+      r -> reqBuilder("/quiz/{}?sc={}", r.quizId(), r.sc())
+        .method("PATCH", HttpRequest.BodyPublishers.noBody()),
+      Map.of(204, (r, is) -> new SectionOwned(r.quizId(), r.sc()))
+    ),
+
+    new Call<DischargeSection>(
+      r -> r instanceof DischargeSection,
+      r -> reqBuilder("/section/{}", r.sc()).GET(),
+      Map.of(204, (r, is) -> new SectionDischarged(r.sc()))
+    ),
+
+    new Call<AddItem>(
+      r -> r instanceof AddItem,
+      r -> reqBuilder("/section/{}/items", r.sectionSC())
+        .method("PATCH", HttpRequest.BodyPublishers.noBody()),
+      Map.of(200, (r, is) -> new ItemAdded(r.sectionSC(), json(is, String.class)))
+    ),
+
+    new Call<RemoveItem>(
+      r -> r instanceof RemoveItem,
+      r -> reqBuilder("/section/{}/items/{}", r.sectionSC(), r.sc()).DELETE(),
+      Map.of(204, (r, is) -> new ItemRemoved(r.sectionSC(), r.sc()))
+    ),
+
+    new Call<MoveItem>(
+      r -> r instanceof MoveItem,
+      r -> reqBuilder("/section/{}/items/{}?up={}", r.sectionSC(), r.sc(), String.valueOf(r.up()))
+        .method("PATCH", HttpRequest.BodyPublishers.noBody()),
+      Map.of(200, (r, is) -> new ItemMoved(r.sectionSC(), json(is, OutStrList.class).list()))
     )
 
   );

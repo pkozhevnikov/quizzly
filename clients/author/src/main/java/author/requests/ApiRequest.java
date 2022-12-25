@@ -101,12 +101,12 @@ public interface ApiRequest {
   @Value
   class RemoveItem implements ApiRequest {
     String sectionSC;
-    String itemSC;
+    String sc;
   }
   @Value
   class MoveItem implements ApiRequest {
     String sectionSC;
-    String itemSC;
+    String sc;
     boolean up;
   }
   @Value
@@ -121,7 +121,7 @@ public interface ApiRequest {
   }
   @Value 
   class DischargeSection implements ApiRequest {
-    String sectionSC;
+    String sc;
   }
   @Value
   class OwnSection implements ApiRequest {

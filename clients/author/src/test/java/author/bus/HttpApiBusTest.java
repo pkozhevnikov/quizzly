@@ -350,7 +350,8 @@ public class HttpApiBusTest {
   void updateSection() {
     client
       .when(request().withMethod(PUT).withPath("/v1/section/q1-1").withHeaders(header("p", "author1"))
-          .withBody(toJson(new InUpdateSection("title plus", "intro plus"))))
+          .withBody(toJson(new InUpdateSection("title plus", "intro plus")))
+          .withContentType(MediaType.APPLICATION_JSON))
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.UpdateSection("q1-1", "title plus", "intro plus"));
@@ -366,11 +367,56 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.OwnSection("q1", "q1-1"));
-    assertNoApiEvents();
+    assertNoUiEvents();
     assertApiEvent(new ApiResponse.SectionOwned("q1", "q1-1"));
   }
 
+  @Test @DisplayName("discharge section")
+  void dischargeSection() {
+    client
+      .when(request().withMethod(GET).withPath("/v1/section/q1-1").withHeaders(header("p", "author2")))
+      .respond(response().withStatusCode(204));
+    emulLoginAs(TestData.author2);
+    sut.out().accept(new ApiRequest.DischargeSection("q1-1"));
+    assertNoUiEvents();
+    assertApiEvent(new ApiResponse.SectionDischarged("q1-1"));
+  }
 
+  @Test @DisplayName("add item")
+  void addItem() {
+    client
+      .when(request().withMethod(PATCH).withPath("/v1/section/q1-1/items").withHeaders(header("p", "author1")))
+      .respond(response().withStatusCode(200).withBody("\"5\""));
+    emulLoginAs(TestData.author1);
+    sut.out().accept(new ApiRequest.AddItem("q1-1"));
+    assertNoUiEvents();
+    assertApiEvent(new ApiResponse.ItemAdded("q1-1", "5"));
+  }
+
+  @Test @DisplayName("remove item")
+  void removeItem() {
+    client
+      .when(request().withMethod(DELETE).withPath("/v1/section/q1-1/items/5")
+        .withHeaders(header("p", "author3")))
+      .respond(response().withStatusCode(204));
+    emulLoginAs(TestData.author3);
+    sut.out().accept(new ApiRequest.RemoveItem("q1-1", "5"));
+    assertNoUiEvents();
+    assertApiEvent(new ApiResponse.ItemRemoved("q1-1", "5"));
+  }
+
+  @Test @DisplayName("move item")
+  void moveItem() {
+    val newOrder = List.of("4", "1", "3", "2");
+    client
+      .when(request().withMethod(PATCH).withPath("/v1/section/q1-1/items/4")
+        .withHeaders(header("p", "author1")).withQueryStringParameter("up", "true"))
+      .respond(response().withStatusCode(200).withBody(toJson(new OutStrList(newOrder))));
+    emulLoginAs(TestData.author1);
+    sut.out().accept(new ApiRequest.MoveItem("q1-1", "4", true));
+    assertNoUiEvents();
+    assertApiEvent(new ApiResponse.ItemMoved("q1-1", newOrder));
+  }
 
   static String GET = "GET";
   static String POST = "POST";
