@@ -23,6 +23,7 @@ import author.messages.*;
 import author.panes.LoginPane;
 import author.panes.quiz.Quizzes;
 import author.panes.quiz.QuizPane;
+import author.panes.section.SectionPane;
 
 import io.reactivex.rxjava3.core.Observable;
 import static org.pdfsam.rxjavafx.observables.JavaFxObservable.*;
@@ -33,6 +34,7 @@ public class MainPane extends BorderPane {
 
   private Node quizzes;
   private Node quizPane;
+  private Node sectionPane;
 
   private Button home;
   private Button logout;
@@ -52,6 +54,7 @@ public class MainPane extends BorderPane {
     quizzes.setId("quizzes");
     quizPane = Factories.nodeWith(new QuizPane(apiBus, uiBus));
     quizPane.setId("quizPane");
+    sectionPane = new SectionPane(apiBus, uiBus);
 
     setTop(topBar);
 
@@ -71,6 +74,14 @@ public class MainPane extends BorderPane {
     home.setOnAction(e -> {
       setCenter(quizzes);
     });
+
+    uiBus.in().ofType(MainUIMessage.EditSection.class).subscribe(e -> {
+      apiBus.out().accept(new ApiRequest.OwnSection(e.quizId(), e.section().sc()));
+    });
+    apiBus.in().ofType(ApiResponse.SectionOwned.class).subscribe(e -> {
+      setCenter(sectionPane);
+    });
+    apiBus.in().ofType(ApiResponse.SectionDischarged.class).subscribe(e -> setCenter(quizPane));
 
   }
 

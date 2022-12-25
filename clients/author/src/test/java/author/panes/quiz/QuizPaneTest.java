@@ -109,7 +109,7 @@ class QuizPaneTest {
     putQuizForUser(TestData.fullQuiz1, TestData.author1);
     val go = robot.from(robot.lookup("section 2 title").query().getParent()).lookup(".edit-section").query();
     robot.clickOn(go);
-    assertThat(uiBus.poll()).isEqualTo(new MainUIMessage.EditSection(TestData.section2));
+    assertThat(uiBus.poll()).isEqualTo(new MainUIMessage.EditSection("q1", TestData.section2));
   }
 
   @Test @DisplayName("sends section up request on link click")

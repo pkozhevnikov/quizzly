@@ -87,4 +87,48 @@ class MainPaneTest {
     assertThat(loginBus.poll()).isSameAs(LoginRequest.LOGOUT);
   }
 
+  @Test @DisplayName("goes to selected section")
+  void gotoSection(FxRobot robot) throws Exception {
+    val onGetQuiz = apiBus.on(new ApiRequest.GetQuiz("q1"),
+      new ApiResponse.FullQuiz(TestData.fullQuiz1));
+    val onGetList = apiBus.on(ApiRequest.GET_LIST, new ApiResponse.QuizList(TestData.list));
+    loginBus.emulIn(new LoginEvent.Success("author1", TestData.author1));
+    val onOwnSection = apiBus.on(new ApiRequest.OwnSection("q1", "q1-2"),
+      new ApiResponse.SectionOwned("q1", "q1-2"));
+    val onDischarge = apiBus.on(new ApiRequest.DischargeSection("q1-2"),
+      new ApiResponse.SectionDischarged("q1-2"));
+    val go = robot.from(robot.lookup("q1 title").query().getParent()).lookup(".goto-quiz").query();
+    robot.clickOn(go);
+    robot.clickOn(robot.lookup(".edit-section").nth(1).queryLabeled());
+    assertThat(robot.lookup("#quizPane").tryQuery()).isEmpty();
+    assertThat(robot.lookup("#sectionPane").tryQuery()).isPresent();
+    onGetQuiz.free();
+    onGetList.free();
+    onOwnSection.free();
+    onDischarge.free();
+
+    assertThat(robot.lookup("#title").queryTextInputControl()).hasText("section 2 title");
+  }
+
+  @Test @DisplayName("goes to quiz pane on section discharge")
+  void gotoQuizBackFromSection(FxRobot robot) throws Exception {
+    val onGetQuiz = apiBus.on(new ApiRequest.GetQuiz("q1"),
+      new ApiResponse.FullQuiz(TestData.fullQuiz1));
+    val onGetList = apiBus.on(ApiRequest.GET_LIST, new ApiResponse.QuizList(TestData.list));
+    val onOwnSection = apiBus.on(new ApiRequest.OwnSection("q1", "q1-1"),
+      new ApiResponse.SectionOwned("q1", "q1-1"));
+    val onDischarge = apiBus.on(new ApiRequest.DischargeSection("q1-1"),
+      new ApiResponse.SectionDischarged("q1-1"));
+    loginBus.emulIn(new LoginEvent.Success("author1", TestData.author1));
+    robot.clickOn(robot.lookup(".goto-quiz").nth(0).queryLabeled());
+    robot.clickOn(robot.lookup(".edit-section").nth(0).queryLabeled());
+    robot.clickOn("Discharge");
+    onGetQuiz.free();
+    onGetList.free();
+    onOwnSection.free();
+    onDischarge.free();
+    assertThat(robot.lookup("#quizPane").tryQuery()).isPresent();
+    assertThat(robot.lookup("#sectionPane").tryQuery()).isEmpty();
+  }
+    
 }

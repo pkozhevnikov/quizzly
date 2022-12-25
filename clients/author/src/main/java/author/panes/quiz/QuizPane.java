@@ -100,7 +100,7 @@ public class QuizPane implements FxmlController {
     down.setCellValueFactory(idFactory);
     remove.setCellValueFactory(idFactory);
     edit.setCellFactory(Factories.hyperlinkCellFactory("Edit", "edit-section", 
-      (col, section) -> uiBus.out().accept(new MainUIMessage.EditSection(section))));
+      (col, section) -> uiBus.out().accept(new MainUIMessage.EditSection(quiz.id(), section))));
     up.setCellFactory(Factories.hyperlinkCellFactory("Up", "section-up",
       (col, section) -> apiBus.out().accept(new ApiRequest.MoveSection(quiz.id(), section.sc(), true))));
     down.setCellFactory(Factories.hyperlinkCellFactory("Down", "section-down",

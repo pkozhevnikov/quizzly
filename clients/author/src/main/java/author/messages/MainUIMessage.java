@@ -17,6 +17,7 @@ public interface MainUIMessage {
 
   @Value
   class EditSection implements MainUIMessage {
+    String quizId;
     OutSection section;
   }
 

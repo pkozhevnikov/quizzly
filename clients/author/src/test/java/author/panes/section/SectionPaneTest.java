@@ -52,7 +52,7 @@ class SectionPaneTest {
   }
 
   void putTestSection() {
-    uiBus.emulIn(new MainUIMessage.EditSection(TestData.section1));
+    uiBus.emulIn(new MainUIMessage.EditSection("q1", TestData.section1));
   }
 
 
