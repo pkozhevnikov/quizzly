@@ -85,5 +85,20 @@ class LoginPaneTest {
     assertThat(loginBus.poll()).isEqualTo(new LoginRequest.Login("somename", "somepass"));
   }
 
+  @Test @DisplayName("clear on logout")
+  void logoutClear(FxRobot robot) {
+    loginBus.emulIn(new LoginEvent.Failure(""));
+    assertThat(robot.lookup("#message").queryLabeled()).hasText("Wrong username or password");
+    robot
+      .clickOn("#username").write("somename")
+      .clickOn("#password").write("somepass")
+      ;
+    loginBus.emulIn(new LoginEvent.LoggedOut("author1", TestData.author1));
+    assertThat(robot.lookup("#username").queryTextInputControl()).hasText("");
+    assertThat(robot.lookup("#message").queryLabeled()).hasText("");
+    assertThat(robot.lookup("#password").queryTextInputControl()).hasText("");
+    assertThat(robot.lookup("#button").queryButton()).isEnabled();
+  }
+
 }
     

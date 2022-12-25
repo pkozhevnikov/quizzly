@@ -55,6 +55,13 @@ public class LoginPane extends VBox {
       button.setDisable(false);
       password.setText(null);
     });
+
+    loginBus.in().ofType(LoginEvent.LoggedOut.class).subscribe(e -> {
+      message.setText("");
+      button.setDisable(false);
+      username.setText("");
+      password.setText("");
+    });
     
   }
 
