@@ -22,7 +22,7 @@
       <ListView fx:id="authors"/>
       <HBox>
         <ComboBox fx:id="selectedAuthor" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
-        <Button fx:id="addAuthor" text="Add" />
+        <Button fx:id="addAuthor" styleClass="add-user" />
       </HBox>
     </VBox>
     <VBox spacing="5" HBox.hgrow="ALWAYS">
@@ -33,7 +33,7 @@
       <ListView fx:id="inspectors"/>
       <HBox>
         <ComboBox fx:id="selectedInspector" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
-        <Button fx:id="addInspector" text="Add" />
+        <Button fx:id="addInspector" styleClass="add-user" />
       </HBox>
     </VBox>
   </HBox>

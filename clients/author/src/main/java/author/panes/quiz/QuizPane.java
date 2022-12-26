@@ -99,13 +99,13 @@ public class QuizPane implements FxmlController {
     up.setCellValueFactory(idFactory);
     down.setCellValueFactory(idFactory);
     remove.setCellValueFactory(idFactory);
-    edit.setCellFactory(Factories.hyperlinkCellFactory("Edit", "edit-section", 
+    edit.setCellFactory(Factories.buttonTableCellFactory("pencil-bold", "edit-section", 
       (col, section) -> uiBus.out().accept(new MainUIMessage.EditSection(quiz.id(), section))));
-    up.setCellFactory(Factories.hyperlinkCellFactory("Up", "section-up",
+    up.setCellFactory(Factories.buttonTableCellFactory("arrow-fat-line-up-bold", "section-up",
       (col, section) -> apiBus.out().accept(new ApiRequest.MoveSection(quiz.id(), section.sc(), true))));
-    down.setCellFactory(Factories.hyperlinkCellFactory("Down", "section-down",
+    down.setCellFactory(Factories.buttonTableCellFactory("arrow-fat-line-down-bold", "section-down",
       (col, section) -> apiBus.out().accept(new ApiRequest.MoveSection(quiz.id(), section.sc(), false))));
-    remove.setCellFactory(Factories.hyperlinkCellFactory("Remove", "remove-section",
+    remove.setCellFactory(Factories.buttonTableCellFactory("trash-bold", "remove-section",
       (col, section) -> apiBus.out().accept(new ApiRequest.RemoveSection(section.sc(), quiz.id()))));
 
     sectionTitle.setCellValueFactory(Factories.tableCellFactory(OutSection::title));

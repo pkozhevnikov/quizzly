@@ -1,10 +1,17 @@
 .check {
-  -fx-graphic: url("approved.png");
+  -fx-graphic: url('icons/check-circle-bold.png');
   -fx-font-weight: bold;
 }
 .uncheck {
-  -fx-graphic: url("disapproved.png");
+  -fx-graphic: url('icons/x-circle-bold.png');
   -fx-font-weight: bold;
+}
+
+.add-user {
+  -fx-graphic: url('icons/user-plus-bold.png');
+}
+.del-user {
+  -fx-graphic: url('icons/user-minus.png');
 }
 
 .table-row-cell .hl-button {
@@ -16,10 +23,10 @@
 }
 
 .home {
-  -fx-graphic: url("home.png");
+  -fx-graphic: url('icons/house-bold.png');
 }
 .logout {
-  -fx-graphic: url("logout.png");
+  -fx-graphic: url('icons/sign-out-bold.png');
 }
 
 .alt .btn {
@@ -41,11 +48,22 @@
   visibility: visible;
 }
 .plus {
-  -fx-graphic: url('plus.png');
+  -fx-graphic: url('icons/plus-circle-bold.png');
   -fx-padding: 2;
 }
 .minus {
-  -fx-graphic: url('minus.png');
+  -fx-graphic: url('icons/minus-circle-bold.png');
   -fx-padding: 2;
+}
+
+.cell-button {
+  visibility: hidden;
+  -fx-cursor: hand;
+}
+.list-cell:hover .cell-button {
+  visibility: visible;
+}
+.table-row-cell:hover .cell-button {
+  visibility: visible;
 }
 

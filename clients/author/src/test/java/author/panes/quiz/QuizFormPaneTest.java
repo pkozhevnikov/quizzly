@@ -43,8 +43,10 @@ class QuizFormPaneTest {
 
   @Start
   private void start(Stage stage) throws Exception {
-    Node sut = Factories.nodeWith(new QuizFormPane(apiBus, uiBus));
-    stage.setScene(new Scene((Parent) sut, 400, 700));
+    val sut = Factories.nodeWith(new QuizFormPane(apiBus, uiBus));
+    val scene = new Scene((Parent) sut, 400, 700);
+    scene.getStylesheets().add("/author/common.css");
+    stage.setScene(scene);
     stage.show();
   }
 

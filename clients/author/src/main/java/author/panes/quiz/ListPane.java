@@ -51,7 +51,7 @@ public class ListPane implements FxmlController {
       list.getItems().clear();
       val idFactory = Factories.tableCellFactory(OutQuizListed::id);
       link.setCellValueFactory(idFactory);
-      link.setCellFactory(Factories.hyperlinkCellFactory("Goto", "goto-quiz", (column, id) ->
+      link.setCellFactory(Factories.buttonTableCellFactory("pencil-bold", "goto-quiz", (column, id) ->
         apiBus.out().accept(new ApiRequest.GetQuiz(id))));
       id.setCellValueFactory(idFactory);
       title.setCellValueFactory(Factories.tableCellFactory(OutQuizListed::title));

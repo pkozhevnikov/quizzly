@@ -44,7 +44,9 @@ class CreateQuizPaneTest {
   @Start
   private void start(Stage stage) throws Exception {
     Node sut = Factories.nodeWith(new CreateQuizPane(apiBus, uiBus));
-    stage.setScene(new Scene((Parent) sut, 500, 250));
+    val scene = new Scene((Parent) sut, 500, 250);
+    scene.getStylesheets().add("/author/common.css");
+    stage.setScene(scene);
     stage.show();
   }
 

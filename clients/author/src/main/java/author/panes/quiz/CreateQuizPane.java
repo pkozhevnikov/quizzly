@@ -54,7 +54,7 @@ public class CreateQuizPane implements FxmlController {
   @Override
   public void initialize(URL location, ResourceBundle resource) {
     val comboCellFactory = Factories.listCellFactory(OutPerson::name);
-    val listCellFactory = Factories.listCellFactory(OutPerson::name, "X", "remove-item",
+    val listCellFactory = Factories.buttonListCellFactory(OutPerson::name, "trash-bold", "remove-item",
       (list, p) -> list.getItems().remove(p));
     authors.setCellFactory(listCellFactory);
     selectedAuthor.setButtonCell(comboCellFactory.call(null));

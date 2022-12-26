@@ -25,6 +25,30 @@ public class Factories {
   }
 
   public static <Row, Column> Callback<TableColumn<Row, Column>, TableCell<Row, Column>>
+    buttonTableCellFactory(String iconName, 
+          String buttonClass, BiConsumer<TableColumn<Row, Column>, Column> onClick) {
+      return column -> new TableCell<>() {
+        Label button;
+        {
+          button = new Label();
+          button.getStyleClass().addAll("cell-button", buttonClass);
+          button.setStyle("-fx-graphic:url('/author/icons/" + iconName + ".png')");
+          button.setOnMouseClicked(e -> onClick.accept(column, getItem()));
+        }
+        @Override
+        protected void updateItem(Column item, boolean empty) {
+          super.updateItem(item, empty);
+          setText(null);
+          if (item == null || empty) {
+            setGraphic(null);
+          } else {
+            setGraphic(button);
+          }
+        }
+      };
+    }
+
+  public static <Row, Column> Callback<TableColumn<Row, Column>, TableCell<Row, Column>>
     hyperlinkCellFactory(String buttonCaption, 
           String buttonClass, BiConsumer<TableColumn<Row, Column>, Column> onClick) {
       return column -> new TableCell<>() {
@@ -75,6 +99,31 @@ public class Factories {
         setOnMouseEntered(e -> button.setVisible(true));
         setOnMouseExited(e -> button.setVisible(false));
         button.setVisible(false);
+      }
+      @Override
+      protected void updateItem(E item, boolean empty) {
+        super.updateItem(item, empty);
+        if (item == null || empty) {
+          setText("");
+          setGraphic(null);
+        } else {
+          setText(getter.apply(item));
+          setGraphic(button);
+        }
+      }
+    };
+  }
+
+  public static <E> Callback<ListView<E>, ListCell<E>> 
+      buttonListCellFactory(Function<E, String> getter, String iconName, String buttonClassName,
+        BiConsumer<ListView<E>, E> onButtonClick) {
+    return list -> new ListCell<>() {
+      Label button;
+      {
+        button = new Label();
+        button.getStyleClass().addAll("cell-button", buttonClassName);
+        button.setStyle("-fx-graphic:url('/author/icons/" + iconName + ".png')");
+        button.setOnMouseClicked(e -> onButtonClick.accept(list, getItem()));
       }
       @Override
       protected void updateItem(E item, boolean empty) {

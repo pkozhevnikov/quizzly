@@ -55,12 +55,12 @@
   <Label text="Sections"/>
   <TableView fx:id="sections" VBox.vgrow="ALWAYS">
     <columns>
-      <TableColumn fx:id="edit" prefWidth="${sections.width * 0.05}" resizable="false" sortable="false"/>
+      <TableColumn fx:id="edit" prefWidth="25" resizable="false" sortable="false"/>
       <TableColumn fx:id="sectionTitle" text="Title"
         prefWidth="${sections.width * 0.75}" resizable="false" sortable="false"/>
-      <TableColumn fx:id="up" prefWidth="${sections.width * 0.05}" resizable="false" sortable="false"/>
-      <TableColumn fx:id="down" prefWidth="${sections.width * 0.05}" resizable="false" sortable="false"/>
-      <TableColumn fx:id="remove" prefWidth="${sections.width * 0.07}" resizable="false" sortable="false"/>
+      <TableColumn fx:id="up" prefWidth="25" resizable="false" sortable="false"/>
+      <TableColumn fx:id="down" prefWidth="25" resizable="false" sortable="false"/>
+      <TableColumn fx:id="remove" prefWidth="25" resizable="false" sortable="false"/>
     </columns>
   </TableView>
 

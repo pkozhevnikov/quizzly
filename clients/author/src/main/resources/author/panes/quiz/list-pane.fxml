@@ -5,7 +5,7 @@
 <?import javafx.geometry.*?>
 <TableView fx:id="list" VBox.vgrow="ALWAYS" xmlns:fx="http:/javafx.com/fxml" stylesheets="/author/common.css">
   <columns>
-    <TableColumn fx:id="link" sortable="false" resizable="false" minWidth="40" prefWidth="${list.width * 0.05}" />
+    <TableColumn fx:id="link" sortable="false" resizable="false" prefWidth="25" />
     <TableColumn fx:id="id" text="ID" sortable="true" prefWidth="${list.width * 0.1}" />
     <TableColumn fx:id="title" text="Title" sortable="true"
     prefWidth="${list.width * 0.65}" />
