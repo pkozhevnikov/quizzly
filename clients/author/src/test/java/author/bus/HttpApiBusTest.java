@@ -73,13 +73,19 @@ public class HttpApiBusTest {
     uiSubscriber.dispose();
   }
 
+  private static boolean platformStarted;
+
   @BeforeAll
   static void before() {
-    Platform.startup(() -> {});
+    try {
+      Platform.startup(() -> {});
+      platformStarted = true;
+    } catch (IllegalStateException ignore) {}
   }
   @AfterAll
   static void after() {
-    Platform.exit();
+    if (platformStarted)
+      Platform.exit();
   }
 
   private void assertNoUiEvents() {
@@ -105,10 +111,11 @@ public class HttpApiBusTest {
     }
   }
 
-  private void assertApiEvent(ApiResponse event) {
-    apiSubscriber.awaitCount(1);
-    apiSubscriber.assertValue(event);
+  private void assertApiEvent(ApiResponse... events) {
+    apiSubscriber.awaitCount(events.length);
+    apiSubscriber.assertValues(events);
   }
+
 
   @Test @DisplayName("not authenticated")
   void notAuth() {
@@ -293,7 +300,8 @@ public class HttpApiBusTest {
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.CreateSection("q1", "new section"));
     assertNoUiEvents();
-    assertApiEvent(new ApiResponse.SectionCreated("q1", "q1-1"));
+    assertApiEvent(new ApiResponse.SectionCreated("q1", new OutSection("q1-1", "new section", "", List.of())),
+      new ApiResponse.SectionOwned("q1", "q1-1"));
   }
 
   private static Stream<Arguments> sectionMove_args() {
@@ -402,6 +410,18 @@ public class HttpApiBusTest {
     sut.out().accept(new ApiRequest.AddItem("q1-1"));
     assertNoUiEvents();
     assertApiEvent(new ApiResponse.ItemAdded("q1-1", "5"));
+  }
+
+  @Test @DisplayName("save item")
+  void saveItem() {
+    client
+      .when(request().withMethod(PUT).withPath("/v1/section/q1-1/items").withHeaders(header("p", "author1"))
+        .withBody(toJson(TestData.item1)).withContentType(MediaType.APPLICATION_JSON))
+      .respond(response().withStatusCode(204));
+    emulLoginAs(TestData.author1);
+    sut.out().accept(new ApiRequest.SaveItem("q1-1", TestData.item1));
+    assertNoUiEvents();
+    assertNoApiEvents();
   }
 
   @Test @DisplayName("remove item")

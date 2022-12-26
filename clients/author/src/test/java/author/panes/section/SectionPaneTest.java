@@ -56,7 +56,7 @@ class SectionPaneTest {
   }
 
 
-  @Test @DisplayName("sets data correctly")
+  @Test @DisplayName("sets data correctly on 'edit' click")
   void setData(FxRobot robot) throws Exception {
     putTestSection();
     assertThat(robot.lookup("#title").queryTextInputControl()).hasText("section 1 title");
@@ -64,6 +64,14 @@ class SectionPaneTest {
     assertThat(robot.lookup("#itemsBox").queryParent()).hasExactlyNumChildren(3);
     assertThat(robot.lookup(".item").nth(0).lookup("#definition").queryTextInputControl())
       .hasText("item 1 definition");
+  }
+
+  @Test @DisplayName("sets data correctly on new section event")
+  void setNewSection(FxRobot robot) {
+    putTestSection();
+    assertThat(robot.lookup("#title").queryTextInputControl()).hasText("section 1 title");
+    apiBus.emulIn(new ApiResponse.SectionCreated("q1", new OutSection("q1-456", "new section", "", List.of())));
+    assertThat(robot.lookup("#title").queryTextInputControl()).hasText("new section");
   }
 
   @Test @DisplayName("sends correct request on save click")

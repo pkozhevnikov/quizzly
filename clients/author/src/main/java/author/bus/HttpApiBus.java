@@ -80,8 +80,18 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
         process(r).thenAccept(resp -> {
           log.debug("finalize processing {}", resp);
           if (resp != NO_RESPONSE) {
-            Platform.runLater(() -> subject.onNext(resp));
-            log.debug("published {}", resp);
+            if (resp instanceof Multi) {
+              val m = (Multi) resp;
+              Platform.runLater(() -> {
+                for (ApiResponse s : m.events) {
+                  subject.onNext(s);
+                  log.debug("published {}", s);
+                }
+              });
+            } else {
+              Platform.runLater(() -> subject.onNext(resp));
+              log.debug("published {}", resp);
+            }
           }
         });
     };
@@ -95,6 +105,13 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
   private static final ApiResponse NO_RESPONSE = new ApiResponse() {
     @Override public String toString() { return "NO_RESPONSE"; }
   };
+
+  private static class Multi implements ApiResponse {
+    private ApiResponse[] events;
+    private Multi(ApiResponse... events) {
+      this.events = events;
+    }
+  }
 
   private <T> T json(InputStream is, Class<T> clazz) {
     try {
@@ -269,7 +286,10 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
         } catch (Exception ex) {
           throw new RuntimeException("could not read section SC", ex);
         }
-        return new SectionCreated(r.quizId(), sc);
+        return new Multi(
+          new SectionCreated(r.quizId(), new OutSection(sc, r.title(), "", Collections.emptyList())),
+          new SectionOwned(r.quizId(), sc)
+        );
       })
     ),
 
@@ -351,6 +371,14 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
       r -> reqBuilder("/section/{}/items/{}?up={}", r.sectionSC(), r.sc(), String.valueOf(r.up()))
         .method("PATCH", HttpRequest.BodyPublishers.noBody()),
       Map.of(200, (r, is) -> new ItemMoved(r.sectionSC(), json(is, OutStrList.class).list()))
+    ),
+
+    new Call<SaveItem>(
+      r -> r instanceof SaveItem,
+      r -> reqBuilder("/section/{}/items", r.sectionSC())
+        .header("content-type", "application/json")
+        .PUT(HttpRequest.BodyPublishers.ofByteArray(toJson(r.item()))),
+      Map.of(204, (r, is) -> NO_RESPONSE)
     )
 
   );

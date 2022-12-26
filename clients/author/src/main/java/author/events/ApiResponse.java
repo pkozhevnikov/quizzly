@@ -75,7 +75,7 @@ public interface ApiResponse {
   @Value
   class SectionCreated implements WithQuizId {
     String quizId;
-    String sc;
+    OutSection section;
   }
   @Value
   class SectionMoved implements WithQuizId {

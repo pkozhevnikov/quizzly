@@ -65,7 +65,8 @@ public class SectionPane extends VBox {
     getChildren().addAll(top, scroll);
     setVgrow(scroll, Priority.ALWAYS);
 
-    uiBus.in().ofType(MainUIMessage.EditSection.class).subscribe(this::editSection);
+    uiBus.in().ofType(MainUIMessage.EditSection.class).subscribe(e -> setSection(e.section()));
+    apiBus.in().ofType(ApiResponse.SectionCreated.class).subscribe(e -> setSection(e.section()));
 
     save.setOnAction(e -> apiBus.out().accept(new ApiRequest.UpdateSection(
       sc, title.getText(), intro.getText())));
@@ -95,8 +96,7 @@ public class SectionPane extends VBox {
 
   private String sc;
 
-  private void editSection(MainUIMessage.EditSection e) {
-    val section = e.section();
+  private void setSection(OutSection section) {
     this.sc = section.sc();
     title.setText(section.title());
     intro.setText(section.intro());

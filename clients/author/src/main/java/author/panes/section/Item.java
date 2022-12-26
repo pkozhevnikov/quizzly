@@ -67,7 +67,8 @@ public class Item extends VBox {
     for (val c : hints.getChildren()) {
       val hint = (Hint) c;
       if (hint.isSolution())
-        solutions.add(index++);
+        solutions.add(index);
+      index++;
       hintLists.add(hint.getAlternatives());
     }
     return new OutItem(

@@ -347,10 +347,22 @@ class QuizPaneTest {
   void hideSectionForm(FxRobot robot) {
     putQuizForUser(TestData.fullQuiz1, TestData.author1);
     robot.clickOn("#newSection");
-    apiBus.emulIn(new ApiResponse.SectionCreated("q2", "q2-1"));
+    OutSection newsect = new OutSection("q1-1", "", "", List.of());
+    apiBus.emulIn(new ApiResponse.SectionCreated("q2", newsect));
     assertThat(robot.lookup("#createSectionForm").tryQuery()).isPresent();
-    apiBus.emulIn(new ApiResponse.SectionCreated("q1", "q1-1"));
+    apiBus.emulIn(new ApiResponse.SectionCreated("q1", newsect));
     assertThat(robot.lookup("#createSectionForm").tryQuery()).isEmpty();
+  }
+
+  @Test @DisplayName("adds new section to list")
+  void showsAddedSection(FxRobot robot) {
+    putQuizForUser(TestData.fullQuiz1, TestData.author1);
+    apiBus.emulIn(new ApiResponse.SectionCreated("q1", 
+      new OutSection("q1-1", "new section", "", List.of())));
+    assertThat(robot.lookup("#sections").queryTableView())
+      .hasExactlyNumRows(4)
+      .hasTableCell("new section")
+      ;
   }
 
 }

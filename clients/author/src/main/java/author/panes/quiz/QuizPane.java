@@ -141,7 +141,10 @@ public class QuizPane implements FxmlController {
       quiz.id(), newSectionTitle.getText())));
     apiBus.in().ofType(ApiResponse.SectionCreated.class)
       .filter(e -> e.quizId().equals(quiz.id()))
-      .subscribe(e -> showCreateSection());
+      .subscribe(e -> {
+        showCreateSection();
+        sections.getItems().add(e.section());
+      });
     apiBus.in().ofType(ApiResponse.SectionMoved.class)
       .filter(e -> e.quizId().equals(quiz.id()))
       .subscribe(e -> {
