@@ -101,7 +101,7 @@ public class MainPane extends BorderPane {
         message.setText("Access denied");
       else if (e instanceof RootUIMessage.ApiError) {
         val ae = (RootUIMessage.ApiError) e;
-        message.setText(String.format("%s: %s (%s)",
+        message.setText(String.format("%s: %s %s",
           ae.error().reason().code(),
           ae.error().reason().phrase(),
           ae.error().clues()
@@ -115,6 +115,8 @@ public class MainPane extends BorderPane {
         }
       } else if (e == RootUIMessage.CLEAR)
         message.setText("");
+      else if (e instanceof RootUIMessage.TextMessage) 
+        message.setText(((RootUIMessage.TextMessage) e).text());
     });
 
   }

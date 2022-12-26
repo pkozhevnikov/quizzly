@@ -34,5 +34,19 @@ public interface RootUIMessage {
     Throwable cause;
   }
 
+  interface TextMessage extends RootUIMessage {
+    String text();
+  }
+
+  @Value
+  class InfoMessage implements Info, TextMessage {
+    String text;
+  }
+
+  @Value
+  class WarnMessage implements Warn, TextMessage {
+    String text;
+  }
+
 }
 

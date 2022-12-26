@@ -79,20 +79,19 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
       else
         process(r).thenAccept(resp -> {
           log.debug("finalize processing {}", resp);
-          if (resp != NO_RESPONSE) {
-            if (resp instanceof Multi) {
-              val m = (Multi) resp;
-              Platform.runLater(() -> {
+          Platform.runLater(() -> {
+            errorOut.accept(resp.rootMessage);
+            if (resp.apiResponse != NO_RESPONSE) {
+              if (resp.apiResponse instanceof Multi) {
+                val m = (Multi) resp.apiResponse;
                 for (ApiResponse s : m.events) {
                   subject.onNext(s);
-                  log.debug("published {}", s);
                 }
-              });
-            } else {
-              Platform.runLater(() -> subject.onNext(resp));
-              log.debug("published {}", resp);
+              } else {
+                subject.onNext(resp.apiResponse);
+              }
             }
-          }
+          });
         });
     };
   }
@@ -140,7 +139,7 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
   }
 
   @SuppressWarnings("unchecked")
-  private <Req extends ApiRequest> CompletableFuture<ApiResponse> process(Req request) {
+  private <Req extends ApiRequest> CompletableFuture<Resp> process(Req request) {
     return calls.stream().filter(c -> c.matcher.test(request)).findAny()
       .map(call -> (Call<Req>) call)
       .map(call -> {
@@ -157,30 +156,26 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
                 switch (resp.statusCode()) {
                   case 401:
                     log.debug("send error on 401");
-                    errorOut.accept(RootUIMessage.ACCESS_DENIED);
-                    break;
+                    return new Resp(NO_RESPONSE, RootUIMessage.ACCESS_DENIED);
                   case 422:
-                    errorOut.accept(new RootUIMessage.ApiError(json(is, OutError.class)));
-                    break;
+                    return new Resp(NO_RESPONSE, new RootUIMessage.ApiError(json(is, OutError.class)));
                   default:
                     log.warn("unprocessed status code {} for {}", resp.statusCode(), request);
+                    return Resp.clear(NO_RESPONSE);
                 }
-                return NO_RESPONSE;
               });
             val result = fun.apply(request, resp.body());
             log.debug("mapped response to {}", result);
-            //errorOut.accept(RootUIMessage.CLEAR);
             return result;
           })
           .exceptionally(ex -> {
             log.error("processing error", ex);
-            errorOut.accept(new RootUIMessage.ProcessingError(ex));
-            return NO_RESPONSE;
+            return new Resp(NO_RESPONSE, new RootUIMessage.ProcessingError(ex));
           });
       })
       .orElseGet(() -> {
         log.warn("call for {} not declared", request);
-        return CompletableFuture.completedFuture(NO_RESPONSE);
+        return CompletableFuture.completedFuture(Resp.clear(NO_RESPONSE));
       });
   }
 
@@ -205,13 +200,13 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
     new Call<ApiRequest>(
       r -> r == GET_LIST,
       r -> reqBuilder("/quiz").GET(),
-      Map.of(200, (r, is) -> new QuizList(jsonList(is, OutQuizListed.class)))
+      Map.of(200, (r, is) -> Resp.clear(new QuizList(jsonList(is, OutQuizListed.class))))
     ),
 
     new Call<GetQuiz>(
       r -> r instanceof GetQuiz,
       r -> reqBuilder("/quiz/{}", r.id()).GET(),
-      Map.of(200, (r, is) -> new FullQuiz(json(is, OutFullQuiz.class)))
+      Map.of(200, (r, is) -> Resp.clear(new FullQuiz(json(is, OutFullQuiz.class))))
     ),
 
     new Call<Create>(
@@ -222,8 +217,8 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
       Map.of(
         200, (r, is) -> {
           val details = json(is, OutCreateDetails.class);
-          return new QuizAdded(new OutQuizListed(r.id(), r.title(), false,
-            user, details.authors(), details.inspectors(), "Composing"));
+          return Resp.clear(new QuizAdded(new OutQuizListed(r.id(), r.title(), false,
+            user, details.authors(), details.inspectors(), "Composing")));
         }
       )
     ),
@@ -233,45 +228,45 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
       r -> reqBuilder("/quiz/{}", r.quizId()).header("content-type", "application/json")
         .PUT(HttpRequest.BodyPublishers.ofByteArray(toJson(new InUpdateQuiz(
           r.title(), r.intro(), r.recommendedLength())))),
-      Map.of(204, (r, is) -> NO_RESPONSE)
+      Map.of(204, (r, is) -> Resp.info("Quiz updated", NO_RESPONSE))
     ),
 
     new Call<ApiRequest>(
       r -> r == GET_STAFF,
       r -> reqBuilder("/staff").GET(),
-      Map.of(200, (r, is) -> new PersonList(jsonList(is, OutPerson.class)))
+      Map.of(200, (r, is) -> Resp.clear(new PersonList(jsonList(is, OutPerson.class))))
     ),
 
     new Call<SetObsolete>(
       r -> r instanceof SetObsolete,
       r -> reqBuilder("/quiz/{}", r.quizId()).DELETE(),
-      Map.of(204, (r, is) -> new GotObsolete(r.quizId()))
+      Map.of(204, (r, is) -> Resp.clear(new GotObsolete(r.quizId())))
     ),
 
     new Call<AddAuthor>(
       r -> r instanceof AddAuthor,
       r -> reqBuilder("/quiz/{}/authors/{}", r.quizId(), r.personId())
         .method("PATCH", HttpRequest.BodyPublishers.noBody()),
-      Map.of(204, (r, is) -> new AuthorAdded(r.quizId(), r.personId()))
+      Map.of(204, (r, is) -> Resp.clear(new AuthorAdded(r.quizId(), r.personId())))
     ),
 
     new Call<RemoveAuthor>(
       r -> r instanceof RemoveAuthor,
       r -> reqBuilder("/quiz/{}/authors/{}", r.quizId(), r.personId()).DELETE(),
-      Map.of(204, (r, is) -> new AuthorRemoved(r.quizId(), r.personId()))
+      Map.of(204, (r, is) -> Resp.clear(new AuthorRemoved(r.quizId(), r.personId())))
     ),
 
     new Call<AddInspector>(
       r -> r instanceof AddInspector,
       r -> reqBuilder("/quiz/{}/inspectors/{}", r.quizId(), r.personId())
         .method("PATCH", HttpRequest.BodyPublishers.noBody()),
-      Map.of(204, (r, is) -> new InspectorAdded(r.quizId(), r.personId()))
+      Map.of(204, (r, is) -> Resp.clear(new InspectorAdded(r.quizId(), r.personId())))
     ),
 
     new Call<RemoveInspector>(
       r -> r instanceof RemoveInspector,
       r -> reqBuilder("/quiz/{}/inspectors/{}", r.quizId(), r.personId()).DELETE(),
-      Map.of(204, (r, is) -> new InspectorRemoved(r.quizId(), r.personId()))
+      Map.of(204, (r, is) -> Resp.clear(new InspectorRemoved(r.quizId(), r.personId())))
     ),
 
     new Call<CreateSection>(
@@ -286,10 +281,10 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
         } catch (Exception ex) {
           throw new RuntimeException("could not read section SC", ex);
         }
-        return new Multi(
+        return Resp.clear(new Multi(
           new SectionCreated(r.quizId(), new OutSection(sc, r.title(), "", Collections.emptyList())),
           new SectionOwned(r.quizId(), sc)
-        );
+        ));
       })
     ),
 
@@ -297,39 +292,39 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
       r -> r instanceof MoveSection,
       r -> reqBuilder("/section/{}?qid={}&up={}", r.sc(), r.quizId(), String.valueOf(r.up()))
         .method("PATCH", HttpRequest.BodyPublishers.noBody()),
-      Map.of(200, (r, is) -> new SectionMoved(r.quizId(), json(is, OutStrList.class).list()))
+      Map.of(200, (r, is) -> Resp.clear(new SectionMoved(r.quizId(), json(is, OutStrList.class).list())))
     ),
 
     new Call<RemoveSection>(
       r -> r instanceof RemoveSection,
       r -> reqBuilder("/section/{}?qid={}", r.sc(), r.quizId()).DELETE(),
-      Map.of(204, (r, is) -> new SectionRemoved(r.quizId(), r.sc()))
+      Map.of(204, (r, is) -> Resp.clear(new SectionRemoved(r.quizId(), r.sc())))
     ),
 
     new Call<SetReady>(
       r -> r instanceof SetReady,
       r -> reqBuilder("/quiz/{}/ready", r.quizId())
         .method("PATCH", HttpRequest.BodyPublishers.noBody()),
-      Map.of(204, (r, is) -> new ReadySet(r.quizId(), user.id()))
+      Map.of(204, (r, is) -> Resp.clear(new ReadySet(r.quizId(), user.id())))
     ),
 
     new Call<UnsetReady>(
       r -> r instanceof UnsetReady,
       r -> reqBuilder("/quiz/{}/ready", r.quizId()).DELETE(),
-      Map.of(204, (r, is) -> new ReadyUnset(r.quizId(), user.id()))
+      Map.of(204, (r, is) -> Resp.clear(new ReadyUnset(r.quizId(), user.id())))
     ),
 
     new Call<Approve>(
       r -> r instanceof Approve,
       r -> reqBuilder("/quiz/{}/resolve", r.quizId())
         .method("PATCH", HttpRequest.BodyPublishers.noBody()),
-      Map.of(204, (r, is) -> new Approved(r.quizId(), user.id()))
+      Map.of(204, (r, is) -> Resp.clear(new Approved(r.quizId(), user.id())))
     ),
 
     new Call<Disapprove>(
       r -> r instanceof Disapprove,
       r -> reqBuilder("/quiz/{}/resolve", r.quizId()).DELETE(),
-      Map.of(204, (r, is) -> new Disapproved(r.quizId(), user.id()))
+      Map.of(204, (r, is) -> Resp.clear(new Disapproved(r.quizId(), user.id())))
     ),
 
     new Call<UpdateSection>(
@@ -337,40 +332,40 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
       r -> reqBuilder("/section/{}", r.sectionSC())
         .header("content-type", "application/json")
         .PUT(HttpRequest.BodyPublishers.ofByteArray(toJson(new InUpdateSection(r.title(), r.intro())))),
-      Map.of(204, (r, is) -> NO_RESPONSE)
+      Map.of(204, (r, is) -> Resp.info("Section updated", NO_RESPONSE))
     ),
 
     new Call<OwnSection>(
       r -> r instanceof OwnSection,
       r -> reqBuilder("/quiz/{}?sc={}", r.quizId(), r.sc())
         .method("PATCH", HttpRequest.BodyPublishers.noBody()),
-      Map.of(204, (r, is) -> new SectionOwned(r.quizId(), r.sc()))
+      Map.of(204, (r, is) -> Resp.clear(new SectionOwned(r.quizId(), r.sc())))
     ),
 
     new Call<DischargeSection>(
       r -> r instanceof DischargeSection,
       r -> reqBuilder("/section/{}", r.sc()).GET(),
-      Map.of(204, (r, is) -> new SectionDischarged(r.sc()))
+      Map.of(204, (r, is) -> Resp.clear(new SectionDischarged(r.sc())))
     ),
 
     new Call<AddItem>(
       r -> r instanceof AddItem,
       r -> reqBuilder("/section/{}/items", r.sectionSC())
         .method("PATCH", HttpRequest.BodyPublishers.noBody()),
-      Map.of(200, (r, is) -> new ItemAdded(r.sectionSC(), json(is, String.class)))
+      Map.of(200, (r, is) -> Resp.clear(new ItemAdded(r.sectionSC(), json(is, String.class))))
     ),
 
     new Call<RemoveItem>(
       r -> r instanceof RemoveItem,
       r -> reqBuilder("/section/{}/items/{}", r.sectionSC(), r.sc()).DELETE(),
-      Map.of(204, (r, is) -> new ItemRemoved(r.sectionSC(), r.sc()))
+      Map.of(204, (r, is) -> Resp.clear(new ItemRemoved(r.sectionSC(), r.sc())))
     ),
 
     new Call<MoveItem>(
       r -> r instanceof MoveItem,
       r -> reqBuilder("/section/{}/items/{}?up={}", r.sectionSC(), r.sc(), String.valueOf(r.up()))
         .method("PATCH", HttpRequest.BodyPublishers.noBody()),
-      Map.of(200, (r, is) -> new ItemMoved(r.sectionSC(), json(is, OutStrList.class).list()))
+      Map.of(200, (r, is) -> Resp.clear(new ItemMoved(r.sectionSC(), json(is, OutStrList.class).list())))
     ),
 
     new Call<SaveItem>(
@@ -378,17 +373,28 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
       r -> reqBuilder("/section/{}/items", r.sectionSC())
         .header("content-type", "application/json")
         .PUT(HttpRequest.BodyPublishers.ofByteArray(toJson(r.item()))),
-      Map.of(204, (r, is) -> NO_RESPONSE)
+      Map.of(204, (r, is) -> Resp.info("Item saved", NO_RESPONSE))
     )
 
   );
-  
+
+  @lombok.AllArgsConstructor
+  private static class Resp {
+    private ApiResponse apiResponse;
+    private RootUIMessage rootMessage;
+    static Resp info(String text, ApiResponse response) {
+      return new Resp(response, new RootUIMessage.InfoMessage(text));
+    }
+    static Resp clear(ApiResponse response) {
+      return new Resp(response, RootUIMessage.CLEAR);
+    }
+  }
 
   @lombok.AllArgsConstructor
   private static class Call<Req extends ApiRequest> {
     private Predicate<ApiRequest> matcher;
     private Function<Req, HttpRequest.Builder> request;
-    private Map<Integer, BiFunction<Req, InputStream, ApiResponse>> responses;
+    private Map<Integer, BiFunction<Req, InputStream, Resp>> responses;
   }
 
 }

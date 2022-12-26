@@ -145,7 +145,7 @@ class MainPaneTest {
     assertThat(robot.lookup("#message").queryLabeled()).hasText("");
     rootUiBus.emulIn(new RootUIMessage.ApiError(new OutError(
       new OutErrorReason(100, "some api error"), List.of("clue1", "clue2"))));
-    assertMessage("100: some api error ([clue1, clue2])", "darkred", robot);
+    assertMessage("100: some api error [clue1, clue2]", "darkred", robot);
     rootUiBus.emulIn(new RootUIMessage.ProcessingError(new CompletionException(
       new Exception("could not complete"))));
     assertMessage("could not complete", "darkred", robot);

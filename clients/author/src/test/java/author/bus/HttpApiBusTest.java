@@ -111,6 +111,12 @@ public class HttpApiBusTest {
     }
   }
 
+  private void assertUiClear() {
+    uiSubscriber.awaitCount(1);
+    uiSubscriber.assertValue(RootUIMessage.CLEAR);
+  }
+    
+
   private void assertApiEvent(ApiResponse... events) {
     apiSubscriber.awaitCount(events.length);
     apiSubscriber.assertValues(events);
@@ -219,7 +225,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.UpdateQuiz("q1", "new title", "new intro", 99));
-    assertNoUiEvents();
+    assertUiClear();
     assertNoApiEvents();
   }
 
@@ -253,7 +259,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.curator);
     sut.out().accept(new ApiRequest.AddAuthor("q1", "author3"));
-    assertNoUiEvents();
+    assertUiClear();
     assertApiEvent(new ApiResponse.AuthorAdded("q1", "author3"));
   }
 
@@ -265,7 +271,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.curator);
     sut.out().accept(new ApiRequest.RemoveAuthor("q3", "author1"));
-    assertNoUiEvents();
+    assertUiClear();
     assertApiEvent(new ApiResponse.AuthorRemoved("q3", "author1"));
   }
 
@@ -277,7 +283,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.curator);
     sut.out().accept(new ApiRequest.AddInspector("q1", "inspector3"));
-    assertNoUiEvents();
+    assertUiClear();
     assertApiEvent(new ApiResponse.InspectorAdded("q1", "inspector3"));
   }
 
@@ -288,7 +294,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.curator);
     sut.out().accept(new ApiRequest.RemoveInspector("q3", "inspector1"));
-    assertNoUiEvents();
+    assertUiClear();
     assertApiEvent(new ApiResponse.InspectorRemoved("q3", "inspector1"));
   }
 
@@ -299,7 +305,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(200).withBody("q1-1"));
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.CreateSection("q1", "new section"));
-    assertNoUiEvents();
+    assertUiClear();
     assertApiEvent(new ApiResponse.SectionCreated("q1", new OutSection("q1-1", "new section", "", List.of())),
       new ApiResponse.SectionOwned("q1", "q1-1"));
   }
@@ -323,7 +329,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(200).withBody(toJson(new OutStrList(newOrder))));
     emulLoginAs(TestData.author3);
     sut.out().accept(new ApiRequest.MoveSection(quizId, sc, up));
-    assertNoUiEvents();
+    assertUiClear();
     assertApiEvent(new ApiResponse.SectionMoved(quizId, newOrder));
   }
 
@@ -334,7 +340,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.RemoveSection("q1-2", "q1"));
-    assertNoUiEvents();
+    assertUiClear();
     assertApiEvent(new ApiResponse.SectionRemoved("q1", "q1-2"));
   }
   
@@ -361,7 +367,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(204));
     emulLoginAs(user);
     sut.out().accept(req);
-    assertNoUiEvents();
+    assertUiClear();
     assertApiEvent(res);
   }
 
@@ -374,7 +380,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.UpdateSection("q1-1", "title plus", "intro plus"));
-    assertNoUiEvents();
+    assertUiEvent(new RootUIMessage.InfoMessage("Section updated"));
     assertNoApiEvents();
   }
 
@@ -386,7 +392,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.OwnSection("q1", "q1-1"));
-    assertNoUiEvents();
+    assertUiClear();
     assertApiEvent(new ApiResponse.SectionOwned("q1", "q1-1"));
   }
 
@@ -397,7 +403,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.author2);
     sut.out().accept(new ApiRequest.DischargeSection("q1-1"));
-    assertNoUiEvents();
+    assertUiClear();
     assertApiEvent(new ApiResponse.SectionDischarged("q1-1"));
   }
 
@@ -408,7 +414,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(200).withBody("\"5\""));
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.AddItem("q1-1"));
-    assertNoUiEvents();
+    assertUiClear();
     assertApiEvent(new ApiResponse.ItemAdded("q1-1", "5"));
   }
 
@@ -420,7 +426,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.SaveItem("q1-1", TestData.item1));
-    assertNoUiEvents();
+    assertUiEvent(new RootUIMessage.InfoMessage("Item saved"));
     assertNoApiEvents();
   }
 
@@ -432,7 +438,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.author3);
     sut.out().accept(new ApiRequest.RemoveItem("q1-1", "5"));
-    assertNoUiEvents();
+    assertUiClear();
     assertApiEvent(new ApiResponse.ItemRemoved("q1-1", "5"));
   }
 
@@ -445,7 +451,7 @@ public class HttpApiBusTest {
       .respond(response().withStatusCode(200).withBody(toJson(new OutStrList(newOrder))));
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.MoveItem("q1-1", "4", true));
-    assertNoUiEvents();
+    assertUiClear();
     assertApiEvent(new ApiResponse.ItemMoved("q1-1", newOrder));
   }
 
