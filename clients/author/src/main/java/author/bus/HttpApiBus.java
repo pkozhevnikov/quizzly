@@ -78,7 +78,7 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
         errorOut.accept(RootUIMessage.NOT_LOGGED_IN);
       else
         process(r).thenAccept(resp -> {
-          log.debug("finalize processing {}", resp);
+          log.debug("finalize processing {} {}", resp.apiResponse, resp.rootMessage);
           Platform.runLater(() -> {
             errorOut.accept(resp.rootMessage);
             if (resp.apiResponse != NO_RESPONSE) {
@@ -155,7 +155,6 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
               .orElse((req, is) -> {
                 switch (resp.statusCode()) {
                   case 401:
-                    log.debug("send error on 401");
                     return new Resp(NO_RESPONSE, RootUIMessage.ACCESS_DENIED);
                   case 422:
                     return new Resp(NO_RESPONSE, new RootUIMessage.ApiError(json(is, OutError.class)));
@@ -164,9 +163,7 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
                     return Resp.clear(NO_RESPONSE);
                 }
               });
-            val result = fun.apply(request, resp.body());
-            log.debug("mapped response to {}", result);
-            return result;
+            return fun.apply(request, resp.body());
           })
           .exceptionally(ex -> {
             log.error("processing error", ex);
