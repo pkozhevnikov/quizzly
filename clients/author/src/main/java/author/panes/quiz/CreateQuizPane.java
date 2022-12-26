@@ -95,6 +95,8 @@ public class CreateQuizPane implements FxmlController {
     id.setText("");
     selectedAuthor.getSelectionModel().clearSelection();
     selectedInspector.getSelectionModel().clearSelection();
+    authors.getItems().clear();
+    inspectors.getItems().clear();
   }
 
 }

@@ -6,6 +6,8 @@ import javafx.scene.control.*;
 import javafx.geometry.*;
 import javafx.scene.layout.*;
 
+import io.reactivex.rxjava3.core.Observable;
+
 import author.util.Bus;
 import author.dtos.*;
 import author.events.ApiResponse;
@@ -65,7 +67,11 @@ public class Quizzes {
       main.getChildren().remove(buttons);
       main.getChildren().add(create);
     });
-    uiBus.in().filter(m -> m == HIDE_CREATE_PANE).subscribe(m -> {
+    Observable.mergeArray(
+      uiBus.in().filter(m -> m == HIDE_CREATE_PANE),
+      apiBus.in().ofType(ApiResponse.QuizAdded.class)
+    ).subscribe(m -> {
+      uiBus.out().accept(CLEAR_CREATE_PANE);
       main.getChildren().remove(create);
       main.getChildren().add(buttons);
     });

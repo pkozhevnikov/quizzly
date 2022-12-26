@@ -57,5 +57,13 @@ class QuizzesTest {
     assertThat(robot.lookup("#form").lookup("#status").queryLabeled()).hasText("Review");
   }
 
+  @Test @DisplayName("hides create form on creation event")
+  void hideCreatePaneWhenCreated(FxRobot robot) {
+    robot.clickOn("#create");
+    assertThat(robot.lookup("#createPane").tryQuery()).isPresent();
+    apiBus.emulIn(new ApiResponse.QuizAdded(TestData.newQuiz));
+    assertThat(robot.lookup("#createPane").tryQuery()).isEmpty();
+  }
+
 }
 
