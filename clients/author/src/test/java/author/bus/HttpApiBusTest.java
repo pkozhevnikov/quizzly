@@ -401,7 +401,7 @@ public class HttpApiBusTest {
   @Test @DisplayName("discharge section")
   void dischargeSection() {
     client
-      .when(request().withMethod(HEAD).withPath("/v1/section/q1-1").withHeaders(header("p", "author2")))
+      .when(request().withMethod(POST).withPath("/v1/section/q1-1").withHeaders(header("p", "author2")))
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.author2);
     sut.out().accept(new ApiRequest.DischargeSection("q1-1"));

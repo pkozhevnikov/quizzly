@@ -342,7 +342,7 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
     new Call<DischargeSection>(
       r -> r instanceof DischargeSection,
       r -> reqBuilder("/section/{}", r.sc())
-        .method("HEAD", HttpRequest.BodyPublishers.noBody()),
+        .POST(HttpRequest.BodyPublishers.noBody()),
       Map.of(204, (r, is) -> Resp.clear(new SectionDischarged(r.sc())))
     ),
 
