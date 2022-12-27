@@ -278,9 +278,10 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
         } catch (Exception ex) {
           throw new RuntimeException("could not read section SC", ex);
         }
+        val section = new OutSection(sc, r.title(), "", Collections.emptyList());
         return Resp.clear(new Multi(
-          new SectionCreated(r.quizId(), new OutSection(sc, r.title(), "", Collections.emptyList())),
-          new SectionOwned(r.quizId(), sc)
+          new SectionCreated(r.quizId(), section),
+          new SectionOwned(r.quizId(), section)
         ));
       })
     ),
@@ -334,14 +335,14 @@ public class HttpApiBus implements Bus<ApiResponse, ApiRequest> {
 
     new Call<OwnSection>(
       r -> r instanceof OwnSection,
-      r -> reqBuilder("/quiz/{}?sc={}", r.quizId(), r.sc())
-        .method("PATCH", HttpRequest.BodyPublishers.noBody()),
-      Map.of(204, (r, is) -> Resp.clear(new SectionOwned(r.quizId(), r.sc())))
+      r -> reqBuilder("/section/{}?qid={}", r.sc(), r.quizId()).GET(),
+      Map.of(200, (r, is) -> Resp.clear(new SectionOwned(r.quizId(), json(is, OutSection.class))))
     ),
 
     new Call<DischargeSection>(
       r -> r instanceof DischargeSection,
-      r -> reqBuilder("/section/{}", r.sc()).GET(),
+      r -> reqBuilder("/section/{}", r.sc())
+        .method("HEAD", HttpRequest.BodyPublishers.noBody()),
       Map.of(204, (r, is) -> Resp.clear(new SectionDischarged(r.sc())))
     ),
 

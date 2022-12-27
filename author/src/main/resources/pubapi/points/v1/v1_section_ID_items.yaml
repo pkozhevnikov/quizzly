@@ -1,3 +1,31 @@
+patch:
+  tags:
+  - v1
+  summary: add item
+  description: |
+    Adds new item
+  operationId: additem
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: item added, responses with ID of new item
+      schema: 
+        $ref: /pubapi/schemas/sc.yaml
+    422:
+      description: error
+
 put:
   tags:
   - v1
@@ -30,34 +58,6 @@ put:
   responses:
     204:
       description: item saved
-    422:
-      description: error
-
-patch:
-  tags:
-  - v1
-  summary: add item
-  description: |
-    Adds new item
-  operationId: additem
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: section ID
-    type: string
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    200:
-      description: item added, responses with ID of new item
-      schema: 
-        $ref: /pubapi/schemas/sc.yaml
     422:
       description: error
 

@@ -52,7 +52,7 @@ class SectionPaneTest {
   }
 
   void putTestSection() {
-    uiBus.emulIn(new MainUIMessage.EditSection("q1", TestData.section1));
+    apiBus.emulIn(new ApiResponse.SectionOwned("q1", TestData.section1));
   }
 
 
@@ -64,14 +64,6 @@ class SectionPaneTest {
     assertThat(robot.lookup("#itemsBox").queryParent()).hasExactlyNumChildren(3);
     assertThat(robot.lookup(".item").nth(0).lookup("#definition").queryTextInputControl())
       .hasText("item 1 definition");
-  }
-
-  @Test @DisplayName("sets data correctly on new section event")
-  void setNewSection(FxRobot robot) {
-    putTestSection();
-    assertThat(robot.lookup("#title").queryTextInputControl()).hasText("section 1 title");
-    apiBus.emulIn(new ApiResponse.SectionCreated("q1", new OutSection("q1-456", "new section", "", List.of())));
-    assertThat(robot.lookup("#title").queryTextInputControl()).hasText("new section");
   }
 
   @Test @DisplayName("sends correct request on save click")

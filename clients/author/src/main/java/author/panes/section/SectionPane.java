@@ -65,8 +65,7 @@ public class SectionPane extends VBox {
     getChildren().addAll(top, scroll);
     setVgrow(scroll, Priority.ALWAYS);
 
-    uiBus.in().ofType(MainUIMessage.EditSection.class).subscribe(e -> setSection(e.section()));
-    apiBus.in().ofType(ApiResponse.SectionCreated.class).subscribe(e -> setSection(e.section()));
+    apiBus.in().ofType(ApiResponse.SectionOwned.class).subscribe(e -> setSection(e.section()));
 
     save.setOnAction(e -> apiBus.out().accept(new ApiRequest.UpdateSection(
       sc, title.getText(), intro.getText())));

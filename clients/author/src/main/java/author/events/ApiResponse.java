@@ -105,7 +105,7 @@ public interface ApiResponse {
   @Value
   class SectionOwned implements WithQuizId {
     String quizId;
-    String sc;
+    OutSection section;
   }
   @Value
   class SectionDischarged implements ApiResponse {

@@ -306,8 +306,9 @@ public class HttpApiBusTest {
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.CreateSection("q1", "new section"));
     assertUiClear();
-    assertApiEvent(new ApiResponse.SectionCreated("q1", new OutSection("q1-1", "new section", "", List.of())),
-      new ApiResponse.SectionOwned("q1", "q1-1"));
+    val section = new OutSection("q1-1", "new section", "", List.of());
+    assertApiEvent(new ApiResponse.SectionCreated("q1", section),
+      new ApiResponse.SectionOwned("q1", section));
   }
 
   private static Stream<Arguments> sectionMove_args() {
@@ -386,20 +387,21 @@ public class HttpApiBusTest {
 
   @Test @DisplayName("own section")
   void ownSection() {
+    val section = new OutSection("q1-1", "", "", List.of());
     client
-      .when(request().withMethod(PATCH).withPath("/v1/quiz/q1").withHeaders(header("p", "author1"))
-        .withQueryStringParameter("sc", "q1-1"))
-      .respond(response().withStatusCode(204));
+      .when(request().withMethod(GET).withPath("/v1/section/q1-1").withHeaders(header("p", "author1"))
+        .withQueryStringParameter("qid", "q1"))
+      .respond(response().withStatusCode(200).withBody(toJson(section)));
     emulLoginAs(TestData.author1);
     sut.out().accept(new ApiRequest.OwnSection("q1", "q1-1"));
     assertUiClear();
-    assertApiEvent(new ApiResponse.SectionOwned("q1", "q1-1"));
+    assertApiEvent(new ApiResponse.SectionOwned("q1", section));
   }
 
   @Test @DisplayName("discharge section")
   void dischargeSection() {
     client
-      .when(request().withMethod(GET).withPath("/v1/section/q1-1").withHeaders(header("p", "author2")))
+      .when(request().withMethod(HEAD).withPath("/v1/section/q1-1").withHeaders(header("p", "author2")))
       .respond(response().withStatusCode(204));
     emulLoginAs(TestData.author2);
     sut.out().accept(new ApiRequest.DischargeSection("q1-1"));
@@ -460,6 +462,7 @@ public class HttpApiBusTest {
   static String PUT = "PUT";
   static String PATCH = "PATCH";
   static String DELETE = "DELETE";
+  static String HEAD = "HEAD";
 
 }
 

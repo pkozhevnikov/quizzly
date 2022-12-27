@@ -100,7 +100,7 @@ public class QuizPane implements FxmlController {
     down.setCellValueFactory(idFactory);
     remove.setCellValueFactory(idFactory);
     edit.setCellFactory(Factories.buttonTableCellFactory("pencil-bold", "edit-section", 
-      (col, section) -> uiBus.out().accept(new MainUIMessage.EditSection(quiz.id(), section))));
+      (col, section) -> uiBus.out().accept(new MainUIMessage.EditSection(quiz.id(), section.sc()))));
     up.setCellFactory(Factories.buttonTableCellFactory("arrow-fat-line-up-bold", "section-up",
       (col, section) -> apiBus.out().accept(new ApiRequest.MoveSection(quiz.id(), section.sc(), true))));
     down.setCellFactory(Factories.buttonTableCellFactory("arrow-fat-line-down-bold", "section-down",

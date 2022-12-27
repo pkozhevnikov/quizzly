@@ -37,72 +37,6 @@ post:
     422:
       description: error
 
-put:
-  tags:
-  - v1
-  consumes:
-  - application/json
-  summary: Update quiz
-  description: |
-    updates main quiz attributes
-  operationId: updatequiz
-  parameters:
-  -
-    in: body
-    name: quiz-main
-    required: true
-    schema:
-      $ref: /pubapi/schemas/update-quiz.yaml
-  -
-    in: path
-    name: id
-    required: true
-    description: quiz ID
-    type: string
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    204:
-      description: normal response
-    422:
-      description: error
-
-patch:
-  tags:
-  - v1
-  summary: own section
-  description: |
-    Authors owns section for work
-  operationId: ownsection
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: quiz ID
-    type: string
-  -
-    in: query
-    name: sc
-    required: true
-    description: section ID
-    type: string
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    204:
-      description: section owned
-    422:
-      description: error
-
 get:
   tags:
   - v1
@@ -155,6 +89,40 @@ delete:
   responses:
     204:
       description: quiz set obsolete
+    422:
+      description: error
+
+put:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  summary: Update quiz
+  description: |
+    updates main quiz attributes
+  operationId: updatequiz
+  parameters:
+  -
+    in: body
+    name: quiz-main
+    required: true
+    schema:
+      $ref: /pubapi/schemas/update-quiz.yaml
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    204:
+      description: normal response
     422:
       description: error
 

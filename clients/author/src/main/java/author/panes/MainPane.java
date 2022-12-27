@@ -92,10 +92,10 @@ public class MainPane extends BorderPane {
     });
 
     uiBus.in().ofType(MainUIMessage.EditSection.class).subscribe(e -> {
-      apiBus.out().accept(new ApiRequest.OwnSection(e.quizId(), e.section().sc()));
+      apiBus.out().accept(new ApiRequest.OwnSection(e.quizId(), e.sc()));
     });
     apiBus.in().ofType(ApiResponse.SectionOwned.class).subscribe(e -> {
-      currentSC = e.sc();
+      currentSC = e.section().sc();
       setCenter(sectionPane);
     });
     apiBus.in().ofType(ApiResponse.SectionDischarged.class).subscribe(e -> setCenter(quizPane));

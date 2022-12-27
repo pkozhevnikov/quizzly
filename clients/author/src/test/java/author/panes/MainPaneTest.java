@@ -93,7 +93,7 @@ class MainPaneTest {
       new ApiResponse.FullQuiz(TestData.fullQuiz1));
     val onGetList = apiBus.on(ApiRequest.GET_LIST, new ApiResponse.QuizList(TestData.list));
     val onOwnSection = apiBus.on(new ApiRequest.OwnSection("q1", "q1-1"),
-      new ApiResponse.SectionOwned("q1", "q1-1"));
+      new ApiResponse.SectionOwned("q1", TestData.section1));
     val onDischarge = apiBus.on(new ApiRequest.DischargeSection("q1-1"),
       new ApiResponse.SectionDischarged("q1-1"));
     loginBus.emulIn(new LoginEvent.Success("author1", TestData.author1));
@@ -116,7 +116,7 @@ class MainPaneTest {
     val onGetList = apiBus.on(ApiRequest.GET_LIST, new ApiResponse.QuizList(TestData.list));
     loginBus.emulIn(new LoginEvent.Success("author1", TestData.author1));
     val onOwnSection = apiBus.on(new ApiRequest.OwnSection("q1", "q1-2"),
-      new ApiResponse.SectionOwned("q1", "q1-2"));
+      new ApiResponse.SectionOwned("q1", TestData.section2));
     val onDischarge = apiBus.on(new ApiRequest.DischargeSection("q1-2"),
       new ApiResponse.SectionDischarged("q1-2"));
     val go = robot.from(robot.lookup("q1 title").query().getParent()).lookup(".goto-quiz").query();
@@ -138,7 +138,7 @@ class MainPaneTest {
       new ApiResponse.FullQuiz(TestData.fullQuiz1));
     val onGetList = apiBus.on(ApiRequest.GET_LIST, new ApiResponse.QuizList(TestData.list));
     val onOwnSection = apiBus.on(new ApiRequest.OwnSection("q1", "q1-1"),
-      new ApiResponse.SectionOwned("q1", "q1-1"));
+      new ApiResponse.SectionOwned("q1", TestData.section1));
     val onDischarge = apiBus.on(new ApiRequest.DischargeSection("q1-1"),
       new ApiResponse.SectionDischarged("q1-1"));
     loginBus.emulIn(new LoginEvent.Success("author1", TestData.author1));
@@ -159,7 +159,7 @@ class MainPaneTest {
       new ApiResponse.FullQuiz(TestData.fullQuiz1));
     val onGetList = apiBus.on(ApiRequest.GET_LIST, new ApiResponse.QuizList(TestData.list));
     val onOwnSection = apiBus.on(new ApiRequest.OwnSection("q1", "q1-1"),
-      new ApiResponse.SectionOwned("q1", "q1-1"));
+      new ApiResponse.SectionOwned("q1", TestData.section1));
     val onDischarge = apiBus.on(new ApiRequest.DischargeSection("q1-1"),
       new ApiResponse.SectionDischarged("q1-1"));
     loginBus.emulIn(new LoginEvent.Success("author1", TestData.author1));
