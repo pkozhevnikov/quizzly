@@ -30,6 +30,10 @@ public class TestBus<In, Out> implements Bus<In, Out> {
   }
 
   public Out poll() { return outQueue.poll(); }
+  public Out poll(int count) {
+    for (int i = 1; i < count - 1; i++) outQueue.poll();
+    return outQueue.poll();
+  }
   public void emulInCT(In i) {
     in.onNext(i);
   }

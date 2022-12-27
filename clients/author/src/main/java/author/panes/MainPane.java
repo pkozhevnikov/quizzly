@@ -74,15 +74,28 @@ public class MainPane extends BorderPane {
       setCenter(quizPane);
     });
 
-    logout.setOnAction(e -> loginBus.out().accept(LoginRequest.LOGOUT));
+    logout.setOnAction(e -> {
+      if (getCenter() == sectionPane) {
+        apiBus.in().ofType(ApiResponse.SectionDischarged.class).take(1).subscribe(e1 ->
+          loginBus.out().accept(LoginRequest.LOGOUT)
+        );
+        apiBus.out().accept(new ApiRequest.DischargeSection(currentSC));
+      } else
+        loginBus.out().accept(LoginRequest.LOGOUT);
+    });
     home.setOnAction(e -> {
-      setCenter(quizzes);
+      if (getCenter() == sectionPane) {
+        apiBus.out().accept(new ApiRequest.DischargeSection(currentSC));
+      } else {
+        setCenter(quizzes);
+      }
     });
 
     uiBus.in().ofType(MainUIMessage.EditSection.class).subscribe(e -> {
       apiBus.out().accept(new ApiRequest.OwnSection(e.quizId(), e.section().sc()));
     });
     apiBus.in().ofType(ApiResponse.SectionOwned.class).subscribe(e -> {
+      currentSC = e.sc();
       setCenter(sectionPane);
     });
     apiBus.in().ofType(ApiResponse.SectionDischarged.class).subscribe(e -> setCenter(quizPane));
@@ -120,6 +133,8 @@ public class MainPane extends BorderPane {
     });
 
   }
+
+  private String currentSC;
 
   private Node initTop() {
     HBox topBar = new HBox();

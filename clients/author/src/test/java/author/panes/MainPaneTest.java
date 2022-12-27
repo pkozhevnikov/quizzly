@@ -87,6 +87,26 @@ class MainPaneTest {
   void logout(FxRobot robot) {
     robot.clickOn("#logout");
     assertThat(loginBus.poll()).isSameAs(LoginRequest.LOGOUT);
+
+    
+    val onGetQuiz = apiBus.on(new ApiRequest.GetQuiz("q1"),
+      new ApiResponse.FullQuiz(TestData.fullQuiz1));
+    val onGetList = apiBus.on(ApiRequest.GET_LIST, new ApiResponse.QuizList(TestData.list));
+    val onOwnSection = apiBus.on(new ApiRequest.OwnSection("q1", "q1-1"),
+      new ApiResponse.SectionOwned("q1", "q1-1"));
+    val onDischarge = apiBus.on(new ApiRequest.DischargeSection("q1-1"),
+      new ApiResponse.SectionDischarged("q1-1"));
+    loginBus.emulIn(new LoginEvent.Success("author1", TestData.author1));
+    robot.clickOn(robot.lookup(".goto-quiz").nth(0).queryLabeled());
+    robot.clickOn(robot.lookup(".edit-section").nth(0).queryLabeled());
+    robot.clickOn("#logout");
+    onGetQuiz.free();
+    onGetList.free();
+    onOwnSection.free();
+    onDischarge.free();
+    assertThat(apiBus.poll(6)).isEqualTo(new ApiRequest.DischargeSection("q1-1"));
+    assertThat(loginBus.poll()).isSameAs(LoginRequest.LOGOUT);
+    
   }
 
   @Test @DisplayName("goes to selected section")
@@ -132,6 +152,28 @@ class MainPaneTest {
     assertThat(robot.lookup("#quizPane").tryQuery()).isPresent();
     assertThat(robot.lookup("#sectionPane").tryQuery()).isEmpty();
   }
+
+  @Test @DisplayName("auto discharge on back and logout buttons")
+  void autoDischarge(FxRobot robot) {
+    val onGetQuiz = apiBus.on(new ApiRequest.GetQuiz("q1"),
+      new ApiResponse.FullQuiz(TestData.fullQuiz1));
+    val onGetList = apiBus.on(ApiRequest.GET_LIST, new ApiResponse.QuizList(TestData.list));
+    val onOwnSection = apiBus.on(new ApiRequest.OwnSection("q1", "q1-1"),
+      new ApiResponse.SectionOwned("q1", "q1-1"));
+    val onDischarge = apiBus.on(new ApiRequest.DischargeSection("q1-1"),
+      new ApiResponse.SectionDischarged("q1-1"));
+    loginBus.emulIn(new LoginEvent.Success("author1", TestData.author1));
+    robot.clickOn(robot.lookup(".goto-quiz").nth(0).queryLabeled());
+    robot.clickOn(robot.lookup(".edit-section").nth(0).queryLabeled());
+    robot.clickOn("#home");
+    onGetQuiz.free();
+    onGetList.free();
+    onOwnSection.free();
+    onDischarge.free();
+    assertThat(robot.lookup("#quizPane").tryQuery()).isPresent();
+    assertThat(robot.lookup("#sectionPane").tryQuery()).isEmpty();
+  }
+    
 
   void assertMessage(String text, String color, FxRobot robot) {
     assertThat(robot.lookup("#message").queryLabeled())
