@@ -373,11 +373,11 @@ class QuizAuthoringSpec
       res.status shouldBe StatusCodes.OK
       res.to[String] shouldBe "G-1"
       And("I am an owner")
-      val ownres = patch("quiz/G?sc=G-1", author1)
+      val ownres = get("section/G-1?qid=G", author1)
       ownres.status shouldBe StatusCodes.UnprocessableEntity
       ownres.to[Error] shouldBe SectionEdit.alreadyOwned.error()
       And("another author cannot own this section")
-      val ownres2 = patch("quiz/G?sc=G-1", author2)
+      val ownres2 = get("section/G-1?qid=G", author2)
       ownres2.status shouldBe StatusCodes.UnprocessableEntity
       ownres2.to[Error] shouldBe SectionEdit.notOwner.error()
       And("another author cannot edit this section")
@@ -403,7 +403,7 @@ class QuizAuthoringSpec
       val upd = put("section/H-1", author1, UpdateSection("section 1 plus", "section 1 intro"))
       upd.status shouldBe StatusCodes.NoContent
       And("section discharged")
-      val dis = get("section/H-1", author1)
+      val dis = post("section/H-1", author1)
       dis.status shouldBe StatusCodes.NoContent
       Then("the section updated")
       val full = get("quiz/H", author1)
@@ -418,7 +418,7 @@ class QuizAuthoringSpec
       And("a section added")
       post("quiz/I", author1, CreateSection("section 1"))
       And("the section discharged")
-      get("section/I-1", author1)
+      post("section/I-1", author1)
       val full0 = get("quiz/I", author1)
       full0.to[FullQuiz].sections.exists(_.sc == "I-1") shouldBe true
       When("another author requests section removal")
@@ -442,13 +442,13 @@ class QuizAuthoringSpec
       val save = put("section/J-1/items", author1, item.copy(sc = "1"))
       Then("the item is saved")
       save.status shouldBe StatusCodes.NoContent
-      get("section/J-1", author1)
+      post("section/J-1", author1)
       val full = get("quiz/J", author1).to[FullQuiz]
       full.sections.find(_.sc == "J-1").get.items.exists(_.sc == "1") shouldBe true
 
       When("another author owned the section")
-      val own = patch("quiz/J?sc=J-1", author2)
-      own.status shouldBe StatusCodes.NoContent
+      val own = get("section/J-1?qid=J", author2)
+      own.status shouldBe StatusCodes.OK
       And("another item added and save request is made")
       val add2 = patch("section/J-1/items", author2)
       add2.status shouldBe StatusCodes.OK
@@ -456,29 +456,29 @@ class QuizAuthoringSpec
       val save2 = put("section/J-1/items", author2, item.copy(sc = "2"))
       Then("new item is saved")
       save2.status shouldBe StatusCodes.NoContent
-      get("section/J-1", author2)
+      post("section/J-1", author2)
       val full2 = get("quiz/J", inspector1)
       full2.status shouldBe StatusCodes.OK
       full2.to[FullQuiz].sections.find(_.sc == "J-1").get.items.map(_.sc) should contain inOrder
         ("1", "2")
 
       When("first author owned the section")
-      patch("quiz/J?sc=J-1", author1)
+      get("section/J-1?qid=J", author1)
       And("moved an item up")
       val up = patch("section/J-1/items/2?up=true", author1)
       Then("item changed position")
       up.status shouldBe StatusCodes.OK
       up.to[StrList].list should contain inOrder ("2", "1")
-      get("section/J-1", author1)
+      post("section/J-1", author1)
       val full4 = get("quiz/J", author1).to[FullQuiz]
       full4.sections.find(_.sc == "J-1").get.items.map(_.sc) should contain inOrder ("2", "1")
 
-      patch("quiz/J?sc=J-1", author1)
+      get("section/J-1?qid=J", author1)
       When("requested item removal")
       val rem = delete("section/J-1/items/1", author1)
       Then("the item is removed")
       rem.status shouldBe StatusCodes.NoContent
-      get("section/J-1", author1)
+      post("section/J-1", author1)
       val full3 = get("quiz/J", curator).to[FullQuiz]
       full3.sections.find(_.sc == "J-1").get.items.map(_.sc).loneElement shouldBe "2"
     }

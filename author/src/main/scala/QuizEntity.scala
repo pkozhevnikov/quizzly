@@ -249,8 +249,8 @@ object QuizEntity:
                 sections(sc)
                   .ask(SectionEdit.Own(owner, _))(2.seconds)
                   .onComplete {
-                    case Success(Resp.OK) =>
-                      replyTo ! Resp.OK
+                    case Success(Good(s: Section)) =>
+                      replyTo ! Good(s)
                     case Success(Bad(e)) =>
                       replyTo ! Bad(e)
                     case Failure(ex) =>

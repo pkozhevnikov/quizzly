@@ -624,13 +624,13 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
               c.replyTo ! Resp.OK
               Behaviors.same
             case c: SectionEdit.Own =>
-              c.replyTo ! Resp.OK
+              c.replyTo ! Good(section)
               Behaviors.stopped
           }
         )
         kit.runCommand(AddSection(section.title, author1, _))
         val result = kit.runCommand(OwnSection("tq-1-1", author2, _))
-        result.reply shouldBe Resp.OK
+        result.reply shouldBe Good(section)
       }
 
     }

@@ -109,6 +109,8 @@ object HttpFrontend extends JsonFormats:
               complete(StrList(l.map(_.toString)))
             case f: FullQuiz =>
               complete(f)
+            case s: Section =>
+              complete(s)
             case _ =>
               complete(StatusCodes.BadRequest, s"cannot serialize $r")
         case Success(Resp.Bad(e)) =>
@@ -183,11 +185,6 @@ object HttpFrontend extends JsonFormats:
                         _
                       )
                     )
-                  }
-                }~
-                patch {
-                  parameter("sc") { sc =>
-                    onQuiz(quizID)(Quiz.OwnSection(sc, person, _))
                   }
                 }~
                 get {
@@ -284,8 +281,13 @@ object HttpFrontend extends JsonFormats:
                   onQuiz(quizID)(Quiz.RemoveSection(sc, person, _))
                 }
               }~
-              get {
+              post {
                 onSection(sc)(SectionEdit.Discharge(person, _))
+              }~
+              get {
+                parameter("qid") { quizID =>
+                  onQuiz(quizID)(Quiz.OwnSection(sc, person, _))
+                }
               }
             }~
             path("items") {

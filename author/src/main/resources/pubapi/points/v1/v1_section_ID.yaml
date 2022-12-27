@@ -1,3 +1,97 @@
+post:
+  tags:
+  - v1
+  summary: discharge section
+  description: |
+    Discharges section
+  operationId: dischargesection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    204:
+      description: section discharged
+    422:
+      description: error
+
+put:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  summary: update section
+  description: |
+    Updates section
+  operationId: updatesection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+  -
+    in: body
+    name: section-main
+    required: true
+    schema:
+      $ref: /pubapi/schemas/update-section.yaml
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    204:
+      description: section updated
+    422:
+      description: error
+
+get:
+  tags:
+  - v1
+  summary: own section
+  description: |
+    Authors owns section for work
+  operationId: ownsection
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: section ID
+    type: string
+  -
+    in: query
+    name: qid
+    required: true
+    description: quiz ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: section owned
+      schema: 
+        $ref: /pubapi/schemas/section.yaml
+    422:
+      description: error
+
 patch:
   tags:
   - v1
@@ -71,100 +165,6 @@ delete:
   responses:
     204:
       description: section removed
-    422:
-      description: error
-
-get:
-  tags:
-  - v1
-  summary: own section
-  description: |
-    Authors owns section for work
-  operationId: ownsection
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: section ID
-    type: string
-  -
-    in: query
-    name: qid
-    required: true
-    description: quiz ID
-    type: string
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    200:
-      description: section owned
-      schema: 
-        $ref: /pubapi/schemas/section.yaml
-    422:
-      description: error
-
-head:
-  tags:
-  - v1
-  summary: discharge section
-  description: |
-    Discharges section
-  operationId: dischargesection
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: section ID
-    type: string
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    204:
-      description: section discharged
-    422:
-      description: error
-
-put:
-  tags:
-  - v1
-  consumes:
-  - application/json
-  summary: update section
-  description: |
-    Updates section
-  operationId: updatesection
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: section ID
-    type: string
-  -
-    in: body
-    name: section-main
-    required: true
-    schema:
-      $ref: /pubapi/schemas/update-section.yaml
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    204:
-      description: section updated
     422:
       description: error
 

@@ -74,9 +74,9 @@ object SectionEditEntity:
                         takeCommand(edit, cmd, quizzes, ctx, config)
                     case _ =>
                       cmd match
-                        case _: Own =>
+                        case own: Own =>
                           timer.reset(config.inactivityMinutes)
-                          Effect.persist(Owned(c.owner)).thenReply(c.replyTo)(_ => Resp.OK)
+                          Effect.persist(Owned(c.owner)).thenReply(own.replyTo)(_ => Good(edit.section))
                         case _ =>
                           Effect.reply(c.replyTo)(Bad(notOwned.error()))
                 case _ =>

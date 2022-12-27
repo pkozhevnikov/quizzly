@@ -325,7 +325,7 @@ class SectionEditEntitySpec
       "be owned" in {
         createDischarged
         val result1 = kit.runCommand(Own(author2, _))
-        result1.reply shouldBe Resp.OK
+        result1.reply shouldBe Good(Section(section.sc, section.title, "", List()))
         result1.stateOfType[Option[SectionEdit]].get.owner shouldBe Some(author2)
       }
 

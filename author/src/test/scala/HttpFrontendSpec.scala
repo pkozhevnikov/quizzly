@@ -127,6 +127,7 @@ class HttpFrontendSpec
     def getList()(using ExecutionContext) = Future(quizList)
 
   def get(path: String, personId: PersonID) = Get(s"/v1/$path") ~> addHeader("pl", personId)
+  def post(path: String, personId: PersonID) = Post(s"/v1/$path") ~> addHeader("pl", personId)
   def delete(path: String, personId: PersonID) = Delete(s"/v1/$path") ~> addHeader("pl", personId)
   def post[C](path: String, personId: PersonID, content: C)(using ToEntityMarshaller[C]) =
     Post(s"/v1/$path", content) ~> addHeader("pl", personId)
@@ -283,33 +284,6 @@ class HttpFrontendSpec
       "not add section with error" in {
         val err = Quiz.tooShortTitle.error()
         post("quiz/q1", p2.id, addsec) ~> stdquiz("q1", Bad(err)) ~>
-          check {
-            status shouldBe StatusCodes.UnprocessableEntity
-            responseAs[Error] shouldBe err
-          }
-      }
-    }
-    "HEAD" should {
-      "own section" in {
-        val route = spcquiz(
-          "qx",
-          Behaviors.receiveMessage {
-            case Quiz.OwnSection("qx-1", `p3`, replyTo) =>
-              replyTo ! Resp.OK
-              Behaviors.stopped
-            case x =>
-              fail(s"received wrong command $x")
-              Behaviors.stopped
-          }
-        )
-        patch("quiz/qx?sc=qx-1", p3.id) ~> route ~>
-          check {
-            status shouldBe StatusCodes.NoContent
-          }
-      }
-      "not own section" in {
-        val err = Quiz.sectionNotFound.error() + "qx-1"
-        patch("quiz/qx?sc=qx-1", p3.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
@@ -677,7 +651,7 @@ class HttpFrontendSpec
           }
       }
     }
-    "HEAD" should {
+    "POST" should {
       "discharge section" in {
         val route = spcsect(
           "sx",
@@ -690,14 +664,45 @@ class HttpFrontendSpec
               Behaviors.stopped
           }
         )
-        get("section/sx", p3.id) ~> route ~>
+        post("section/sx", p3.id) ~> route ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "not discharge section with error" in {
         val err = SectionEdit.notOwned.error()
-        get("section/sx", p3.id) ~> stdsect("sx", Bad(err)) ~>
+        post("section/sx", p3.id) ~> stdsect("sx", Bad(err)) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe err
+          }
+      }
+    }
+  }
+
+  "section/{id}?qid={qid}" when {
+    "GET" should {
+      "own section" in {
+        val route = spcquiz(
+          "qx",
+          Behaviors.receiveMessage {
+            case Quiz.OwnSection("qx-1", `p3`, replyTo) =>
+              replyTo ! Good(fullquiz.sections(0))
+              Behaviors.stopped
+            case x =>
+              fail(s"received wrong command $x")
+              Behaviors.stopped
+          }
+        )
+        get("section/qx-1?qid=qx", p3.id) ~> route ~>
+          check {
+            status shouldBe StatusCodes.OK
+            responseAs[Section] shouldBe fullquiz.sections(0)
+          }
+      }
+      "not own section" in {
+        val err = Quiz.sectionNotFound.error() + "qx-1"
+        get("section/qx-1?qid=qx", p3.id) ~> stdquiz("qx", Bad(err)) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe err
