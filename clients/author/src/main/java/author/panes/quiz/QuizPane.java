@@ -12,6 +12,8 @@ import java.util.ResourceBundle;
 import java.util.*;
 import java.util.stream.*;
 import java.util.function.*;
+import java.io.File;
+import java.io.PrintWriter;
 
 import author.dtos.*;
 import author.events.ApiResponse;
@@ -24,6 +26,7 @@ import static org.pdfsam.rxjavafx.observables.JavaFxObservable.*;
 
 import lombok.val;
 
+@lombok.extern.slf4j.Slf4j
 public class QuizPane implements FxmlController {
 
   @FXML private VBox quizPane;
@@ -36,6 +39,7 @@ public class QuizPane implements FxmlController {
   @FXML private VBox readiness;
   @FXML private VBox approvals;
   @FXML private Button saveChanges;
+  @FXML private Button preview;
   @FXML private Button setReady;
   @FXML private Button unsetReady;
   @FXML private Button approve;
@@ -117,6 +121,21 @@ public class QuizPane implements FxmlController {
         intro.getText(),
         Integer.parseInt(recommendedLength.getText())
       ));
+    });
+    preview.setOnAction(e -> {
+      val file = System.getProperty("java.io.tmpdir") + File.separator + "quiz.html";
+      log.debug("preview file: {}", file);
+      try (val fw = new PrintWriter(file)) {
+        Views.htmlOf(quiz, fw);
+        fw.flush();
+        try {
+          new ProcessBuilder("firefox", file).start();
+        } catch (Exception ex) {
+          log.error("cannot run browser", ex);
+        }
+      } catch (Exception ex) {
+        log.error("cannot generate preview", ex);
+      }
     });
     setReady.setOnAction(e -> apiBus.out().accept(new ApiRequest.SetReady(quiz.id())));
     unsetReady.setOnAction(e -> apiBus.out().accept(new ApiRequest.UnsetReady(quiz.id())));

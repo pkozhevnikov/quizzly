@@ -1,3 +1,29 @@
+delete:
+  tags:
+  - v1
+  summary: set quiz obsolete
+  description: |
+    Sets quiz obsolete
+  operationId: setobsolete
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    204:
+      description: quiz set obsolete
+    422:
+      description: error
+
 post:
   tags:
   - v1
@@ -37,6 +63,35 @@ post:
     422:
       description: error
 
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: get quiz
+  description: |
+    Get quiz
+  operationId: getquiz
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: normal response
+      schema: 
+        $ref: /pubapi/schemas/full-quiz.yaml
+    422:
+      description: error
+
 put:
   tags:
   - v1
@@ -68,61 +123,6 @@ put:
   responses:
     204:
       description: normal response
-    422:
-      description: error
-
-get:
-  tags:
-  - v1
-  produces:
-  - application/json
-  summary: get quiz
-  description: |
-    Get quiz
-  operationId: getquiz
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    type: string
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    200:
-      description: normal response
-      schema: 
-        $ref: /pubapi/schemas/full-quiz.yaml
-    422:
-      description: error
-
-delete:
-  tags:
-  - v1
-  summary: set quiz obsolete
-  description: |
-    Sets quiz obsolete
-  operationId: setobsolete
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: quiz ID
-    type: string
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    204:
-      description: quiz set obsolete
     422:
       description: error
 

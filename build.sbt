@@ -72,6 +72,7 @@ lazy val authorClient = (project in file("clients/author"))
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.1",
       "org.pdfsam.rxjava3" % "rxjavafx" % "3.+",
       "org.projectlombok" % "lombok" % "1.18.24" % Provided,
+      "org.commonmark" % "commonmark" % "0.21.0",
 
       "net.aichler" % "jupiter-interface" % JupiterKeys.jupiterVersion.value % Test,
       "org.testfx" % "testfx-junit5" % "4.0.16-alpha" % Test,
@@ -79,6 +80,7 @@ lazy val authorClient = (project in file("clients/author"))
       "org.hamcrest" % "hamcrest" % "2.1" % Test,
       "org.assertj" % "assertj-core" % "3.23.1" % Test,
       "org.mock-server" % "mockserver-junit-jupiter-no-dependencies" % "5.14.0" % Test,
+      "org.jsoup" % "jsoup" % "1.15.3" % Test,
       "org.junit.jupiter" % "junit-jupiter-params" % "5.9.0" % Test
     )
   )
