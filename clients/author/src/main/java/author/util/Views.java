@@ -15,6 +15,8 @@ import lombok.val;
 
 public class Views {
 
+  private static final Pattern PH_PATTERN = Pattern.compile("\\{\\{\\d+}}");
+
   public static void html(OutFullQuiz quiz, PrintWriter writer) throws IOException {
     val parser = Parser.builder().build();
     val renderer = HtmlRenderer.builder().build();
@@ -53,23 +55,9 @@ public class Views {
           " enctype=\"application/x-www-form-urlencoded\">");
         writer.println("<hr class=\"dotted\"/>");
         writer.println(md.apply(item.intro()));
-        writer.println(md.apply(item.definition().text()));
-
-        if (item.hintsVisible()) {
-          writer.println("<ul class=\"sol\">");
-
-          val type = item.solutions().size() > 1 ? "checkbox" : "radio";
-          for (int i = 0; i < item.hints().size(); i++) {
-            val id = String.format("%s-%s-%s-%s", quiz.id(), section.sc(), item.sc(), i);
-            writer.println("<li>");
-            writer.println("<input type=\"" + type + "\" id=\"" + id + "\" value=\"" + 
-              i + "\" name=\"sol\" />");
-            writer.println("<label for=\"" + id + "\">" + item.hints().get(i).get(0).text() + "</label>");
-            writer.println("</li>");
-          }
-
-          writer.println("</ul>");
-        }
+        val itemRenderer = ItemRenderer.of(writer, item, md, quiz.id(), section.sc());
+        itemRenderer.writeDefinition();
+        itemRenderer.writeHints();
 
         writer.println("<input type=\"hidden\" name=\"qid\" value=\"" + quiz.id() + "\" />");
         writer.println("<input type=\"hidden\" name=\"ssc\" value=\"" + section.sc() + "\" />");
@@ -84,6 +72,95 @@ public class Views {
     writer.println("</body>");
     writer.println("</html>");
     writer.flush();
+  }
+
+  private static abstract class SingleMulti extends ItemRenderer {
+    private SingleMulti(PrintWriter writer, OutItem item, Function<String, String> md,
+        String quizId, String sectionSc) {
+      super(writer, item, md, quizId, sectionSc);
+    }
+    @Override final void writeDefinition() {
+      writer.println(md.apply(item.definition().text()));
+    }
+    protected abstract String inputType();
+    @Override final void writeHints() {
+      writer.println("<ul class=\"sol\">");
+
+      for (int i = 0; i < item.hints().size(); i++) {
+        val id = String.format("%s-%s-%s-%s", quizId, sectionSc, item.sc(), i);
+        writer.println("<li>");
+        writer.println("<input type=\"" + inputType() + "\" id=\"" + id + "\" value=\"" + 
+          i + "\" name=\"sol\" />");
+        writer.println("<label for=\"" + id + "\">" + item.hints().get(i).get(0).text() + "</label>");
+        writer.println("</li>");
+      }
+
+      writer.println("</ul>");
+    }
+
+  }
+
+  private static class SingleChoice extends SingleMulti {
+    private SingleChoice(PrintWriter writer, OutItem item, Function<String, String> md,
+        String quizId, String sectionSc) {
+      super(writer, item, md, quizId, sectionSc);
+    }
+    @Override protected String inputType() { return "radio"; }
+  }
+
+  private static class MultiChoice extends SingleMulti {
+    private MultiChoice(PrintWriter writer, OutItem item, Function<String, String> md,
+        String quizId, String sectionSc) {
+      super(writer, item, md, quizId, sectionSc);
+    }
+    @Override protected String inputType() { return "checkbox"; }
+  }
+
+  private static class FillSelect extends ItemRenderer {
+    private FillSelect(PrintWriter writer, OutItem item, Function<String, String> md,
+        String quizId, String sectionSc) {
+      super(writer, item, md, quizId, sectionSc);
+    }
+    @Override void writeDefinition() {
+    }
+    @Override void writeHints() {
+    }
+  }
+
+  private static class FillEnter extends ItemRenderer {
+    private FillEnter(PrintWriter writer, OutItem item, Function<String, String> md,
+        String quizId, String sectionSc) {
+      super(writer, item, md, quizId, sectionSc);
+    }
+    @Override void writeDefinition() {
+    }
+    @Override void writeHints() {
+    }
+  }
+
+  @lombok.AllArgsConstructor
+  private static abstract class ItemRenderer {
+    protected PrintWriter writer;
+    protected OutItem item;
+    protected Function<String, String> md;
+    protected String quizId;
+    protected String sectionSc;
+    abstract void writeDefinition();
+    abstract void writeHints();
+    static ItemRenderer of(PrintWriter writer, OutItem item, Function<String, String> md,
+          String quizId, String sectionSc) {
+      if (item.definition().text().indexOf("{{") > -1) {
+        if (item.hintsVisible())
+          return new FillSelect(writer, item, md, quizId, sectionSc);
+        else
+          return new FillEnter(writer, item, md, quizId, sectionSc);
+      } else {
+        if (item.solutions().size() > 1)
+          return new MultiChoice(writer, item, md, quizId, sectionSc);
+        else
+          return new SingleChoice(writer, item, md, quizId, sectionSc);
+      }
+    }
   }
 
   public static void htmlOf(OutFullQuiz quiz, PrintWriter writer) throws IOException {

@@ -165,7 +165,7 @@ public class ViewsTest {
     );
   }
 
-  @Test @DisplayName("multi choice item is rendered currectly")
+  @Test @DisplayName("multi choice item is rendered correctly")
   void htmlMultiChoice() throws Exception {
     val sw = new StringWriter();
     val pw = new PrintWriter(sw);
@@ -218,6 +218,23 @@ public class ViewsTest {
     );
   }
 
+  @Test @DisplayName("fill by select item is rendered correctly")
+  @Disabled
+  void htmlFillSelect() throws Exception {
+    val sw = new StringWriter();
+    val pw = new PrintWriter(sw);
+    val quiz = quiz("fs", "fs", "fs intro", List.of(
+      new OutSection("s1", "s1 title", "s1 intro", List.of(fillSelect))
+    ));
+    Views.html(quiz, pw);
+    val doc = Jsoup.parse(sw.toString());
+    val form = doc.selectFirst("form.item");
+    assertThat(form).isNotNull();
+    assertThat(form.child(1)).hasHtml("fillsel <strong>intro</strong>");
+    assertThat(form.selectFirst("ul.sol")).isNull();
+    assertThat(form.child(2)).hasHtml("fillsel <strong>definition</strong>");
+  }
+
   private static OutItem singleChoice = new OutItem(
     "sinchoice",
     "sinchoice **intro**",
@@ -246,7 +263,7 @@ public class ViewsTest {
 
   private static OutItem fillSelect = new OutItem(
     "fillsel",
-    "fillsel **into**",
+    "fillsel **intro**",
     new OutStatement("fillsel **definition** {{2}} {{3}} {{1}}", null),
     List.of(
       List.of(new OutStatement("fillsel hint 1", null)),
