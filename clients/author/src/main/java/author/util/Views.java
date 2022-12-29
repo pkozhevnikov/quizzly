@@ -49,9 +49,32 @@ public class Views {
       writer.println(md.apply(section.intro()));
 
       for (val item : section.items()) {
-        writer.println("<form class=\"item\">");
+        writer.println("<form class=\"item\" action=\"/check\" method=\"post\"" +
+          " enctype=\"application/x-www-form-urlencoded\">");
         writer.println("<hr class=\"dotted\"/>");
         writer.println(md.apply(item.intro()));
+        writer.println(md.apply(item.definition().text()));
+
+        if (item.hintsVisible()) {
+          writer.println("<ul class=\"sol\">");
+
+          val type = item.solutions().size() > 1 ? "checkbox" : "radio";
+          for (int i = 0; i < item.hints().size(); i++) {
+            val id = String.format("%s-%s-%s-%s", quiz.id(), section.sc(), item.sc(), i);
+            writer.println("<li>");
+            writer.println("<input type=\"" + type + "\" id=\"" + id + "\" value=\"" + 
+              i + "\" name=\"sol\" />");
+            writer.println("<label for=\"" + id + "\">" + item.hints().get(i).get(0).text() + "</label>");
+            writer.println("</li>");
+          }
+
+          writer.println("</ul>");
+        }
+
+        writer.println("<input type=\"hidden\" name=\"qid\" value=\"" + quiz.id() + "\" />");
+        writer.println("<input type=\"hidden\" name=\"ssc\" value=\"" + section.sc() + "\" />");
+        writer.println("<input type=\"hidden\" name=\"isc\" value=\"" + item.sc() + "\" />");
+        writer.println("<button type=\"submit\">Check</button>");
         writer.println("</form>");
       }
 
@@ -60,6 +83,7 @@ public class Views {
     
     writer.println("</body>");
     writer.println("</html>");
+    writer.flush();
   }
 
   public static void htmlOf(OutFullQuiz quiz, PrintWriter writer) throws IOException {

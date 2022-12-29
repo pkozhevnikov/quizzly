@@ -28,6 +28,7 @@ import author.messages.*;
 
 import author.testutil.*;
 import author.TestData;
+import static author.testutil.ElementAssert.*;
 
 import org.mockserver.junit.jupiter.MockServerExtension;
 import org.mockserver.integration.ClientAndServer;
@@ -46,48 +47,6 @@ import lombok.val;
 
 public class ViewsTest {
 
-  @Test
-  @Disabled
-  void getHtml() throws Exception {
-    val pw = new PrintWriter("out.html");
-    val quiz = new OutFullQuiz(
-      "T-1",
-      "the title",
-      "some **text** {{1}} (the / word)",
-      null,
-      null,
-      null,
-      10,
-      null,
-      null,
-      null,
-      false,
-      List.of(
-        new OutSection(
-          "T-1-1",
-          "section 1",
-          "section intro",
-          List.of(
-            new OutItem(
-              "1",
-              "",
-              new OutStatement("item *text* {{1}} {{2}}", null),
-              List.of(
-                List.of(new OutStatement("def 2", null)),
-                List.of(new OutStatement("def 1", null))
-              ),
-              false,
-              List.of(0)
-            )
-          )
-        )
-      ),
-      "composing"
-    );
-    Views.htmlOf(quiz, pw);
-    pw.flush();
-    pw.close();
-  }
 
   @Test @DisplayName("entire structure of html is correct")
   void htmlEntireStructure() throws Exception {
@@ -118,6 +77,143 @@ public class ViewsTest {
       },
       s -> {
         assertThat(s.select("form.item").size()).isEqualTo(2);
+      }
+    );
+  }
+
+  @Test @DisplayName("item forms have correct common fields")
+  void htmlEntireItemForm() throws Exception {
+    val sw = new StringWriter();
+    val pw = new PrintWriter(sw);
+    val quiz = quiz("spc", "spc title", "spc **intro**", List.of(
+      new OutSection("s1", "s1 title", "s1 **intro**", List.of(singleChoice))
+    ));
+    Views.html(quiz, pw);
+    val doc = Jsoup.parse(sw.toString());
+    val form = doc.selectFirst("form.item");
+    assertThat(form).isNotNull();
+    assertThat(form.attributes().get("action")).isEqualTo("/check");
+    assertThat(form.attributes().get("enctype")).isEqualTo("application/x-www-form-urlencoded");
+    assertThat(form.attributes().get("method")).isEqualTo("post");
+    assertThat(form.select("input[type=hidden]")).satisfiesExactlyInAnyOrder(
+      h -> {
+        assertThat(h.attributes().get("name")).isEqualTo("qid");
+        assertThat(h.attributes().get("value")).isEqualTo("spc");
+      },
+      h -> {
+        assertThat(h.attributes().get("name")).isEqualTo("ssc");
+        assertThat(h.attributes().get("value")).isEqualTo("s1");
+      },
+      h -> {
+        assertThat(h.attributes().get("name")).isEqualTo("isc");
+        assertThat(h.attributes().get("value")).isEqualTo("sinchoice");
+      }
+    );
+    assertThat(form.select("button[type=submit]")).isNotNull();
+  }
+
+  @Test @DisplayName("single choice item is rendered correctly")
+  void htmlSingleChoice() throws Exception {
+    val sw = new StringWriter();
+    val pw = new PrintWriter(sw);
+    val quiz = quiz("sch", "sch", "sch intro", List.of(
+      new OutSection("s1", "s1 title", "s1 intro", List.of(singleChoice))
+    ));
+    Views.html(quiz, pw);
+    val doc = Jsoup.parse(sw.toString());
+    val form = doc.selectFirst("form.item");
+    assertThat(form).isNotNull();
+    assertThat(form.child(1)).hasHtml("sinchoice <strong>intro</strong>");
+    assertThat(form.child(2)).hasHtml("sinchoice <strong>definition</strong>");
+    val sol = form.selectFirst("ul.sol");
+    assertThat(sol).isNotNull();
+    assertThat(sol.select("input[type=radio]").size()).isEqualTo(3);
+    assertThat(sol.select("input[type=radio]")).satisfiesExactly(
+      r -> {
+        val id = "sch-s1-sinchoice-0";
+        assertThat(r)
+          .hasAttr("name", "sol")
+          .hasVal("0")
+          .hasId(id);
+        assertThat(r.nextElementSibling())
+          .is("label")
+          .hasAttr("for", id)
+          .hasText("sinchoice hint 1");
+      },
+      r -> {
+        val id = "sch-s1-sinchoice-1";
+        assertThat(r)
+          .hasAttr("name", "sol")
+          .hasVal("1")
+          .hasId(id);
+        assertThat(r.nextElementSibling())
+          .is("label")
+          .hasAttr("for", id)
+          .hasText("sinchoice hint 2");
+      },
+      r -> {
+        val id = "sch-s1-sinchoice-2";
+        assertThat(r)
+          .hasAttr("name", "sol")
+          .hasVal("2")
+          .hasId(id);
+        assertThat(r.nextElementSibling())
+          .is("label")
+          .hasAttr("for", id)
+          .hasText("sinchoice hint 3");
+      }
+    );
+  }
+
+  @Test @DisplayName("multi choice item is rendered currectly")
+  void htmlMultiChoice() throws Exception {
+    val sw = new StringWriter();
+    val pw = new PrintWriter(sw);
+    val quiz = quiz("mch", "mch", "mch intro", List.of(
+      new OutSection("s1", "s1 title", "s1 intro", List.of(multiChoice))
+    ));
+    Views.html(quiz, pw);
+    val doc = Jsoup.parse(sw.toString());
+    val form = doc.selectFirst("form.item");
+    assertThat(form).isNotNull();
+    assertThat(form.child(1)).hasHtml("mulchoice <strong>intro</strong>");
+    assertThat(form.child(2)).hasHtml("mulchoice <strong>definition</strong>");
+    val sol = form.selectFirst("ul.sol");
+    assertThat(sol).isNotNull();
+    assertThat(sol.select("input[type=checkbox]").size()).isEqualTo(3);
+    assertThat(sol.select("input[type=checkbox]")).satisfiesExactly(
+      c -> {
+        val id = "mch-s1-mulchoice-0";
+        assertThat(c)
+          .hasAttr("name", "sol")
+          .hasVal("0")
+          .hasId(id);
+        assertThat(c.nextElementSibling())
+          .is("label")
+          .hasAttr("for", id)
+          .hasText("mulchoice hint 1");
+      },
+      c -> {
+        val id = "mch-s1-mulchoice-1";
+        assertThat(c)
+          .hasAttr("name", "sol")
+          .hasVal("1")
+          .hasId(id);
+        assertThat(c.nextElementSibling())
+          .is("label")
+          .hasAttr("for", id)
+          .hasText("mulchoice hint 2");
+      },
+      c -> {
+        val id = "mch-s1-mulchoice-2";
+        assertThat(c)
+          .hasAttr("name", "sol")
+          .hasVal("2")
+          .hasId(id);
+        assertThat(c.nextElementSibling())
+          .is("label")
+          .hasAttr("for", id)
+          .hasText("mulchoice hint 3");
       }
     );
   }
