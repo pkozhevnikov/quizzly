@@ -260,6 +260,73 @@ public class ViewsTest {
     assertThat(def.html()).startsWith("fillent <strong>definition</strong>");
   }
 
+  private static Stream<Arguments> checkIndexed_args() {
+    return Stream.of(
+      Arguments.of("single choice", singleChoice,
+        List.of(1),
+        new Views.CheckResult(
+          List.of(List.of("sinchoice hint 2")), 
+            List.of(Views.Answer.correct("sinchoice hint 2"))
+        ),
+        List.of(2),
+        new Views.CheckResult(
+          List.of(List.of("sinchoice hint 2")), 
+            List.of(Views.Answer.incorrect("sinchoice hint 3"))
+        )
+      ),
+      Arguments.of("multi choice", multiChoice,
+        List.of(0, 2),
+        new Views.CheckResult(
+          List.of(List.of("mulchoice hint 1"), List.of("mulchoice hint 3")),
+            List.of(Views.Answer.correct("mulchoice hint 1"), Views.Answer.correct("mulchoice hint 3"))
+        ),
+        List.of(1, 2),
+        new Views.CheckResult(
+          List.of(List.of("mulchoice hint 1"), List.of("mulchoice hint 3")),
+            List.of(Views.Answer.incorrect("mulchoice hint 2"), Views.Answer.correct("mulchoice hint 3"))
+        )
+      ),
+      Arguments.of("fill select", fillSelect,
+        List.of(1, 2, 0),
+        new Views.CheckResult(
+          List.of(List.of("fillsel hint 2"), List.of("fillsel hint 3"), List.of("fillsel hint 1")),
+            List.of(Views.Answer.correct("fillsel hint 2"), Views.Answer.correct("fillsel hint 3"),
+              Views.Answer.correct("fillsel hint 1"))
+        ),
+        List.of(0, 2, 1),
+        new Views.CheckResult(
+          List.of(List.of("fillsel hint 2"), List.of("fillsel hint 3"), List.of("fillsel hint 1")),
+            List.of(Views.Answer.incorrect("fillsel hint 1"), Views.Answer.correct("fillsel hint 3"),
+              Views.Answer.incorrect("fillsel hint 2"))
+        )
+      )
+    );
+  }
+
+  @ParameterizedTest(name = "{0}") @DisplayName("checks indexed solution")
+  @MethodSource("checkIndexed_args")
+  void checkIndexed(String name, OutItem item, 
+      List<Integer> correctSol, Views.CheckResult correctRes, 
+      List<Integer> incorrectSol, Views.CheckResult incorrectRes) {
+    val quiz = quiz("sc1", "sc1", "sc1 intro", List.of(
+      new OutSection("s1", "s1 title", "s1 intro", List.of(item))
+    ));
+    val res1 = Views.checkIndexed(quiz, "s1", item.sc(), correctSol);
+    assertThat(res1.isCorrect()).isTrue();
+    assertThat(res1).isEqualTo(correctRes);
+
+    val res2 = Views.checkIndexed(quiz, "s1", item.sc(), incorrectSol);
+    //assertThat(res2.isCorrect()).isFalse();
+    assertThat(res2).isEqualTo(incorrectRes);
+
+    assertThatIllegalArgumentException()
+      .isThrownBy(() -> { Views.checkIndexed(quiz, "ne", "xyz", correctSol); })
+      .withMessage("Section 'ne' not found");
+    assertThatIllegalArgumentException()
+      .isThrownBy(() -> { Views.checkIndexed(quiz, "s1", "ne", correctSol); })
+      .withMessage("Item 'ne' not found");
+  }
+
   private static OutItem singleChoice = new OutItem(
     "sinchoice",
     "sinchoice **intro**",
