@@ -126,7 +126,7 @@ public class QuizPane implements FxmlController {
       val file = System.getProperty("java.io.tmpdir") + File.separator + "quiz.html";
       log.debug("preview file: {}", file);
       try (val fw = new PrintWriter(file)) {
-        Views.htmlOf(quiz, fw);
+        Views.html(quiz, fw);
         fw.flush();
         try {
           new ProcessBuilder("firefox", file).start();

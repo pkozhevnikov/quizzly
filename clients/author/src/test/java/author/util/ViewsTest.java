@@ -12,8 +12,6 @@ import java.util.concurrent.*;
 
 import java.io.*;
 
-import javafx.application.Platform;
-
 import org.assertj.core.api.*;
 import static org.assertj.core.api.Assertions.*;
 
@@ -30,18 +28,6 @@ import author.testutil.*;
 import author.TestData;
 import static author.testutil.ElementAssert.*;
 
-import org.mockserver.junit.jupiter.MockServerExtension;
-import org.mockserver.integration.ClientAndServer;
-import static org.mockserver.model.HttpRequest.*;
-import static org.mockserver.model.HttpResponse.*;
-import static org.mockserver.model.Header.*;
-import static org.mockserver.model.JsonBody.*;
-import org.mockserver.model.*;
-
-import io.reactivex.rxjava3.observers.TestObserver;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.introspect.DefaultAccessorNamingStrategy;
 
 import lombok.val;
 
@@ -58,22 +44,20 @@ public class ViewsTest {
     ));
     Views.html(quiz, pw);
     val doc = Jsoup.parse(sw.toString());
-    assertThat(doc.selectFirst("h1").text()).isEqualTo("ent");
-    assertThat(doc.selectFirst("h2").text()).isEqualTo("ent title");
-    assertThat(doc.selectFirst("h2").nextElementSibling().text()).isEqualTo("ent intro");
-    assertThat(doc.selectFirst("h2").nextElementSibling().html()).isEqualTo("ent <strong>intro</strong>");
+    assertThat(doc.selectFirst("h1")).hasText("ent");
+    assertThat(doc.selectFirst("h2")).hasText("ent title");
+    assertThat(doc.selectFirst("h2").nextElementSibling())
+      .hasText("ent intro")
+      .hasHtml("ent <strong>intro</strong>");
     assertThat(doc.select("section")).satisfiesExactly(
       s -> {
-        assertThat(s.child(0).is("hr.solid")).isTrue();
-        assertThat(s.child(1).is("h3")).isTrue();
-        assertThat(s.child(1).text()).isEqualTo("sec1 title");
-        assertThat(s.child(2).is("p")).isTrue();
-        assertThat(s.child(2).html()).isEqualTo("sec1 <strong>intro</strong>");
+        assertThat(s.child(0)).is("hr.solid");
+        assertThat(s.child(1)).is("h3").hasText("sec1 title");
+        assertThat(s.child(2)).is("p").hasHtml("sec1 <strong>intro</strong>");
         assertThat(s.select("form.item").size()).isEqualTo(1);
         val form = s.selectFirst("form.item");
-        assertThat(form.child(0).is("hr.dotted")).isTrue();
-        assertThat(form.child(1).is("p")).isTrue();
-        assertThat(form.child(1).html()).isEqualTo("sinchoice <strong>intro</strong>");
+        assertThat(form.child(0)).is("hr.dotted");
+        assertThat(form.child(1)).is("p").hasHtml("sinchoice <strong>intro</strong>");
       },
       s -> {
         assertThat(s.select("form.item").size()).isEqualTo(2);
@@ -91,25 +75,23 @@ public class ViewsTest {
     Views.html(quiz, pw);
     val doc = Jsoup.parse(sw.toString());
     val form = doc.selectFirst("form.item");
-    assertThat(form).isNotNull();
-    assertThat(form.attributes().get("action")).isEqualTo("/check");
-    assertThat(form.attributes().get("enctype")).isEqualTo("application/x-www-form-urlencoded");
-    assertThat(form.attributes().get("method")).isEqualTo("post");
+    assertThat(form)
+      .isNotNull()
+      .hasAttr("action", "/check")
+      .hasAttr("enctype", "application/x-www-form-urlencoded")
+      .hasAttr("method", "post")
+      .hasAttr("target", "resspc-s1-sinchoice")
+      ;
     assertThat(form.select("input[type=hidden]")).satisfiesExactlyInAnyOrder(
-      h -> {
-        assertThat(h.attributes().get("name")).isEqualTo("qid");
-        assertThat(h.attributes().get("value")).isEqualTo("spc");
-      },
-      h -> {
-        assertThat(h.attributes().get("name")).isEqualTo("ssc");
-        assertThat(h.attributes().get("value")).isEqualTo("s1");
-      },
-      h -> {
-        assertThat(h.attributes().get("name")).isEqualTo("isc");
-        assertThat(h.attributes().get("value")).isEqualTo("sinchoice");
-      }
+      h -> assertThat(h).hasAttr("name", "qid").hasVal("spc"),
+      h -> assertThat(h).hasAttr("name", "ssc").hasVal("s1"),
+      h -> assertThat(h).hasAttr("name", "isc").hasVal("sinchoice")
     );
     assertThat(form.select("button[type=submit]")).isNotNull();
+    assertThat(form.nextElementSibling())
+      .isNotNull()
+      .is("iframe")
+      .hasAttr("name", "resspc-s1-sinchoice");
   }
 
   @Test @DisplayName("single choice item is rendered correctly")
@@ -219,7 +201,6 @@ public class ViewsTest {
   }
 
   @Test @DisplayName("fill by select item is rendered correctly")
-  @Disabled
   void htmlFillSelect() throws Exception {
     val sw = new StringWriter();
     val pw = new PrintWriter(sw);
@@ -232,7 +213,51 @@ public class ViewsTest {
     assertThat(form).isNotNull();
     assertThat(form.child(1)).hasHtml("fillsel <strong>intro</strong>");
     assertThat(form.selectFirst("ul.sol")).isNull();
-    assertThat(form.child(2)).hasHtml("fillsel <strong>definition</strong>");
+    val def = form.child(2);
+    assertThat(def.select("select").size()).isEqualTo(3);
+    assertThat(def.text())
+      .doesNotContain("{{1}}").doesNotContain("{{2}}").doesNotContain("{{3}}");
+    assertThat(def.select("select")).allSatisfy(sel -> {
+      assertThat(sel).hasAttr("name", "sol");
+      assertThat(sel.select("option")).satisfiesExactly(
+        o -> assertThat(o).hasVal("0").hasText("fillsel hint 1"),
+        o -> assertThat(o).hasVal("1").hasText("fillsel hint 2"),
+        o -> assertThat(o).hasVal("2").hasText("fillsel hint 3")
+      );
+    });
+    assertThat(def.select("select")).satisfiesExactly(
+      sel -> assertThat(sel.nextElementSibling()).is("span").hasText("(fillsel hint 2)"),
+      sel -> assertThat(sel.nextElementSibling()).is("span").hasText("(fillsel hint 3)"),
+      sel -> assertThat(sel.nextElementSibling()).is("span").hasText("(fillsel hint 1)")
+    );
+    assertThat(def.html()).startsWith("fillsel <strong>definition</strong>");
+  }
+
+  @Test @DisplayName("fill by hand item is rendered correctly")
+  void htmlFillEnter() throws Exception {
+    val sw = new StringWriter();
+    val pw = new PrintWriter(sw);
+    val quiz = quiz("fe", "fe", "fe intro", List.of(
+      new OutSection("s1", "s1 title", "s1 intro", List.of(fillEnter))
+    ));
+    Views.html(quiz, pw);
+    val doc = Jsoup.parse(sw.toString());
+    val form = doc.selectFirst("form.item");
+    assertThat(form).isNotNull();
+    assertThat(form.child(1)).hasHtml("fillent <strong>intro</strong>");
+    assertThat(form.selectFirst("ul.sol")).isNull();
+    val def = form.child(2);
+    assertThat(def.select("input[type=text]")).size().isEqualTo(3);
+    assertThat(def.text())
+      .doesNotContain("{{1}}").doesNotContain("{{2}}").doesNotContain("{{3}}");
+    assertThat(def.select("input[type=text]")).allSatisfy(inp -> 
+      assertThat(inp).hasAttr("name", "answer"));
+    assertThat(def.select("input[type=text]")).satisfiesExactly(
+      inp -> assertThat(inp.nextElementSibling()).is("span").hasText("(fillent hint 2)"),
+      inp -> assertThat(inp.nextElementSibling()).is("span").hasText("(fillent hint 3)"),
+      inp -> assertThat(inp.nextElementSibling()).is("span").hasText("(fillent hint 1)")
+    );
+    assertThat(def.html()).startsWith("fillent <strong>definition</strong>");
   }
 
   private static OutItem singleChoice = new OutItem(
