@@ -7,10 +7,14 @@ import author.dtos.*;
 import com.sun.net.httpserver.*;
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.stream.*;
 import java.util.regex.Pattern;
 import java.util.concurrent.ConcurrentHashMap;
+
+import java.nio.charset.StandardCharsets;
 
 import lombok.val;
 
@@ -25,11 +29,23 @@ public class PreviewServer {
       .subscribe(e -> quizzes.put(e.quiz().id(), e.quiz()));
   }
 
-  public void start(int port) throws Exception {
+  public void start(int port) {
+    try {
     server = HttpServer.create(new InetSocketAddress(port), 0);
     server.createContext("/preview", this::preview);
     server.createContext("/check", this::check);
     server.start();
+    } catch (Exception ex) {
+      throw new RuntimeException("could not start preview server", ex);
+    }
+  }
+
+  public static int freePort() {
+    int previewPort = 10123;
+    try (val socket = new ServerSocket(0)) {
+      previewPort = socket.getLocalPort();
+    } catch (Exception ignore) {}
+    return previewPort;
   }
 
   public void stop() {
@@ -48,7 +64,7 @@ public class PreviewServer {
       val m2 = P.matcher(pair);
       while (m2.find()) {
         val key = m2.group(1);
-        val value = m2.group(2);
+        val value = URLDecoder.decode(m2.group(2), StandardCharsets.UTF_8);
         result.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
       }
     }

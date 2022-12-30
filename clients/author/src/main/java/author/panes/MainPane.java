@@ -30,6 +30,7 @@ import io.reactivex.rxjava3.core.Observable;
 
 import lombok.val;
 
+@lombok.extern.slf4j.Slf4j
 public class MainPane extends BorderPane {
 
   private Node quizzes;
@@ -132,6 +133,8 @@ public class MainPane extends BorderPane {
         message.setText(((RootUIMessage.TextMessage) e).text());
     });
 
+    uiBus.in().ofType(MainUIMessage.PreviewQuiz.class).subscribe(e ->
+      rootUiBus.out().accept(new RootUIMessage.PreviewQuiz(e.quizId())));
   }
 
   private String currentSC;

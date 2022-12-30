@@ -11,7 +11,10 @@ import author.messages.RootUIMessage;
 
 import lombok.val;
 
+@lombok.extern.slf4j.Slf4j
 public class Main extends Application {
+
+  private PreviewServer previewServer;
 
   @Override public void start(Stage stage) throws Exception {
     if (getParameters().getUnnamed().isEmpty()) {
@@ -27,6 +30,20 @@ public class Main extends Application {
       rootUiBus.out()
     );
 
+
+    val previewPort = PreviewServer.freePort();
+    previewServer = new PreviewServer(apiBus);
+    previewServer.start(previewPort);
+    rootUiBus.in().ofType(RootUIMessage.PreviewQuiz.class).subscribe(e -> {
+      try {
+        new ProcessBuilder("firefox", "http://localhost:" + previewPort + 
+          "/preview?qid=" + e.quizId()).start();
+      } catch (Exception ex) {
+        log.error("cannot run browser", ex);
+      }
+    });
+
+
     val rootPane = new RootPane(apiBus, loginBus, rootUiBus);
     
     Scene scene = new Scene(rootPane, 1000, 700);
@@ -34,6 +51,11 @@ public class Main extends Application {
     stage.setScene(scene);
     stage.setTitle("Quizzly::author");
     stage.show();
+  }
+
+  @Override public void stop() throws Exception {
+    previewServer.stop();
+    super.stop();
   }
 
 }

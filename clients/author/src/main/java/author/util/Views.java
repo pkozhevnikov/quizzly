@@ -41,7 +41,7 @@ public class Views {
     writer.println("</style>");
     writer.println("<script>");
     writer.println("function resize(f) {");
-    writer.println("f.style.height = f.contentWindow.docuemtn.documentElement.scrollHeight + 'px'");
+    writer.println("f.style.height = f.contentWindow.document.documentElement.scrollHeight + 'px'");
     writer.println("}");
     writer.println("</script>");
     writer.println("</head>");

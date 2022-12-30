@@ -98,6 +98,7 @@ public class QuizPane implements FxmlController {
       showCreateSection();
     });
 
+
     val idFactory = Factories.tableCellFactory((OutSection s) -> s);
     edit.setCellValueFactory(idFactory);
     up.setCellValueFactory(idFactory);
@@ -123,19 +124,7 @@ public class QuizPane implements FxmlController {
       ));
     });
     preview.setOnAction(e -> {
-      val file = System.getProperty("java.io.tmpdir") + File.separator + "quiz.html";
-      log.debug("preview file: {}", file);
-      try (val fw = new PrintWriter(file)) {
-        Views.html(quiz, fw);
-        fw.flush();
-        try {
-          new ProcessBuilder("firefox", file).start();
-        } catch (Exception ex) {
-          log.error("cannot run browser", ex);
-        }
-      } catch (Exception ex) {
-        log.error("cannot generate preview", ex);
-      }
+      uiBus.out().accept(new MainUIMessage.PreviewQuiz(quiz.id()));
     });
     setReady.setOnAction(e -> apiBus.out().accept(new ApiRequest.SetReady(quiz.id())));
     unsetReady.setOnAction(e -> apiBus.out().accept(new ApiRequest.UnsetReady(quiz.id())));

@@ -21,4 +21,9 @@ public interface MainUIMessage {
     String sc;
   }
 
+  @Value
+  class PreviewQuiz implements MainUIMessage {
+    String quizId;
+  }
+
 }

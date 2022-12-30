@@ -48,5 +48,10 @@ public interface RootUIMessage {
     String text;
   }
 
+  @Value
+  class PreviewQuiz implements RootUIMessage {
+    String quizId;
+  }
+
 }
 
