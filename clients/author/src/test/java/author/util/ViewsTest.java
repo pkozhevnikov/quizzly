@@ -1,4 +1,4 @@
-package author.bus;
+package author.util;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.provider.*;
@@ -366,7 +366,7 @@ public class ViewsTest {
       .withMessage("Item 'ne' not found");
   }
     
-  private static OutItem singleChoice = new OutItem(
+  public static OutItem singleChoice = new OutItem(
     "sinchoice",
     "sinchoice **intro**",
     new OutStatement("sinchoice **definition**", null),
@@ -379,7 +379,7 @@ public class ViewsTest {
     List.of(1)
   );
 
-  private static OutItem multiChoice = new OutItem(
+  public static OutItem multiChoice = new OutItem(
     "mulchoice",
     "mulchoice **intro**",
     new OutStatement("mulchoice **definition**", null),
@@ -392,7 +392,7 @@ public class ViewsTest {
     List.of(0, 2)
   );
 
-  private static OutItem fillSelect = new OutItem(
+  public static OutItem fillSelect = new OutItem(
     "fillsel",
     "fillsel **intro**",
     new OutStatement("fillsel **definition** {{2}} {{3}} {{1}}", null),
@@ -405,7 +405,7 @@ public class ViewsTest {
     List.of()
   );
 
-  private static OutItem fillEnter = new OutItem(
+  public static OutItem fillEnter = new OutItem(
     "fillent",
     "fillent **intro**",
     new OutStatement("fillent **definition** {{2}} {{3}} {{1}}", null),
@@ -421,7 +421,7 @@ public class ViewsTest {
     List.of()
   );
 
-  private static OutFullQuiz quiz(String id, String title, String intro, List<OutSection> sections) {
+  public static OutFullQuiz quiz(String id, String title, String intro, List<OutSection> sections) {
     return new OutFullQuiz(
       id,
       title,
