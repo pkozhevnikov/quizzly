@@ -132,8 +132,7 @@ public class Views {
       val matcher = PH_PATTERN.matcher(md.apply(item.definition().text()));
       val sb = new StringBuilder();
       while (matcher.find()) {
-        val idx = Integer.parseInt(matcher.group(0).replace("{{", "").replace("}}", ""));
-        val value = item.hints().get(idx - 1).get(0).text();
+        val value = item.hints().get(Integer.parseInt(matcher.group(1)) - 1).get(0).text();
         matcher.appendReplacement(sb, input() + 
               "<span class=\"gray\">(" + value + ")</span>");
       }
@@ -175,7 +174,7 @@ public class Views {
     String sectionSc;
   }
 
-  private static final Pattern PH_PATTERN = Pattern.compile("\\{\\{\\d+}}");
+  private static final Pattern PH_PATTERN = Pattern.compile("\\{\\{(\\d+)}}");
   
   private static abstract class ItemRenderer {
     protected PrintWriter writer;
@@ -238,32 +237,55 @@ public class Views {
     val matcher = PH_PATTERN.matcher(item.definition().text());
     List<Integer> realSolutions = new ArrayList<Integer>();
     while (matcher.find())
-      realSolutions.add(Integer.parseInt(matcher.group(0).replace("{{", "").replace("}}", "")) - 1);
+      realSolutions.add(Integer.parseInt(matcher.group(1)) - 1);
 
-    System.out.println("extracted sols: " + realSolutions);
     if (realSolutions.isEmpty())
       realSolutions = item.solutions();
-    //for (int i = 0; i < item.hints().size(); i++)
-    //  if (realSolutions.contains(i))
-    //    correctHints.add(item.hints().get(i));
-    //val expected = correctHints.stream().map(hs -> List.of(hs.get(0).text()))
-    //  .collect(Collectors.toList());
     val expected = realSolutions.stream().map(i -> List.of(item.hints().get(i).get(0).text()))
       .collect(Collectors.toList());
     val answers = new ArrayList<Answer>();
-    for (val sol : solution)
-      if (realSolutions.contains(sol)) 
+    for (int i = 0; i < solution.size(); i++) {
+      val sol = solution.get(i);
+      val realSol = realSolutions.get(i);
+      if (sol == realSol) 
         answers.add(Answer.correct(item.hints().get(sol).get(0).text()));
       else 
         answers.add(Answer.incorrect(item.hints().size() > sol ?
                                               item.hints().get(sol).get(0).text() : 
                                               "???"));
+    }
     return new CheckResult(expected, Collections.unmodifiableList(answers));
   }
 
   public static CheckResult checkHandwritten(OutFullQuiz quiz, String sectionSc, String itemSc,
-      List<String> answers) {
-    return null;
+      List<String> solution) {
+    val section = quiz.sections().stream().filter(s -> s.sc().equals(sectionSc))
+      .findAny().orElseThrow(() -> new IllegalArgumentException("Section '" + sectionSc + "' not found"));
+    val item = section.items().stream().filter(i -> i.sc().equals(itemSc))
+      .findAny().orElseThrow(() -> new IllegalArgumentException("Item '" + itemSc + "' not found"));
+
+    val correctHints = new ArrayList<List<OutStatement>>();
+    val matcher = PH_PATTERN.matcher(item.definition().text());
+    List<Integer> realSolutions = new ArrayList<Integer>();
+    while (matcher.find())
+      realSolutions.add(Integer.parseInt(matcher.group(1)) - 1);
+
+    val expected = realSolutions.stream().map(i -> 
+            item.hints().get(i).stream().map(s -> s.text()).collect(Collectors.toList()))
+      .collect(Collectors.toList());
+    val answers = new ArrayList<Answer>();
+    for (int i = 0; i < solution.size(); i++) {
+      val sol = solution.get(i).replaceAll(" +", " ").trim().toLowerCase();
+      val realSolIdx = realSolutions.get(i);
+      val realSols = item.hints().get(realSolIdx).stream()
+        .map(s -> s.text().toLowerCase()).collect(Collectors.toList());
+      if (realSols.contains(sol))
+        answers.add(Answer.correct(solution.get(i)));
+      else
+        answers.add(Answer.incorrect(solution.get(i)));
+    }
+    
+    return new CheckResult(expected, Collections.unmodifiableList(answers));
   }
 
 }

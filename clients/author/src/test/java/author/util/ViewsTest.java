@@ -316,7 +316,7 @@ public class ViewsTest {
     assertThat(res1).isEqualTo(correctRes);
 
     val res2 = Views.checkIndexed(quiz, "s1", item.sc(), incorrectSol);
-    //assertThat(res2.isCorrect()).isFalse();
+    assertThat(res2.isCorrect()).isFalse();
     assertThat(res2).isEqualTo(incorrectRes);
 
     assertThatIllegalArgumentException()
@@ -327,6 +327,45 @@ public class ViewsTest {
       .withMessage("Item 'ne' not found");
   }
 
+  @Test @DisplayName("checks handwritten solution")
+  void checkHandwritten() {
+    val quiz = quiz("sc1", "sc1", "sc1 intro", List.of(
+      new OutSection("s1", "s1 title", "s1 intro", List.of(fillEnter))
+    ));
+    val sol1 = List.of("fillent hint 2", "fillent Hint  3 ", "fillent hint 1 alt");
+    val res1 = Views.checkHandwritten(quiz, "s1", "fillent", sol1);
+    assertThat(res1.isCorrect()).isTrue();
+    assertThat(res1).isEqualTo(new Views.CheckResult(
+      List.of( List.of("fillent hint 2"), List.of("fillent hint 3"), 
+          List.of("fillent hint 1", "fillent hint 1 alt")),
+      List.of(
+        Views.Answer.correct("fillent hint 2"),
+        Views.Answer.correct("fillent Hint  3 "),
+        Views.Answer.correct("fillent hint 1 alt")
+      )
+    ));
+
+    val sol2 = List.of("fillent hint 2", "xyz", "XYZ");
+    val res2 = Views.checkHandwritten(quiz, "s1", "fillent", sol2);
+    assertThat(res2.isCorrect()).isFalse();
+    assertThat(res2).isEqualTo(new Views.CheckResult(
+      List.of(List.of("fillent hint 2"), List.of("fillent hint 3"),
+          List.of("fillent hint 1", "fillent hint 1 alt")),
+      List.of(
+        Views.Answer.correct("fillent hint 2"),
+        Views.Answer.incorrect("xyz"),
+        Views.Answer.incorrect("XYZ")
+      )
+    ));
+
+    assertThatIllegalArgumentException()
+      .isThrownBy(() -> { Views.checkHandwritten(quiz, "ne", "xyz", List.of()); })
+      .withMessage("Section 'ne' not found");
+    assertThatIllegalArgumentException()
+      .isThrownBy(() -> { Views.checkHandwritten(quiz, "s1", "ne", List.of()); })
+      .withMessage("Item 'ne' not found");
+  }
+    
   private static OutItem singleChoice = new OutItem(
     "sinchoice",
     "sinchoice **intro**",
