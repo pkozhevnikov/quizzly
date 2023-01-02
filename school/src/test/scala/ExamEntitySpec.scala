@@ -44,9 +44,11 @@ class ExamEntitySpec
   private var factm = Map.empty[QuizID, EntityRef[QuizFact.Command]]
   private def putFact(id: QuizID, beh: Behavior[QuizFact.Command]) =
     factm += (id -> TestEntityRef(QuizFact.EntityKey, id, testKit.spawn(beh)))
+  private def putFact(id: QuizID, ref: ActorRef[QuizFact.Command]) =
+    factm += (id -> TestEntityRef(QuizFact.EntityKey, id, ref))
   given (() => Instant) = () => Instant.parse("2022-11-01T00:00:00Z")
 
-  private val factKit = TestKit[Command, Event, Quiz](
+  private val examKit = TestKit[Command, Event, Exam](
     testKit.system,
     ExamEntity(
       id,
@@ -57,7 +59,7 @@ class ExamEntitySpec
 
   override def beforeEach(): Unit =
     super.beforeEach()
-    factKit.clear()
+    examKit.clear()
   override def afterAll(): Unit = testKit.shutdownTestKit()
 
   import Resp.*
@@ -85,15 +87,15 @@ class ExamEntitySpec
     "Blank" must {
 
       "reject all commands except create" in {
-        def rejected(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
-          val result = factKit.runCommand(cmd(_))
+        def rejected(cmds: (ActorRef[Resp[?]] => Command)*) = cmds.foreach { cmd =>
+          val result = examKit.runCommand(cmd(_))
           result.reply shouldBe Bad(examNotFound.error())
           result.state shouldBe Blank()
         }
 
         rejected(IncludeTestees(Set.empty, _), ExcludeTestees(Set.empty, _), SetTrialLength(1, _))
 
-        val result = factKit.runCommand(Proceed)
+        val result = examKit.runCommand(Proceed)
         result.hasNoEvents shouldBe true
         result.state shouldBe Blank()
       }
@@ -110,7 +112,7 @@ class ExamEntitySpec
               Behaviors.stopped
           }
         )
-        val result = factKit
+        val result = examKit
           .runCommand(Create(quiz.id, 60, period, Set(student1, student2, official3), official4, _))
         result.reply shouldBe Good(CreateExamDetails(prepStart, official4))
         result.state shouldBe
@@ -129,7 +131,7 @@ class ExamEntitySpec
               Behaviors.stopped
           }
         )
-        val result = factKit.runCommand(Create(quizID, 60, period, Set.empty, official1, _))
+        val result = examKit.runCommand(Create(quizID, 60, period, Set.empty, official1, _))
         result.reply shouldBe Bad(reason.error())
         result.state shouldBe Blank()
 
@@ -150,7 +152,7 @@ class ExamEntitySpec
       }
 
       "reject creation if bad period" in {
-        val result = factKit.runCommand(
+        val result = examKit.runCommand(
           Create(
             "q",
             50,
@@ -168,7 +170,7 @@ class ExamEntitySpec
       }
 
       "reject creation if period start too soon" in {
-        val result = factKit.runCommand(
+        val result = examKit.runCommand(
           Create(
             "q",
             50,
@@ -186,11 +188,11 @@ class ExamEntitySpec
       }
 
       "reject creation if trial length is not in range" in {
-        val result1 = factKit.runCommand(Create("q", 4, period, Set.empty, official1, _))
+        val result1 = examKit.runCommand(Create("q", 4, period, Set.empty, official1, _))
         result1.reply shouldBe Bad(badTrialLength.error() + "5" + "180")
         result1.state shouldBe Blank()
 
-        val result2 = factKit.runCommand(Create("q", 181, period, Set.empty, official1, _))
+        val result2 = examKit.runCommand(Create("q", 181, period, Set.empty, official1, _))
         result2.reply shouldBe Bad(badTrialLength.error() + "5" + "180")
         result2.state shouldBe Blank()
       }
@@ -204,13 +206,15 @@ class ExamEntitySpec
         case QuizFact.Use("exam-1", replyTo) =>
           replyTo ! Good(quiz)
           Behaviors.same
+        case QuizFact.StopUse(_) =>
+          Behaviors.same
         case _ =>
           Behaviors.stopped
       }
     )
 
     def init =
-      val result = factKit.runCommand(Create(quiz.id, 60, period, Set.empty, official1, _))
+      val result = examKit.runCommand(Create(quiz.id, 60, period, Set.empty, official1, _))
       val initial = Pending(quiz, 60, prepStart, period, Set.empty, official1)
       result.state shouldBe initial
       initial
@@ -219,29 +223,29 @@ class ExamEntitySpec
 
       "include testees" in {
         val initial = init
-        val result1 = factKit.runCommand(IncludeTestees(Set(student1, student2, official2), _))
+        val result1 = examKit.runCommand(IncludeTestees(Set(student1, student2, official2), _))
         result1.reply shouldBe OK
         result1.state shouldBe initial.copy(testees = Set(student1, student2, official2))
       }
 
       "exclude testees" in {
         val initial = init
-        factKit.runCommand(IncludeTestees(Set(student1, student2, official2), _))
-        val result = factKit.runCommand(ExcludeTestees(Set(student1, official2, student3), _))
+        examKit.runCommand(IncludeTestees(Set(student1, student2, official2), _))
+        val result = examKit.runCommand(ExcludeTestees(Set(student1, official2, student3), _))
         result.reply shouldBe OK
         result.state shouldBe initial.copy(testees = Set(student2))
       }
 
       "set trial length" in {
         val initial = init
-        val result = factKit.runCommand(SetTrialLength(90, _))
+        val result = examKit.runCommand(SetTrialLength(90, _))
         result.reply shouldBe OK
         result.state shouldBe initial.copy(trialLengthMinutes = 90)
       }
 
       "proceed to upcoming" in {
         val initial = init
-        val result = factKit.runCommand(Proceed)
+        val result = examKit.runCommand(Proceed)
         result.event shouldBe GoneUpcoming
         result.state shouldBe
           Upcoming(
@@ -254,9 +258,22 @@ class ExamEntitySpec
       }
 
       "be cancelled" in {
-        val initial = init
+        val probe = testKit.createTestProbe[QuizFact.Command]()
+        val qz = Quiz(UUID.randomUUID.toString, "tq")
+        val mock = Behaviors.receiveMessage[QuizFact.Command] { 
+          case QuizFact.Use(_, replyTo) =>
+            replyTo ! Good(qz)
+            Behaviors.same
+          case QuizFact.StopUse(_) =>
+            Behaviors.same
+          case _ =>
+            Behaviors.stopped
+        }
+        putFact(qz.id, Behaviors.monitor(probe.ref, mock))
+        val result0 = examKit.runCommand(Create(qz.id, 60, period, Set.empty, official1, _))
+        val initial = result0.stateOfType[Pending]
         val at = Instant.now()
-        val result = factKit.runCommand(Cancel(at, _))
+        val result = examKit.runCommand(Cancel(at, _))
         result.reply shouldBe OK
         result.state shouldBe
           Cancelled(
@@ -267,11 +284,14 @@ class ExamEntitySpec
             initial.host,
             at
           )
+
+        probe.expectMessageType[QuizFact.Use]
+        probe.expectMessage(QuizFact.StopUse("exam-1"))
       }
 
       "reject creation" in {
         val initial = init
-        val result = factKit.runCommand(Create("", 1, period, Set.empty, official1, _))
+        val result = examKit.runCommand(Create("", 1, period, Set.empty, official1, _))
         result.reply shouldBe Bad(illegalState.error() + "Pending")
         result.state shouldBe initial
       }
@@ -282,7 +302,7 @@ class ExamEntitySpec
 
       "be cancelled" in {
         val initial = init
-        val result0 = factKit.runCommand(Proceed)
+        val result0 = examKit.runCommand(Proceed)
         result0.state shouldBe
           Upcoming(
             initial.quiz,
@@ -293,7 +313,7 @@ class ExamEntitySpec
           )
 
         val at = Instant.now()
-        val result = factKit.runCommand(Cancel(at, _))
+        val result = examKit.runCommand(Cancel(at, _))
         result.reply shouldBe OK
         result.state shouldBe
           Cancelled(
@@ -308,9 +328,9 @@ class ExamEntitySpec
 
       "reject any other action" in {
         val initial = init
-        factKit.runCommand(Proceed)
-        def rejected(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
-          val result = factKit.runCommand(cmd(_))
+        examKit.runCommand(Proceed)
+        def rejected(cmds: (ActorRef[Resp[?]] => Command)*) = cmds.foreach { cmd =>
+          val result = examKit.runCommand(cmd(_))
           result.reply shouldBe Bad(illegalState.error() + "Upcoming")
         }
 
@@ -324,8 +344,8 @@ class ExamEntitySpec
 
       "proceed to in progress" in {
         val pending = init
-        factKit.runCommand(Proceed)
-        val result = factKit.runCommand(Proceed)
+        examKit.runCommand(Proceed)
+        val result = examKit.runCommand(Proceed)
         result.event shouldBe GoneInProgress
         result.state shouldBe
           InProgress(
@@ -343,8 +363,8 @@ class ExamEntitySpec
 
       "be cancelled" in {
         val initial = init
-        factKit.runCommand(Proceed)
-        val result0 = factKit.runCommand(Proceed)
+        examKit.runCommand(Proceed)
+        val result0 = examKit.runCommand(Proceed)
         result0.state shouldBe
           InProgress(
             initial.quiz,
@@ -355,7 +375,7 @@ class ExamEntitySpec
           )
 
         val at = Instant.now()
-        val result = factKit.runCommand(Cancel(at, _))
+        val result = examKit.runCommand(Cancel(at, _))
         result.reply shouldBe OK
         result.state shouldBe
           Cancelled(
@@ -370,11 +390,11 @@ class ExamEntitySpec
 
       "reject any other action" in {
         val initial = init
-        factKit.runCommand(Proceed)
-        factKit.runCommand(Proceed)
+        examKit.runCommand(Proceed)
+        examKit.runCommand(Proceed)
 
-        def rejected(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
-          val result = factKit.runCommand(cmd(_))
+        def rejected(cmds: (ActorRef[Resp[?]] => Command)*) = cmds.foreach { cmd =>
+          val result = examKit.runCommand(cmd(_))
           result.reply shouldBe Bad(illegalState.error() + "InProgress")
         }
 
@@ -387,13 +407,28 @@ class ExamEntitySpec
       }
 
       "proceed to ended" in {
-        val pending = init
-        factKit.runCommand(Proceed)
-        factKit.runCommand(Proceed)
-        val result = factKit.runCommand(Proceed)
+        val probe = testKit.createTestProbe[QuizFact.Command]()
+        val qz = Quiz(UUID.randomUUID.toString, "tq")
+        val mock = Behaviors.receiveMessage[QuizFact.Command] { 
+          case QuizFact.Use(_, replyTo) =>
+            replyTo ! Good(qz)
+            Behaviors.same
+          case QuizFact.StopUse(_) =>
+            Behaviors.same
+          case _ =>
+            Behaviors.stopped
+        }
+        putFact(qz.id, Behaviors.monitor(probe.ref, mock))
+        val result0 = examKit.runCommand(Create(qz.id, 60, period, Set.empty, official1, _))
+        val pending = result0.stateOfType[Pending]
+        examKit.runCommand(Proceed)
+        examKit.runCommand(Proceed)
+        val result = examKit.runCommand(Proceed)
         result.event shouldBe GoneEnded
         result.state shouldBe
-          Ended(quiz, pending.trialLengthMinutes, pending.period, pending.testees, pending.host)
+          Ended(qz, pending.trialLengthMinutes, pending.period, pending.testees, pending.host)
+        probe.expectMessageType[QuizFact.Use]
+        probe.expectMessage(QuizFact.StopUse("exam-1"))
       }
 
     }
@@ -401,12 +436,12 @@ class ExamEntitySpec
     "Ended" must {
       "reject any action" in {
         val initial = init
-        factKit.runCommand(Proceed)
-        factKit.runCommand(Proceed)
-        factKit.runCommand(Proceed)
+        examKit.runCommand(Proceed)
+        examKit.runCommand(Proceed)
+        examKit.runCommand(Proceed)
 
-        def rejected(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
-          val result = factKit.runCommand(cmd(_))
+        def rejected(cmds: (ActorRef[Resp[?]] => Command)*) = cmds.foreach { cmd =>
+          val result = examKit.runCommand(cmd(_))
           result.reply shouldBe Bad(illegalState.error() + "Ended")
         }
 
@@ -417,7 +452,7 @@ class ExamEntitySpec
           SetTrialLength(2, _)
         )
 
-        val result = factKit.runCommand(Proceed)
+        val result = examKit.runCommand(Proceed)
         result.hasNoEvents shouldBe true
       }
     }
@@ -425,10 +460,10 @@ class ExamEntitySpec
     "Cancelled" must {
       "reject any action" in {
         val initial = init
-        factKit.runCommand(Cancel(Instant.now(), _))
+        examKit.runCommand(Cancel(Instant.now(), _))
 
-        def rejected(cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
-          val result = factKit.runCommand(cmd(_))
+        def rejected(cmds: (ActorRef[Resp[?]] => Command)*) = cmds.foreach { cmd =>
+          val result = examKit.runCommand(cmd(_))
           result.reply shouldBe Bad(illegalState.error() + "Cancelled")
         }
 
@@ -439,7 +474,7 @@ class ExamEntitySpec
           SetTrialLength(2, _)
         )
 
-        val result = factKit.runCommand(Proceed)
+        val result = examKit.runCommand(Proceed)
         result.hasNoEvents shouldBe true
       }
     }

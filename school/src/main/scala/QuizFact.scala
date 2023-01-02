@@ -36,12 +36,19 @@ object QuizFact:
   // final case class MayBeUsed(examID: ExamID, replyTo: ActorRef[Boolean]) extends Command
   final case class Use(examID: ExamID, replyTo: ActorRef[Resp[Quiz]]) extends CommandWithReply[Quiz]
   final case class Used(examID: ExamID) extends Event
+  final case class StopUse(examID: ExamID) extends Command
+  final case class UseStopped(examID: ExamID) extends Event
+  final case object GotUnused extends Event
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("QuizFact")
 
+  object Tags:
+    val Single = "quizfact"
+    val All = Vector("quizfact-1", "quizfact-2", "quizfact-3")
+
   def apply(id: QuizID, config: ExamConfig): Behavior[Command] =
     EventSourcedBehavior[Command, Event, Option[Fact]](
-      PersistenceId.ofUniqueId(id),
+      PersistenceId.of(EntityKey.name, id),
       None,
       (state, command) =>
         state match
@@ -49,7 +56,7 @@ object QuizFact:
             command match
               case Init(title, obsolete) =>
                 Effect.persist(Inited(title, obsolete))
-              case c: CommandWithReply[_] =>
+              case c: CommandWithReply[?] =>
                 Effect.reply(c.replyTo)(Resp.Bad(notFound.error()))
               case _ =>
                 Effect.noReply
@@ -103,6 +110,16 @@ object QuizFact:
             Effect.reply(replyTo)(Bad(wasPublished.error()))
           else
             Effect.persist(Used(examID)).thenReply(replyTo)(_ => Good(Quiz(id, title)))
+
+        case StopUse(examID) =>
+          if usedBy(examID) then
+            var events = Seq[Event](UseStopped(examID))
+            if usedBy.size == 1 then
+              events = events :+ GotUnused
+            Effect.persist(events)
+            
+          else
+            Effect.none
         case _: Init =>
           Effect.unhandled
 
@@ -116,5 +133,8 @@ object QuizFact:
           copy(isPublished = false)
         case Used(examID) =>
           copy(usedBy = usedBy + examID)
+        case UseStopped(examID) =>
+          copy(usedBy = usedBy - examID)
+        case GotUnused => this
         case _: Inited =>
           throw new IllegalStateException(s"current state is Fact should be None")

@@ -56,7 +56,7 @@ The Official that created a new Quiz is the **Curator** of this Quiz.
 
 Roles within a Quiz:
 
- * Curator - creates the Quiz, assigns Authors and Inspectors, deletes the Quiz
+ * Curator - creates the Quiz, assigns Authors and Inspectors
  * Author - designs and builds the Quiz
  * Inspector - assesses quality of the Quiz
 
@@ -81,7 +81,7 @@ Related links:
 
  * [Quiz usage model](quiz-usage-model.md) - details of usage Quizzes in Exams and Practicing
  * [Quiz model](quiz-model.md)
- * [User stories for Quiz authoring](../author/src/test/scala/accept/QuizAuthoringSpec.scala)
+ * [User stories for Quiz authoring](../author/src/test/scala/QuizAuthoringSpec.scala)
 
 ### Exam management
 
@@ -111,7 +111,7 @@ list.
 Related links:
 
  * [Quiz usage model](quiz-usage-model.md) - details of usage Quizzes in Exams and Practicing
- * [User stories for Exam management](../school/src/test/scala/accept/ExamManagementSpec.scala)
+ * [User stories for Exam management](../school/src/test/scala/ExamManagementSpec.scala)
  * [Exam model](../school/src/main/scala/Exam.scala)
 
 ### Trial

@@ -16,7 +16,7 @@ An Item is a question with a multi-choice answer which consists of:
 Hints may be reordered within an Item.
 
 There's no explicit definition for types of Items. In fact, if Solutions has one element, the Item is
-*sinlge-choice*. If Solutions has multiple elements, the Item is *multi-choice*.
+*single-choice*. If Solutions has multiple elements, the Item is *multi-choice*.
 
 Text of Item definition may contain placeholders, written as `{{hint_index}}`, which is a
 link to a correct Hint. If Definition text has placeholders, the Item is *fill-blanks*. These
@@ -89,14 +89,13 @@ Curator:
  * creates a Quiz:
   * specifies general attributes;
   * specifies Authors and Inspectors;
- * modifies general attributes;
  * adds and removes Authors and Inspectors;
  * sets a Quiz Obsolete.
 
 Author and Inspector group size should not be below than configured minimum.
 
 Curator removes Authors and Inspectors. Author or Inspector cannot be removed if respective
-group will be smaller than respecive minimum. When a Quiz is in Composing state, if an Author is
+group will be smaller than respective minimum. When a Quiz is in Composing state, if an Author is
 removed and she has already set her readiness sign, the readiness sign is also removed.  When a
 Quiz is in Review state, if an Inspector is removed and she has already set her resolution,
 the resolution is also removed.
@@ -112,4 +111,4 @@ a Section if it is not owned by any Author at the moment.
 
 Related links:
 
- * [User stories for Quiz authoring](../author/src/test/scala/accept/QuizAuthoringSpec.scala)
+ * [User stories for Quiz authoring](../author/src/test/scala/QuizAuthoringSpec.scala)

@@ -41,7 +41,7 @@ class QuizFactSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Befor
 
     import Resp.*
 
-    def ignored(reason: Reason, cmds: (ActorRef[Resp[_]] => Command)*) = cmds.foreach { cmd =>
+    def ignored(reason: Reason, cmds: (ActorRef[Resp[?]] => Command)*) = cmds.foreach { cmd =>
       val result = kit.runCommand(cmd(_))
       result.hasNoEvents shouldBe true
       result.reply shouldBe Bad(reason.error())
@@ -76,6 +76,20 @@ class QuizFactSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Befor
       val result = kit.runCommand(Use("exam1", _))
       result.reply shouldBe Good(Quiz("fact-1", "quiz1"))
       result.stateOfType[Option[Fact]].get.usedBy shouldBe Set("exam1")
+    }
+
+    "stop usage" in {
+      init
+      kit.runCommand(Use("exam1", _))
+      val result = kit.runCommand(Use("exam2", _))
+      result.stateOfType[Option[Fact]].get.usedBy shouldBe Set("exam1", "exam2")
+      val result2 = kit.runCommand(StopUse("exam1"))
+      result2.events shouldBe Seq(UseStopped("exam1"))
+      result2.stateOfType[Option[Fact]].get.usedBy shouldBe Set("exam2")
+
+      val result3 = kit.runCommand(StopUse("exam2"))
+      result3.events shouldBe Seq(UseStopped("exam2"), GotUnused)
+      result3.stateOfType[Option[Fact]].get.usedBy shouldBe empty
     }
 
     "reject usage if had ever been published" in {

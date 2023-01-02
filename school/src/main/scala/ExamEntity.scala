@@ -26,7 +26,7 @@ object ExamEntity:
       ExecutionContext
   ): Behavior[Command] = Behaviors.setup { ctx =>
     EventSourcedBehavior[Command, Event, Exam](
-      PersistenceId.ofUniqueId(id),
+      PersistenceId.of(EntityKey.name, id),
       Blank(),
       commandHandler(ctx, id, facts, config),
       eventHandler
@@ -107,7 +107,7 @@ object ExamEntity:
                 )
                 .thenReply(c.replyTo)(_ => Good(CreateExamDetails(c.preparationStart, c.host)))
 
-            case c: CommandWithReply[_] =>
+            case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(examNotFound.error()))
 
             case _ =>
@@ -126,6 +126,7 @@ object ExamEntity:
             case c: Create =>
               Effect.reply(c.replyTo)(Bad(illegalState.error() + "Pending"))
             case Cancel(at, replyTo) =>
+              facts(pending.quiz.id) ! QuizFact.StopUse(id)
               Effect.persist(GoneCancelled(at)).thenReply(replyTo)(_ => Resp.OK)
             case _ =>
               Effect.unhandled
@@ -136,7 +137,7 @@ object ExamEntity:
               Effect.persist(GoneCancelled(at)).thenReply(replyTo)(_ => Resp.OK)
             case Proceed =>
               Effect.persist(GoneInProgress)
-            case c: CommandWithReply[_] =>
+            case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(illegalState.error() + "Upcoming"))
             case _ =>
               Effect.unhandled
@@ -146,22 +147,23 @@ object ExamEntity:
             case Cancel(at, replyTo) =>
               Effect.persist(GoneCancelled(at)).thenReply(replyTo)(_ => Resp.OK)
             case Proceed =>
+              facts(inprogress.quiz.id) ! QuizFact.StopUse(id)
               Effect.persist(GoneEnded)
-            case c: CommandWithReply[_] =>
+            case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(illegalState.error() + "InProgress"))
             case _ =>
               Effect.unhandled
 
         case ended: Ended =>
           cmd match
-            case c: CommandWithReply[_] =>
+            case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(illegalState.error() + "Ended"))
             case _ =>
               Effect.unhandled
 
         case cancelled: Cancelled =>
           cmd match
-            case c: CommandWithReply[_] =>
+            case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(illegalState.error() + "Cancelled"))
             case _ =>
               Effect.unhandled
