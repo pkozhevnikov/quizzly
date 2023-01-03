@@ -19,14 +19,14 @@ create table exam (
   start_at timestamp not null,
   end_at timestamp not null,
   state varchar not null,
-  cancelled_at timestamp,
-  constraint fk_exam_quiz foreign key (quiz_id) references quizfact(id) on delete cascade
+  cancelled_at timestamp
 );
 
 create table testee (
   exam_id varchar not null,
   testee_id varchar not null,
   testee_name varchar not null,
+  testee_place varchar not null,
   constraint pk_testee primary key (exam_id,testee_id),
   constraint fk_testee_exam foreign key (exam_id) references exam(id) on delete cascade
 );

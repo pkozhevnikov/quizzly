@@ -33,6 +33,11 @@ sealed trait Person extends CborSerializable:
   val place: String
   val id: PersonID
   val name: String
+object Person:
+  def of(place: String)(id: PersonID, name: String): Person = place match
+    case "Official" => Official(id, name)
+    case "Student" => Student(id, name)
+    case x => throw IllegalArgumentException(s"unknown person place $x")
 case class Official(id: PersonID, name: String) extends Person:
   val place = "Official"
 case class Student(id: PersonID, name: String) extends Person:

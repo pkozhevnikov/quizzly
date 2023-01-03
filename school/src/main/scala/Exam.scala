@@ -15,6 +15,13 @@ object Exam:
 
   sealed trait Event extends CborSerializable
 
+  object Tags:
+    val Single = "exams"
+    val All = Vector("exam-1", "exam-2", "exam-3")
+
+  enum State:
+    case Pending, Upcoming, InProgress, Ended, Cancelled
+
   final case class Blank() extends Exam
 
   final case class Create(

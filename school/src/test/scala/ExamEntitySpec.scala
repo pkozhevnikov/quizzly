@@ -260,7 +260,7 @@ class ExamEntitySpec
       "be cancelled" in {
         val probe = testKit.createTestProbe[QuizFact.Command]()
         val qz = Quiz(UUID.randomUUID.toString, "tq")
-        val mock = Behaviors.receiveMessage[QuizFact.Command] { 
+        val mock = Behaviors.receiveMessage[QuizFact.Command] {
           case QuizFact.Use(_, replyTo) =>
             replyTo ! Good(qz)
             Behaviors.same
@@ -409,7 +409,7 @@ class ExamEntitySpec
       "proceed to ended" in {
         val probe = testKit.createTestProbe[QuizFact.Command]()
         val qz = Quiz(UUID.randomUUID.toString, "tq")
-        val mock = Behaviors.receiveMessage[QuizFact.Command] { 
+        val mock = Behaviors.receiveMessage[QuizFact.Command] {
           case QuizFact.Use(_, replyTo) =>
             replyTo ! Good(qz)
             Behaviors.same
