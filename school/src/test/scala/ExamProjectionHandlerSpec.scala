@@ -196,28 +196,28 @@ class ExamProjectionHandlerSpec
       "trial length set" in {
         val p = proj("e1", created, TrialLengthSet(73))
         projTestKit.run(p) {
-          getExam("e1") shouldBe initExamRow.copy(trialLength = 73)
+          getExam("e1") shouldBe Some(initExamRow.copy(trialLength = 73))
         }
       }
 
       "transit to upcoming" in {
         val p = proj("e1", created, GoneUpcoming)
         projTestKit.run(p) {
-          getExam("e1") shouldBe initExamRow.copy(state = "Upcoming")
+          getExam("e1") shouldBe Some(initExamRow.copy(state = "Upcoming"))
         }
       }
 
       "transit to in progress" in {
         val p = proj("e1", created, GoneUpcoming, GoneInProgress)
         projTestKit.run(p) {
-          getExam("e1") shouldBe initExamRow.copy(state = "InProgress")
+          getExam("e1") shouldBe Some(initExamRow.copy(state = "InProgress"))
         }
       }
 
       "transit to ended" in {
         val p = proj("e1", created, GoneUpcoming, GoneInProgress, GoneEnded)
         projTestKit.run(p) {
-          getExam("e1") shouldBe initExamRow.copy(state = "Ended")
+          getExam("e1") shouldBe Some(initExamRow.copy(state = "Ended"))
         }
       }
 
@@ -225,7 +225,7 @@ class ExamProjectionHandlerSpec
         val now = Instant.now()
         val p = proj("e1", created, GoneCancelled(now))
         projTestKit.run(p) {
-          getExam("e1") shouldBe initExamRow.copy(state = "Cancelled", cancelledAt = Some(now))
+          getExam("e1") shouldBe Some(initExamRow.copy(state = "Cancelled", cancelledAt = Some(now)))
         }
       }
     }
