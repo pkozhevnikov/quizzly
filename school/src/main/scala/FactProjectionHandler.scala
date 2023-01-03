@@ -11,7 +11,7 @@ import jdbc.scaladsl.JdbcHandler
 
 class FactProjectionHandler extends JdbcHandler[EventEnvelope[QuizFact.Event], ScalikeJdbcSession]:
 
-  import Quiz.*
+  import QuizFact.*
 
   val insMember = "insert into member (id,role,person_id,name) values (?,?,?,?)"
   val delMember = "delete from member where id=? and person_id=?"
@@ -21,63 +21,36 @@ class FactProjectionHandler extends JdbcHandler[EventEnvelope[QuizFact.Event], S
     given ScalikeJdbcSession = session
     given QuizID = id
     def update[Result](expr: DBSession => Result) = session.db.withinTx(expr(_))
-    /*
     envelope.event match
-      case e: Created =>
+      case Inited(title, obsolete) =>
         update { implicit session =>
-          sql"delete from quiz where id=?".bind(id).execute.apply()
-          sql"insert into quiz (id,title,status,obsolete) values (?,?,?,?)"
-            .bind(id, e.title, State.Composing.toString, false)
-            .update
-            .apply()
-          SQL(insMember).bind(id, 1, e.curator.id, e.curator.name).update.apply()
-          e.authors
-            .foreach { a =>
-              SQL(insMember).bind(id, 2, a.id, a.name).update.apply()
-            }
-          e.inspectors
-            .foreach { i =>
-              SQL(insMember).bind(id, 3, i.id, i.name).update.apply()
-            }
+          sql"""insert into quizfact (id,title,obsolete,in_use,ever_published,is_published)
+            values (?,?,?,?,?,?)""".bind(id, title, obsolete, false, false, false)
+              .update.apply()
         }
-      case e: Updated =>
-        update { implicit session =>
-          sql"update quiz set title=? where id=?".bind(e.title, id).update.apply()
-        }
-      case AuthorAdded(author) =>
-        update { implicit session =>
-          SQL(delMember).bind(id, author.id).execute.apply()
-          SQL(insMember).bind(id, 2, author.id, author.name).update.apply()
-        }
-      case InspectorAdded(inspector) =>
-        update { implicit session =>
-          SQL(delMember).bind(id, inspector.id).execute.apply()
-          SQL(insMember).bind(id, 3, inspector.id, inspector.name).update.apply()
-        }
-      case AuthorRemoved(author) =>
-        update { implicit session =>
-          SQL(delMember).bind(id, author.id).execute.apply()
-        }
-      case InspectorRemoved(inspector) =>
-        update { implicit session =>
-          SQL(delMember).bind(id, inspector.id).execute.apply()
-        }
-      case GoneForReview =>
-        changeStatus(State.Review)
-      case GoneComposing =>
-        changeStatus(State.Composing)
-      case GoneReleased =>
-        changeStatus(State.Released)
+
+        println("initialized fact")
       case GotObsolete =>
         update { implicit session =>
-          sql"update quiz set obsolete=? where id=?".bind(true, id).update.apply()
+          sql"update quizfact set obsolete=true where id=?".bind(id).update.apply()
+        }
+      case Published =>
+        update { implicit session =>
+          sql"update quizfact set ever_published=true,is_published=true where id=?"
+            .bind(id)
+            .update.apply()
+        }
+      case Unpublished =>
+        update { implicit session =>
+          sql"update quizfact set is_published=false where id=?".bind(id).update.apply()
+        }
+      case Used(_) =>
+        update { implicit session =>
+          sql"update quizfact set in_use=true where id=?".bind(id).update.apply()
+        }
+      case GotUnused =>
+        update { implicit session =>
+          sql"update quizfact set in_use=false where id=?".bind(id).update.apply()
         }
 
       case _ =>
-
-  private def changeStatus(state: State)(using id: QuizID, session: ScalikeJdbcSession) = session
-    .db
-    .withinTx { implicit session =>
-      sql"update quiz set status=? where id=?".bind(state.toString, id).update.apply()
-    }
-      */

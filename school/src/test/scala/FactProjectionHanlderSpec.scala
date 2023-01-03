@@ -110,7 +110,7 @@ class FactProjectionHandlerSpec
       val inited = QuizFact.Inited("new quiz", false)
 
       def getFact(id: String) = DB.readOnly { implicit session =>
-        sql"select * from quizfact where id='$id'".map(toQuizRow).single.apply()
+        sql"select * from quizfact where id=?".bind(id).map(toQuizRow).single.apply()
       }
 
       "fact initialization" in {
@@ -149,7 +149,7 @@ class FactProjectionHandlerSpec
       }
 
       "stop usage" in {
-        val p = proj("q6", inited, QuizFact.Used("any"), QuizFact.UseStopped("any"))
+        val p = proj("q6", inited, QuizFact.Used("any"), QuizFact.GotUnused)
         projTestKit.run(p) {
           getFact("q6") shouldBe Some(QuizRow("q6", "new quiz", false, false, false, false))
         }
