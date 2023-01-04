@@ -212,7 +212,8 @@ class ExamManagementSpec
       When("'add testee' request is performed")
       val res = put("exam/e3", off1, include)
       Then("specified user is on Exam list as a Testee")
-      res.status shouldBe StatusCodes.NoContent
+      res.status shouldBe StatusCodes.OK
+      res.to[List[Person]] should contain theSameElementsAs Set(stud2, stud4)
       val res2 = get("exam/e3", off1)
       res2.status shouldBe StatusCodes.OK
       res2.to[List[Person]] should contain theSameElementsAs
@@ -230,7 +231,8 @@ class ExamManagementSpec
       When("'remove testee' request is performed")
       val res = patch("exam/e4", off1, StrList(List(off2.id, stud3.id)))
       Then("specified Testee is no longer on Exam list")
-      res.status shouldBe StatusCodes.NoContent
+      res.status shouldBe StatusCodes.OK
+      res.to[List[Person]] should contain theSameElementsAs Set(off2, stud3)
       get("exam/e4", off1).to[List[Person]] should contain only (stud1)
     }
   }
