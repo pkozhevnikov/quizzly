@@ -23,6 +23,8 @@ import scala.util.Try
 
 import java.time.*
 
+import Exam.*
+
 case class CreateExam(
   id: String,
   quizId: String,
@@ -30,11 +32,6 @@ case class CreateExam(
   start: ZonedDateTime,
   end: ZonedDateTime,
   testees: Set[String]
-)
-
-case class CreateExamDetails(
-  prestartAt: ZonedDateTime,
-  host: Official
 )
 
 case class QuizRef(
@@ -48,7 +45,7 @@ case class ExamView(
   period: ExamPeriod,
   host: Official,
   state: String,
-  cancelledAt: Instant,
+  cancelledAt: Option[Instant],
   trialLength: Int,
   prestartAt: ZonedDateTime
 )
@@ -62,7 +59,15 @@ case class QuizListed(
   everPublished: Boolean
 )
 
+case class StrList(list: List[String])
+
+case class ChangeLength(length: Int)
+
 trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
+  given RootJsonFormat[Reason] = jsonFormat2(Reason.apply)
+  given RootJsonFormat[Error] = jsonFormat2(Error.apply)
+  given RootJsonFormat[StrList] = jsonFormat1(StrList.apply)
+  given RootJsonFormat[ChangeLength] = jsonFormat1(ChangeLength.apply)
   given RootJsonFormat[Instant] = new:
     def write(i: Instant) = JsString(i.toString)
     def read(n: JsValue) = n match

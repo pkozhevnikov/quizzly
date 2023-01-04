@@ -15,6 +15,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.*
 
+import java.time.*
+
 object ExamManagementSpec:
   def config(nodePort: Int, httpPort: Int) =
     ConfigFactory
@@ -23,6 +25,11 @@ object ExamManagementSpec:
     akka.remote.artery.canonical.port = "$nodePort"
     jdbc-connection-settings.url = "jdbc:h2:mem:app"
     frontend.http.port = $httpPort
+    preparation.period.hours = 24
+    trialLength.range = {
+      min = 10
+      max = 90
+    }
     """)
       .withFallback(ConfigFactory.load("application.conf"))
       .resolve
@@ -93,6 +100,8 @@ class ExamManagementSpec
   val stud4 = Student("stud4", "stud4 name")
   val stud5 = Student("stud5", "stud5 name")
 
+  import Exam.*
+
   info("Officials create, modify and cancel exams")
 
   Feature("person list") {
@@ -115,66 +124,139 @@ class ExamManagementSpec
 
   }
 
+  Feature("exams and quizzes listing") {
+    
+    Scenario("getting quiz list") {
+      When("quiz list is requested")
+      val res = get("quiz", off1)
+      Then("quiz list is returned")
+      res.status shouldBe StatusCodes.OK
+      val list = res.to[List[QuizListed]]
+      list.size shouldBe 3
+      list.find(_.id == "q2").get shouldBe QuizListed(
+        "q2",
+        "q2 title",
+        false,
+        true,
+        false,
+        false
+      )
+    }
+
+  }
+
+  val createExam = CreateExam("e1", "q1", 45, ZonedDateTime.parse("2023-01-10T10:00:00Z"),
+        ZonedDateTime.parse("2013-01-10T15:00:00Z"), Set(off2.id, stud1.id, stud3.id))
+
+
   Feature("Create an Exam") {
 
     Scenario("Exam is created if all input is correct") {
       Given("specified unique Exam identifier")
-      And("specified Quiz")
-      And("specified Exam Period")
+      And("specified other attributes")
+      val req = createExam
       When("create request is performed")
+      val res = post("exam", off1, req)
       Then("new Exam is created")
-      And("its state is Pending")
+      res.status shouldBe StatusCodes.OK
+      And("its prestart time is correct")
+      val details = res.to[CreateExamDetails]
+      details.preparationStart shouldBe ZonedDateTime.parse("2013-01-09T10T10:00:00Z")
       And("I am a Host of this Exam")
+      details.host shouldBe off1
     }
 
     Scenario("Exam is not created if identifier is not unique") {
+      post("exam", off1, createExam.copy(id = "ex"))
       Given("specified identifier that already exists")
-      And("specified Quiz")
-      And("specified Exam Period")
+      val req = createExam.copy(id = "ex")
       When("create request is performed")
+      val res = post("exam", off1, req)
       Then("new Exam is not created")
+      res.status shouldBe StatusCodes.UnprocessableEntity
       And("response contains detailed reason")
+      res.to[Error] shouldBe examAlreadyExists.error() + "ex"
     }
+  }
+
+  Feature("exam listing") {
+    Given("exams registered")
+    post("exam", off1, createExam.copy(id = "e7"))
+    When("exam list is requested")
+    val res = get("exam", off2)
+    Then("exam list is returned")
+    res.status shouldBe StatusCodes.OK
+    val list = res.to[List[ExamView]]
+    And("correct exam view is present")
+    list.find(_.id == "e7").get shouldBe ExamView(
+      "e7",
+      QuizRef("q1", "q1 title"),
+      ExamPeriod(ZonedDateTime.parse("2023-01-10T10:00:00Z"), ZonedDateTime.parse("2023-01-10T15:00:00Z")),
+      off1,
+      "Pending",
+      None,
+      45,
+      ZonedDateTime.parse("2023-01-09T10:00:00Z")
+    )
   }
 
   Feature("Include/exclude a Testee") {
 
     Scenario("Testee added") {
       Given("existing Exam")
-      And("it is in Pending state")
+      val res0 = post("exam", off1, createExam.copy(id = "e3"))
       And("I am a Host")
+      res0.to[CreateExamDetails].host shouldBe off1
       And("specified a user as a new Testee")
+      val include = StrList(List(stud2.id, stud4.id))
       When("'add testee' request is performed")
+      val res = put("exam/e3", off1, include)
       Then("specified user is on Exam list as a Testee")
+      res.status shouldBe StatusCodes.NoContent
+      val res2 = get("exam/e3", off1)
+      res2.status shouldBe StatusCodes.OK
+      res2.to[List[Person]] should contain theSameElementsAs
+        Set(off2, stud1, stud3, stud2, stud4)
     }
 
     Scenario("Testee removed") {
       Given("existing Exam")
-      And("it is in Pending state")
+      val res0 = post("exam", off1, createExam.copy(id = "e4"))
       And("I am a Host")
+      res0.to[CreateExamDetails].host shouldBe off1
       And("a specific Testee is on list")
+      get("exam/e4", off1).to[List[Person]] should contain theSameElementsAs
+        Set(off2, stud1, stud3)
       When("'remove testee' request is performed")
+      val res = patch("exam/e4", off1, StrList(List(off2.id, stud3.id)))
       Then("specified Testee is no longer on Exam list")
+      res.status shouldBe StatusCodes.NoContent
+      get("exam/e4", off1).to[List[Person]] should contain only (stud1)
     }
   }
 
   Feature("Modify Trial Length") {
     Scenario("Trial Length is changed") {
       Given("existing Exam")
-      And("it is in Pending state")
-      And("I am a Host")
-      And("specified new Trial Length")
+      post("exam", off1, createExam.copy(id = "e5"))
       When("'change trial length' request is performed")
+      val res = post("exam/e5", off1, ChangeLength(54))
       Then("specified Trial Length is set on the Exam")
+      res.status shouldBe StatusCodes.NoContent
+      val ex = get("exam", off1).to[List[ExamView]].find(_.id == "e5").get
+      ex.trialLength shouldBe 54
     }
   }
 
   Feature("Cancel Exam") {
     Scenario("Exam is cancelled") {
       Given("existing Exam")
-      And("it is in Pending or Upcoming state")
-      And("I am a Host")
+      post("exam", off1, createExam.copy(id = "e6"))
       When("'cancel exam' request is performed")
+      val res = delete("exam/e6", off1)
       Then("the exam is in Cancelled state")
+      res.status shouldBe StatusCodes.NoContent
+      val ex = get("exam", off1).to[List[ExamView]].find(_.id == "e6").get
+      ex.state shouldBe "Cancelled"
     }
   }

@@ -1,3 +1,30 @@
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: list testees
+  description: |
+    Lists testees of this exam
+  operationId: listtestees
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: exam ID
+    type: string
+
+  responses:
+    200:
+      description: normal response
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/person.yaml
+    422:
+      description: error
+
 put:
   tags:
   - v1
@@ -82,6 +109,8 @@ delete:
 post:
   tags:
   - v1
+  consumes:
+  - application/json
   summary: change trial length
   description: |
     Chandes trial length/
@@ -94,12 +123,11 @@ post:
     description: exam ID
     type: string
   -
-    in: formData
-    name: length
+    in: body
+    name: change-length
     required: true
-    description: new trial length
-    type: integer
-    format: int32
+    schema:
+      $ref: /pubapi/schemas/change-length.yaml
 
   responses:
     204:
@@ -109,5 +137,9 @@ post:
 
 
 definitions:
+  change-length.yaml:
+    $ref: /pubapi/schemas/change-length.yaml
+  person.yaml:
+    $ref: /pubapi/schemas/person.yaml
   strings.yaml:
     $ref: /pubapi/schemas/strings.yaml
