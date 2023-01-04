@@ -26,6 +26,10 @@ class HttpFrontendSpec
   val testKit = ActorTestKit("frontendkit", ConfigFactory.empty)
   given ActorSystem[?] = testKit.system
 
+  type NowInstant = () => Instant
+  given NowInstant = () => Instant.now()
+  
+
   val off1 = Official("off1", "off1 name")
   val off2 = Official("off2", "off2 name")
   val off3 = Official("off3", "off3 name")
@@ -45,22 +49,26 @@ class HttpFrontendSpec
   object auth extends Auth:
     def authenticate(req: HttpRequest) =
       allPersons.get(req.getHeader("pl").get.value) match
-        case Some(p: Official) => Future(p)
-        case _ => Future.failed(Exception())
+        case Some(p: Official) =>
+          Future(p)
+        case _ =>
+          Future.failed(Exception())
     def getPersons = Future(allPersons.values.toSet)
     def getPersons(ids: Set[PersonID]) = Future(allPersons.filter((k, v) => ids(k)).values.toSet)
     def getPerson(id: PersonID) = Future(allPersons.get(id))
 
   object eaware extends EntityAware:
     def exam(id: String) = TestEntityRef(ExamEntity.EntityKey, id, testKit.spawn(Behaviors.empty))
-      
+
   object read extends Read:
     def examList()(using ExecutionContext) = Future(List(exam1, exam2))
-    def testees(examId: ExamID)(using ExecutionContext) = examId match
-      case "e1" => Future(List(off2, stud1, stud2))
-      case _ => Future(List(off3, stud1, stud2, stud3))
+    def testees(examId: ExamID)(using ExecutionContext) =
+      examId match
+        case "e1" =>
+          Future(List(off2, stud1, stud2))
+        case _ =>
+          Future(List(off3, stud1, stud2, stud3))
     def quizList()(using ExecutionContext) = Future(List(quiz1, quiz2, quiz3))
-    
 
   def get(path: String, person: Person) = Get(s"/v1/$path") ~> addHeader("pl", person.id)
   def post(path: String, person: Person) = Post(s"/v1/$path") ~> addHeader("pl", person.id)
@@ -72,7 +80,7 @@ class HttpFrontendSpec
   def patch[C](path: String, person: Person, content: C)(using ToEntityMarshaller[C]) =
     Patch(s"/v1/$path", content) ~> addHeader("pl", person.id)
   def patch(path: String, person: Person) = Patch(s"/v1/$path") ~> addHeader("pl", person.id)
-  
+
   val dateTime1 = ZonedDateTime.parse("2023-01-10T10:00:00Z")
 
   val exam1 = ExamView(
@@ -96,31 +104,10 @@ class HttpFrontendSpec
     dateTime1.plusWeeks(1).minusDays(1)
   )
 
-  val quiz1 = QuizListed(
-    "q1",
-    "q1 title",
-    false,
-    true,
-    false,
-    false
-  )
-  val quiz2 = QuizListed(
-    "q2",
-    "q2 title",
-    false,
-    true,
-    false,
-    false
-  )
-  val quiz3 = QuizListed(
-    "q3",
-    "q3 title",
-    false,
-    false,
-    false,
-    false
-  )
-  
+  val quiz1 = QuizListed("q1", "q1 title", false, true, false, false)
+  val quiz2 = QuizListed("q2", "q2 title", false, true, false, false)
+  val quiz3 = QuizListed("q3", "q3 title", false, false, false, false)
+
   val quizList = List[QuizListed](quiz1, quiz2, quiz3)
 
   def exam[R](expectedId: ExamID, resp: Resp[R]) =
@@ -139,9 +126,15 @@ class HttpFrontendSpec
         TestEntityRef(ExamEntity.EntityKey, id, testKit.spawn(beh))
 
   def stdexam[R](expectedId: ExamID, resp: Resp[R]) = HttpFrontend(
-    read, exam(expectedId, resp), auth)
-  def stdexam[R](expectedId: ExamID, beh: Behavior[Exam.Command]) = HttpFrontend(
-    read, exam(expectedId, beh), auth)
+    read,
+    exam(expectedId, resp),
+    auth
+  )
+  def stdexam[R](expectedId: ExamID, beh: Behavior[Exam.Command])(using NowInstant) = HttpFrontend(
+    read,
+    exam(expectedId, beh),
+    auth
+  )
 
   import Resp.*
 
@@ -158,8 +151,8 @@ class HttpFrontendSpec
       "return quiz list" in {
         get("quiz", off1) ~> HttpFrontend(read, eaware, auth) ~>
           check {
-           status shouldBe StatusCodes.OK
-           responseAs[List[QuizListed]] shouldBe quizList
+            status shouldBe StatusCodes.OK
+            responseAs[List[QuizListed]] shouldBe quizList
           }
       }
     }
@@ -169,11 +162,12 @@ class HttpFrontendSpec
   "persons" when {
     "GET" should {
       "return person list" in {
-        get("persons", off1) ~> HttpFrontend(read, eaware, auth) ~> check {
-          status shouldBe StatusCodes.OK
-          responseAs[List[Person]] should contain theSameElementsAs
-            Set(off1, off2, off3, stud1, stud2, stud3)
-        }
+        get("persons", off1) ~> HttpFrontend(read, eaware, auth) ~>
+          check {
+            status shouldBe StatusCodes.OK
+            responseAs[List[Person]] should contain theSameElementsAs
+              Set(off1, off2, off3, stud1, stud2, stud3)
+          }
       }
     }
   }
@@ -181,21 +175,44 @@ class HttpFrontendSpec
   "exam" when {
     "GET" should {
       "return exam list" in {
-        get("exam", off1) ~> HttpFrontend(read, eaware, auth) ~> check {
-          status shouldBe StatusCodes.OK
-          responseAs[List[ExamView]] should contain theSameElementsAs
-            Set(exam1, exam2)
-        }
+        get("exam", off1) ~> HttpFrontend(read, eaware, auth) ~>
+          check {
+            status shouldBe StatusCodes.OK
+            responseAs[List[ExamView]] should contain theSameElementsAs Set(exam1, exam2)
+          }
       }
     }
     "POST" should {
       "reject creation" in {
-        val create = CreateExam("e1", "q1", 45, ZonedDateTime.parse("2023-01-01T10:10:00Z"),
-          ZonedDateTime.parse("2023-01-02T10:10:00Z"), Set.empty)
-        post("exam", off1, create) ~> stdexam("e1", Bad(badExamPeriod.error())) ~> check {
-          status shouldBe StatusCodes.UnprocessableEntity
-          responseAs[Error] shouldBe badExamPeriod.error()
+        val create = CreateExam(
+          "e1",
+          "q1",
+          45,
+          ZonedDateTime.parse("2023-01-01T10:10:00Z"),
+          ZonedDateTime.parse("2023-01-02T10:10:00Z"),
+          Set.empty
+        )
+        post("exam", off1, create) ~> stdexam("e1", Bad(badExamPeriod.error())) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe badExamPeriod.error()
+          }
+      }
+      "create exam" in {
+        val det = CreateExamDetails(dateTime1, off1)
+        val beh = Behaviors.receiveMessage[Exam.Command] {
+          case c: Create =>
+            c.replyTo ! Good(det)
+            Behaviors.stopped
+          case _ =>
+            Behaviors.stopped
         }
+        val create = CreateExam("e1", "q1", 45, dateTime1, dateTime1, Set(off1.id, stud1.id))
+        post("exam", off1, create) ~> stdexam("e1", beh) ~>
+          check {
+            status shouldBe StatusCodes.OK
+            responseAs[CreateExamDetails] shouldBe det
+          }
       }
     }
   }
@@ -203,11 +220,11 @@ class HttpFrontendSpec
   "exam/{id}" when {
     "GET" should {
       "return testees of exam" in {
-        get("exam/e1", off1) ~> HttpFrontend(read, eaware, auth) ~> check {
-          status shouldBe StatusCodes.OK
-          responseAs[List[Person]] should contain theSameElementsAs 
-            Set(off2, stud1, stud2)
-        }
+        get("exam/e1", off1) ~> HttpFrontend(read, eaware, auth) ~>
+          check {
+            status shouldBe StatusCodes.OK
+            responseAs[List[Person]] should contain theSameElementsAs Set(off2, stud1, stud2)
+          }
       }
     }
     "POST" should {
@@ -219,9 +236,10 @@ class HttpFrontendSpec
           case _ =>
             Behaviors.stopped
         }
-        post("exam/e1", off1, ChangeLength(93)) ~> stdexam("e1", beh) ~> check {
-          status shouldBe StatusCodes.NoContent
-        }
+        post("exam/e1", off1, ChangeLength(93)) ~> stdexam("e1", beh) ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
       }
       "respond with error" in {
         post("exam/e1", off1, ChangeLength(93)) ~> stdexam("e1", Bad(badTrialLength.error())) ~>
@@ -241,16 +259,18 @@ class HttpFrontendSpec
           case _ =>
             Behaviors.stopped
         }
-        put("exam/e1", off1, StrList(List(off3.id, stud2.id))) ~> stdexam("e1", beh) ~> check {
-          status shouldBe StatusCodes.OK
-          responseAs[List[Person]] should contain only (stud2)
-        }
+        put("exam/e1", off1, StrList(List(off3.id, stud2.id))) ~> stdexam("e1", beh) ~>
+          check {
+            status shouldBe StatusCodes.OK
+            responseAs[List[Person]] should contain only (stud2)
+          }
       }
       "respond with error" in {
-        put("exam/e1", off1, StrList(List(off3.id))) ~> stdexam("e1", Bad(illegalState.error())) ~> check {
-          status shouldBe StatusCodes.UnprocessableEntity
-          responseAs[Error] shouldBe illegalState.error()
-        }
+        put("exam/e1", off1, StrList(List(off3.id))) ~> stdexam("e1", Bad(illegalState.error())) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe illegalState.error()
+          }
       }
     }
 
@@ -263,39 +283,44 @@ class HttpFrontendSpec
           case _ =>
             Behaviors.stopped
         }
-        patch("exam/e1", off1, StrList(List(off3.id, stud2.id))) ~> stdexam("e1", beh) ~> check {
-          status shouldBe StatusCodes.OK
-          responseAs[List[Person]] should contain only (stud2)
-        }
+        patch("exam/e1", off1, StrList(List(off3.id, stud2.id))) ~> stdexam("e1", beh) ~>
+          check {
+            status shouldBe StatusCodes.OK
+            responseAs[List[Person]] should contain only (stud2)
+          }
       }
       "respond with error" in {
-        patch("exam/e1", off1, StrList(List(off3.id))) ~> stdexam("e1", Bad(illegalState.error())) ~> check {
-          status shouldBe StatusCodes.UnprocessableEntity
-          responseAs[Error] shouldBe illegalState.error()
-        }
+        patch("exam/e1", off1, StrList(List(off3.id))) ~>
+          stdexam("e1", Bad(illegalState.error())) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe illegalState.error()
+          }
       }
     }
 
     "DELETE" should {
       "cancel exam" in {
+        val now = Instant.parse("2023-01-02T01:02:03Z")
         val beh = Behaviors.receiveMessage[Exam.Command] {
-          case Cancel(_, replyTo) =>
+          case Cancel(`now`, replyTo) =>
             replyTo ! Resp.OK
             Behaviors.stopped
           case _ =>
             Behaviors.stopped
         }
-        delete("exam/e1", off1) ~> stdexam("e1", beh) ~> check {
-          status shouldBe StatusCodes.NoContent
-        }
+        delete("exam/e1", off1) ~> stdexam("e1", beh)(using () => now) ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
       }
       "respond with error" in {
-        delete("exam/e1", off1) ~> stdexam("e1", Bad(examNotFound.error())) ~> check {
-          status shouldBe StatusCodes.UnprocessableEntity
-          responseAs[Error] shouldBe examNotFound.error()
-        }
+        delete("exam/e1", off1) ~> stdexam("e1", Bad(examNotFound.error())) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe examNotFound.error()
+          }
       }
     }
 
   }
-

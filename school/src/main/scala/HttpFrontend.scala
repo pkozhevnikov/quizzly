@@ -6,6 +6,8 @@ import akka.cluster.sharding.typed.scaladsl.EntityRef
 import akka.http.scaladsl.common.EntityStreamingSupport
 import akka.http.scaladsl.common.JsonEntityStreamingSupport
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.marshalling.ToResponseMarshaller
+import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.model.*
 import akka.http.scaladsl.server.Directives.*
 import akka.http.scaladsl.server.RequestContext
@@ -94,6 +96,9 @@ trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
   given RootJsonFormat[Exam.CreateExamDetails] = jsonFormat2(Exam.CreateExamDetails.apply)
   given RootJsonFormat[ExamView] = jsonFormat8(ExamView.apply)
   given RootJsonFormat[QuizListed] = jsonFormat6(QuizListed.apply)
+  given RootJsonFormat[Set[Person]] = new:
+    def write(s: Set[Person]) = JsArray(s.map(_.toJson).toList)
+    def read(n: JsValue) = n.convertTo[Set[Person]]
   
   given JsonEntityStreamingSupport = EntityStreamingSupport.json()
 
@@ -101,7 +106,7 @@ trait EntityAware:
   def exam(id: String): EntityRef[Exam.Command]
 
 trait Auth:
-  def authenticate(request: HttpRequest): Future[Person]
+  def authenticate(request: HttpRequest): Future[Official]
   def getPersons: Future[Set[Person]]
   def getPersons(ids: Set[PersonID]): Future[Set[Person]]
   def getPerson(id: PersonID): Future[Option[Person]]
@@ -122,9 +127,9 @@ object HttpFrontend extends JsonFormats:
       authService: Auth,
       host: String = "localhost",
       port: Int = 9099
-  )(using ActorSystem[?], ExecutionContext) =
+  )(using sys: ActorSystem[?], ec: ExecutionContext, now: () => Instant) =
 
-    def auth(request: HttpRequest)(next: Person => Route) =
+    def auth(request: HttpRequest)(next: Official => Route) =
       onComplete(authService.authenticate(request)) {
         case Success(p) =>
           next(p)
@@ -132,29 +137,19 @@ object HttpFrontend extends JsonFormats:
           complete(StatusCodes.Unauthorized)
       }
 
-    def completeCall(fut: Future[Resp[?]]) =
-      onComplete(fut) {
+    given akka.util.Timeout = 2.seconds
+
+    def onExam[R](id: String)(cmd: ActorRef[Resp[R]] => Exam.Command)(using ToEntityMarshaller[R]) =
+      onComplete(entities.exam(id).ask(cmd)) {
         case Success(Resp.OK) =>
           complete(StatusCodes.NoContent)
         case Success(Resp.Good(r)) =>
-          r match
-            case s: String =>
-              complete(s)
-            case l: List[?] =>
-              complete(StrList(l.map(_.toString)))
-            case _ =>
-              complete(StatusCodes.BadRequest, s"cannot serialize $r")
+          complete(r)
         case Success(Resp.Bad(e)) =>
           complete(StatusCodes.UnprocessableEntity, e)
         case Failure(ex) =>
           complete(StatusCodes.InternalServerError, ex.getMessage)
       }
-
-    given akka.util.Timeout = 2.seconds
-
-    def onExam(id: String)(cmd: ActorRef[Resp[?]] => Exam.Command) =
-      val exament = entities.exam(id)
-      completeCall(exament.ask[Resp[?]](cmd))
 
 
     pathPrefix("pubapi")(pubapi(host, port))~
@@ -179,6 +174,53 @@ object HttpFrontend extends JsonFormats:
                   case Success(r) => complete(Source(r))
                   case Failure(ex) => complete(StatusCodes.InternalServerError, ex.getMessage)
                 }
+              }~
+              post {
+                entity(as[CreateExam]) { ce =>
+                  onComplete(authService.getPersons(ce.testees)) {
+                    case Success(set) => 
+                      onExam[Exam.CreateExamDetails](ce.id)(Exam.Create(ce.quizId, ce.trialLength,
+                        ExamPeriod(ce.start, ce.end), set, person, _))
+                    case Failure(ex) =>
+                      complete(StatusCodes.InternalServerError, ex.getMessage)
+                  }
+                }
+              }
+            }~
+            path(Segment) { id =>
+              get {
+                onComplete(read.testees(id)) {
+                  case Success(r) => complete(Source(r))
+                  case Failure(ex) => complete(StatusCodes.InternalServerError, ex.getMessage)
+                }
+              }~
+              post {
+                entity(as[ChangeLength]) { cl =>
+                  onExam[Nothing](id)(Exam.SetTrialLength(cl.length, _))
+                }
+              }~ 
+              put {
+                entity(as[StrList]) { inc =>
+                  onComplete(authService.getPersons(inc.list.toSet)) {
+                    case Success(set) =>
+                      onExam[Set[Person]](id)(Exam.IncludeTestees(set, _))
+                    case Failure(ex) =>
+                      complete(StatusCodes.InternalServerError, ex.getMessage)
+                  }
+                }
+              }~
+              patch {
+                entity(as[StrList]) { exc =>
+                  onComplete(authService.getPersons(exc.list.toSet)) {
+                    case Success(set) =>
+                      onExam[Set[Person]](id)(Exam.ExcludeTestees(set, _))
+                    case Failure(ex) =>
+                      complete(StatusCodes.InternalServerError, ex.getMessage)
+                  }
+                }
+              }~
+              delete {
+                onExam[Nothing](id)(Exam.Cancel(now(), _))
               }
             }
           }

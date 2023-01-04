@@ -140,7 +140,11 @@ class ExamProjectionHandlerSpec
         sql"select * from exam where id=?".bind(id).map(toExamRow).single.apply()
       }
       def getTestees(id: String) = DB.readOnly { implicit session =>
-        sql"select * from testee where exam_id=? order by testee_id".bind(id).map(toPerson).list.apply()
+        sql"select * from testee where exam_id=? order by testee_id"
+          .bind(id)
+          .map(toPerson)
+          .list
+          .apply()
       }
 
       val created = Created(
@@ -153,22 +157,21 @@ class ExamProjectionHandlerSpec
         ),
         Set(student1, student2),
         official1
-      ) 
+      )
 
-      val initExamRow = 
-              ExamRow(
-                "e1",
-                "q1",
-                "quiz #1",
-                "off1",
-                "off1 name",
-                45,
-                ZonedDateTime.parse("2023-01-03T10:00:00Z"),
-                ZonedDateTime.parse("2023-01-05T10:00:00Z"),
-                ZonedDateTime.parse("2023-01-06T10:00:00Z"),
-                "Pending",
-                None
-              )
+      val initExamRow = ExamRow(
+        "e1",
+        "q1",
+        "quiz #1",
+        "off1",
+        "off1 name",
+        45,
+        ZonedDateTime.parse("2023-01-03T10:00:00Z"),
+        ZonedDateTime.parse("2023-01-05T10:00:00Z"),
+        ZonedDateTime.parse("2023-01-06T10:00:00Z"),
+        "Pending",
+        None
+      )
 
       "created" in {
         val p = proj("e1", created)
@@ -225,7 +228,8 @@ class ExamProjectionHandlerSpec
         val now = Instant.now()
         val p = proj("e1", created, GoneCancelled(now))
         projTestKit.run(p) {
-          getExam("e1") shouldBe Some(initExamRow.copy(state = "Cancelled", cancelledAt = Some(now)))
+          getExam("e1") shouldBe
+            Some(initExamRow.copy(state = "Cancelled", cancelledAt = Some(now)))
         }
       }
     }

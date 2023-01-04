@@ -105,7 +105,7 @@ class ExamManagementSpec
   info("Officials create, modify and cancel exams")
 
   Feature("person list") {
-    
+
     Scenario("getting person list") {
       When("person list is requested by official")
       val res = get("persons", off1)
@@ -125,7 +125,7 @@ class ExamManagementSpec
   }
 
   Feature("exams and quizzes listing") {
-    
+
     Scenario("getting quiz list") {
       When("quiz list is requested")
       val res = get("quiz", off1)
@@ -133,21 +133,19 @@ class ExamManagementSpec
       res.status shouldBe StatusCodes.OK
       val list = res.to[List[QuizListed]]
       list.size shouldBe 3
-      list.find(_.id == "q2").get shouldBe QuizListed(
-        "q2",
-        "q2 title",
-        false,
-        true,
-        false,
-        false
-      )
+      list.find(_.id == "q2").get shouldBe QuizListed("q2", "q2 title", false, true, false, false)
     }
 
   }
 
-  val createExam = CreateExam("e1", "q1", 45, ZonedDateTime.parse("2023-01-10T10:00:00Z"),
-        ZonedDateTime.parse("2013-01-10T15:00:00Z"), Set(off2.id, stud1.id, stud3.id))
-
+  val createExam = CreateExam(
+    "e1",
+    "q1",
+    45,
+    ZonedDateTime.parse("2023-01-10T10:00:00Z"),
+    ZonedDateTime.parse("2013-01-10T15:00:00Z"),
+    Set(off2.id, stud1.id, stud3.id)
+  )
 
   Feature("Create an Exam") {
 
@@ -188,16 +186,20 @@ class ExamManagementSpec
     res.status shouldBe StatusCodes.OK
     val list = res.to[List[ExamView]]
     And("correct exam view is present")
-    list.find(_.id == "e7").get shouldBe ExamView(
-      "e7",
-      QuizRef("q1", "q1 title"),
-      ExamPeriod(ZonedDateTime.parse("2023-01-10T10:00:00Z"), ZonedDateTime.parse("2023-01-10T15:00:00Z")),
-      off1,
-      "Pending",
-      None,
-      45,
-      ZonedDateTime.parse("2023-01-09T10:00:00Z")
-    )
+    list.find(_.id == "e7").get shouldBe
+      ExamView(
+        "e7",
+        QuizRef("q1", "q1 title"),
+        ExamPeriod(
+          ZonedDateTime.parse("2023-01-10T10:00:00Z"),
+          ZonedDateTime.parse("2023-01-10T15:00:00Z")
+        ),
+        off1,
+        "Pending",
+        None,
+        45,
+        ZonedDateTime.parse("2023-01-09T10:00:00Z")
+      )
   }
 
   Feature("Include/exclude a Testee") {
@@ -216,8 +218,7 @@ class ExamManagementSpec
       res.to[List[Person]] should contain theSameElementsAs Set(stud2, stud4)
       val res2 = get("exam/e3", off1)
       res2.status shouldBe StatusCodes.OK
-      res2.to[List[Person]] should contain theSameElementsAs
-        Set(off2, stud1, stud3, stud2, stud4)
+      res2.to[List[Person]] should contain theSameElementsAs Set(off2, stud1, stud3, stud2, stud4)
     }
 
     Scenario("Testee removed") {
@@ -226,8 +227,7 @@ class ExamManagementSpec
       And("I am a Host")
       res0.to[CreateExamDetails].host shouldBe off1
       And("a specific Testee is on list")
-      get("exam/e4", off1).to[List[Person]] should contain theSameElementsAs
-        Set(off2, stud1, stud3)
+      get("exam/e4", off1).to[List[Person]] should contain theSameElementsAs Set(off2, stud1, stud3)
       When("'remove testee' request is performed")
       val res = patch("exam/e4", off1, StrList(List(off2.id, stud3.id)))
       Then("specified Testee is no longer on Exam list")
