@@ -1,0 +1,9 @@
+baseResourcePath: /pubapi/schemas
+
+paths:
+
+  /v1/exam:
+    post: /create-exam.yaml
+  /v1/exam/*:
+    put: /strings.yaml
+    patch: /strings.yaml

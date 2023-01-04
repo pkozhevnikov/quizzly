@@ -1,0 +1,25 @@
+swagger: 2.0
+info:
+  version: 1.0.0-SNAPSHOT
+  title: Quizzly::school
+  description: |
+    API to manage exams
+host: ${http.host}:${http.port}
+basePath: /
+schemes:
+  - http
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+
+  /v1/exam:
+    $ref: points/v1/v1_exam.yaml
+  /v1/exam/{id}:
+    $ref: points/v1/v1_exam_ID.yaml
+  /v1/persons:
+    $ref: points/v1/v1_persons.yaml
+  /v1/quiz:
+    $ref: points/v1/v1_quiz.yaml

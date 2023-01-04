@@ -1,0 +1,49 @@
+type: object
+properties:
+  id:
+    type: string
+  quiz:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+  period:
+    type: object
+    properties:
+      start:
+        type: string
+        format: date-time
+      end:
+        type: string
+        format: date-time
+  host:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      place:
+        type: string
+        enum: 
+        - Official
+        - Student
+  state:
+    type: string
+    enum: 
+    - Pending
+    - Upcoming
+    - InProgress
+    - Ended
+    - Cancelled
+  cancelledAt:
+    type: string
+    format: date-time
+  trialLength:
+    type: integer
+    format: int32
+  prestartAt:
+    type: string
+    format: date-time

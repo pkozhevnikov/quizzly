@@ -1,0 +1,14 @@
+type: object
+properties:
+  id:
+    type: string
+  title:
+    type: string
+  obsolete:
+    type: boolean
+  inUse:
+    type: boolean
+  isPublished:
+    type: boolean
+  everPublished:
+    type: boolean

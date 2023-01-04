@@ -1,0 +1,21 @@
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: list available quizzes
+  description: |
+    Lists available quizzes
+  operationId: listquizzes
+  responses:
+    200:
+      description: normal response
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/quiz.yaml
+
+
+definitions:
+  quiz.yaml:
+    $ref: /pubapi/schemas/quiz.yaml

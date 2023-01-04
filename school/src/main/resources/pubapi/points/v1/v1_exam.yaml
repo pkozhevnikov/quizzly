@@ -1,0 +1,54 @@
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: list exams
+  description: |
+    List all exams
+  operationId: listexams
+  responses:
+    200:
+      description: normal response
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/exam.yaml
+
+post:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  summary: create exam
+  description: |
+    Create new exam
+  operationId: createexam
+  parameters:
+  -
+    in: body
+    name: create-params
+    required: true
+    schema:
+      $ref: /pubapi/schemas/create-exam.yaml
+
+  responses:
+    200:
+      description: exam created
+      schema: 
+        $ref: /pubapi/schemas/create-exam-details.yaml
+    422:
+      description: error
+      schema: 
+        $ref: /pubapi/schemas/error.yaml
+
+
+definitions:
+  create-exam.yaml:
+    $ref: /pubapi/schemas/create-exam.yaml
+  create-exam-details.yaml:
+    $ref: /pubapi/schemas/create-exam-details.yaml
+  error.yaml:
+    $ref: /pubapi/schemas/error.yaml
+  exam.yaml:
+    $ref: /pubapi/schemas/exam.yaml

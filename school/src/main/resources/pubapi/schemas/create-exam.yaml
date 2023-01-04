@@ -1,0 +1,26 @@
+type: object
+properties:
+  quizId:
+    type: string
+  trialLength:
+    type: integer
+    format: int32
+  start:
+    type: string
+    format: date-time
+  end:
+    type: string
+    format: date-time
+  testees:
+    type: array
+    items:
+      type: string
+  id:
+    type: string
+required:
+- trialLength
+- quizId
+- testees
+- start
+- end
+- id

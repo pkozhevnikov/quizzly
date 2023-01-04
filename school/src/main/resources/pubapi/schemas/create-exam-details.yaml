@@ -1,0 +1,11 @@
+type: object
+properties:
+  prestartAt:
+    type: string
+    format: date-time
+  host:
+    $ref: /pubapi/schemas/person.yaml
+
+definitions:
+  person.yaml:
+    $ref: /pubapi/schemas/person.yaml

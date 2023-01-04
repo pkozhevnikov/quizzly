@@ -1,0 +1,113 @@
+put:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  summary: include testees
+  description: |
+    Includes testees
+  operationId: indludetestees
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: exam ID
+    type: string
+  -
+    in: body
+    name: testees
+    required: true
+    description: testees ID list
+    schema:
+      $ref: /pubapi/schemas/strings.yaml
+
+  responses:
+    204:
+      description: testees included
+    422:
+      description: error
+
+patch:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  summary: exclude testees
+  description: |
+    Excludes testees
+  operationId: excludetestees
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: exam ID
+    type: string
+  -
+    in: body
+    name: testees
+    required: true
+    description: testees ID list
+    schema:
+      $ref: /pubapi/schemas/strings.yaml
+
+  responses:
+    204:
+      description: testees excluded
+    422:
+      description: error
+
+delete:
+  tags:
+  - v1
+  summary: cancel exam
+  description: |
+    Cancels exam
+  operationId: cancelexam
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: exam ID
+    type: string
+
+  responses:
+    204:
+      description: exam cancelled
+    422:
+      description: error
+
+post:
+  tags:
+  - v1
+  summary: change trial length
+  description: |
+    Chandes trial length/
+  operationId: changetriallength
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: exam ID
+    type: string
+  -
+    in: formData
+    name: length
+    required: true
+    description: new trial length
+    type: integer
+    format: int32
+
+  responses:
+    204:
+      description: trial length changed
+    422:
+      description: error
+
+
+definitions:
+  strings.yaml:
+    $ref: /pubapi/schemas/strings.yaml

@@ -1,0 +1,12 @@
+type: object
+properties:
+  reason:
+    $ref: /pubapi/schemas/reason.yaml
+  clues:
+    type: array
+    items:
+      type: string
+
+definitions:
+  reason.yaml:
+    $ref: /pubapi/schemas/reason.yaml

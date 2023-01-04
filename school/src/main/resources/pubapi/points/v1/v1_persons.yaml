@@ -1,0 +1,21 @@
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: list persons
+  description: |
+    Lists persons
+  operationId: listpersons
+  responses:
+    200:
+      description: normal response
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/person.yaml
+
+
+definitions:
+  person.yaml:
+    $ref: /pubapi/schemas/person.yaml
