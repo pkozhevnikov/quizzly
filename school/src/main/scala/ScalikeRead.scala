@@ -21,7 +21,7 @@ class ScalikeRead(poolName: String) extends Read:
 
   def quizList()(using ExecutionContext) = Future {
     NamedDB(poolName).readOnly { implicit session =>
-      sql"select * from quizfact"
+      sql"select * from quizfact order by id"
         .map { rs =>
           QuizListed(
             rs.string("id"),
@@ -39,7 +39,7 @@ class ScalikeRead(poolName: String) extends Read:
 
   def examList()(using ExecutionContext) = Future {
     NamedDB(poolName).readOnly { implicit session =>
-      sql"select * from exam"
+      sql"select * from exam order by start_at"
         .map { rs =>
           ExamView(
             rs.string("id"),
@@ -62,7 +62,7 @@ class ScalikeRead(poolName: String) extends Read:
 
   def testees(id: ExamID)(using ExecutionContext) = Future {
     NamedDB(poolName).readOnly { implicit session =>
-      sql"select * from testee where exam_id=?".bind(id)
+      sql"select * from testee where exam_id=? order by testee_name".bind(id)
         .map(rs => Person.of(rs.string("testee_place"))(rs.string("testee_id"), rs.string("testee_name")))
         .list
         .apply()
