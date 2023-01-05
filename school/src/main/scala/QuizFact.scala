@@ -117,7 +117,6 @@ object QuizFact:
             if usedBy.size == 1 then
               events = events :+ GotUnused
             Effect.persist(events)
-            
           else
             Effect.none
         case _: Init =>
@@ -135,6 +134,7 @@ object QuizFact:
           copy(usedBy = usedBy + examID)
         case UseStopped(examID) =>
           copy(usedBy = usedBy - examID)
-        case GotUnused => this
+        case GotUnused =>
+          this
         case _: Inited =>
           throw new IllegalStateException(s"current state is Fact should be None")

@@ -50,8 +50,12 @@ put:
       $ref: /pubapi/schemas/strings.yaml
 
   responses:
-    204:
-      description: testees included
+    200:
+      description: testees included, responds with included testees
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/person.yaml
     422:
       description: error
 
@@ -80,8 +84,12 @@ patch:
       $ref: /pubapi/schemas/strings.yaml
 
   responses:
-    204:
-      description: testees excluded
+    200:
+      description: testees excluded, responds with excluded testees
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/person.yaml
     422:
       description: error
 

@@ -28,7 +28,6 @@ class HttpFrontendSpec
 
   type NowInstant = () => Instant
   given NowInstant = () => Instant.now()
-  
 
   val off1 = Official("off1", "off1 name")
   val off2 = Official("off2", "off2 name")
@@ -69,6 +68,8 @@ class HttpFrontendSpec
         case _ =>
           Future(List(off3, stud1, stud2, stud3))
     def quizList()(using ExecutionContext) = Future(List(quiz1, quiz2, quiz3))
+
+  given ToEntityMarshaller[Set[String]] = sprayJsonMarshaller[Set[String]]
 
   def get(path: String, person: Person) = Get(s"/v1/$path") ~> addHeader("pl", person.id)
   def post(path: String, person: Person) = Post(s"/v1/$path") ~> addHeader("pl", person.id)
@@ -259,14 +260,14 @@ class HttpFrontendSpec
           case _ =>
             Behaviors.stopped
         }
-        put("exam/e1", off1, StrList(List(off3.id, stud2.id))) ~> stdexam("e1", beh) ~>
+        put("exam/e1", off1, Set(off3.id, stud2.id)) ~> stdexam("e1", beh) ~>
           check {
             status shouldBe StatusCodes.OK
             responseAs[List[Person]] should contain only (stud2)
           }
       }
       "respond with error" in {
-        put("exam/e1", off1, StrList(List(off3.id))) ~> stdexam("e1", Bad(illegalState.error())) ~>
+        put("exam/e1", off1, Set(off3.id)) ~> stdexam("e1", Bad(illegalState.error())) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe illegalState.error()
@@ -283,15 +284,14 @@ class HttpFrontendSpec
           case _ =>
             Behaviors.stopped
         }
-        patch("exam/e1", off1, StrList(List(off3.id, stud2.id))) ~> stdexam("e1", beh) ~>
+        patch("exam/e1", off1, Set(off3.id, stud2.id)) ~> stdexam("e1", beh) ~>
           check {
             status shouldBe StatusCodes.OK
             responseAs[List[Person]] should contain only (stud2)
           }
       }
       "respond with error" in {
-        patch("exam/e1", off1, StrList(List(off3.id))) ~>
-          stdexam("e1", Bad(illegalState.error())) ~>
+        patch("exam/e1", off1, Set(off3.id)) ~> stdexam("e1", Bad(illegalState.error())) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe illegalState.error()

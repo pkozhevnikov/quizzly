@@ -25,8 +25,7 @@ class FactProjectionHandler extends JdbcHandler[EventEnvelope[QuizFact.Event], S
       case Inited(title, obsolete) =>
         update { implicit session =>
           sql"""insert into quizfact (id,title,obsolete,in_use,ever_published,is_published)
-            values (?,?,?,?,?,?)""".bind(id, title, obsolete, false, false, false)
-              .update.apply()
+            values (?,?,?,?,?,?)""".bind(id, title, obsolete, false, false, false).update.apply()
         }
 
         println("initialized fact")
@@ -38,7 +37,8 @@ class FactProjectionHandler extends JdbcHandler[EventEnvelope[QuizFact.Event], S
         update { implicit session =>
           sql"update quizfact set ever_published=true,is_published=true where id=?"
             .bind(id)
-            .update.apply()
+            .update
+            .apply()
         }
       case Unpublished =>
         update { implicit session =>

@@ -26,68 +26,73 @@ import scala.util.Try
 import java.time.*
 
 case class CreateExam(
-  id: String,
-  quizId: String,
-  trialLength: Int,
-  start: ZonedDateTime,
-  end: ZonedDateTime,
-  testees: Set[String]
+    id: String,
+    quizId: String,
+    trialLength: Int,
+    start: ZonedDateTime,
+    end: ZonedDateTime,
+    testees: Set[String]
 )
 
-case class QuizRef(
-  id: String,
-  title: String
-)
+case class QuizRef(id: String, title: String)
 
 case class ExamView(
-  id: String,
-  quiz: QuizRef,
-  period: ExamPeriod,
-  host: Official,
-  state: String,
-  cancelledAt: Option[Instant],
-  trialLength: Int,
-  prestartAt: ZonedDateTime
+    id: String,
+    quiz: QuizRef,
+    period: ExamPeriod,
+    host: Official,
+    state: String,
+    cancelledAt: Option[Instant],
+    trialLength: Int,
+    prestartAt: ZonedDateTime
 )
 
 case class QuizListed(
-  id: String,
-  title: String,
-  obsolete: Boolean,
-  inUse: Boolean,
-  isPublished: Boolean,
-  everPublished: Boolean
+    id: String,
+    title: String,
+    obsolete: Boolean,
+    inUse: Boolean,
+    isPublished: Boolean,
+    everPublished: Boolean
 )
-
-case class StrList(list: List[String])
 
 case class ChangeLength(length: Int)
 
 trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
   given RootJsonFormat[Reason] = jsonFormat2(Reason.apply)
   given RootJsonFormat[Error] = jsonFormat2(Error.apply)
-  given RootJsonFormat[StrList] = jsonFormat1(StrList.apply)
   given RootJsonFormat[ChangeLength] = jsonFormat1(ChangeLength.apply)
-  given RootJsonFormat[Instant] = new:
-    def write(i: Instant) = JsString(i.toString)
-    def read(n: JsValue) = n match
-      case JsString(str) => Instant.parse(str)
-      case x => throw DeserializationException(s"unknown value for intant $x")
-  given RootJsonFormat[ZonedDateTime] = new:
-    def write(zdt: ZonedDateTime) = JsString(zdt.toString)
-    def read(n: JsValue) = n match
-      case JsString(str) => ZonedDateTime.parse(str)
-      case x => throw DeserializationException(s"unknown value for intant $x")
-  given RootJsonFormat[Person] = new:
-    def write(p: Person) = JsObject(
-      "id" -> JsString(p.id),
-      "name" -> JsString(p.name),
-      "place" -> JsString(p.place)
-    )
-    def read(n: JsValue) = n.asJsObject.getFields("place", "id", "name") match
-      case Seq(JsString(place), JsString(id), JsString(name)) =>
-        Person.of(place)(id, name)
-      case x => throw DeserializationException(s"cannot deserialize person $x")
+  given RootJsonFormat[Instant] =
+    new:
+      def write(i: Instant) = JsString(i.toString)
+      def read(n: JsValue) =
+        n match
+          case JsString(str) =>
+            Instant.parse(str)
+          case x =>
+            throw DeserializationException(s"unknown value for intant $x")
+  given RootJsonFormat[ZonedDateTime] =
+    new:
+      def write(zdt: ZonedDateTime) = JsString(zdt.toString)
+      def read(n: JsValue) =
+        n match
+          case JsString(str) =>
+            ZonedDateTime.parse(str)
+          case x =>
+            throw DeserializationException(s"unknown value for intant $x")
+  given RootJsonFormat[Person] =
+    new:
+      def write(p: Person) = JsObject(
+        "id" -> JsString(p.id),
+        "name" -> JsString(p.name),
+        "place" -> JsString(p.place)
+      )
+      def read(n: JsValue) =
+        n.asJsObject.getFields("place", "id", "name") match
+          case Seq(JsString(place), JsString(id), JsString(name)) =>
+            Person.of(place)(id, name)
+          case x =>
+            throw DeserializationException(s"cannot deserialize person $x")
   given RootJsonFormat[ExamPeriod] = jsonFormat2(ExamPeriod.apply)
   given RootJsonFormat[Official] = jsonFormat(Official.apply, "id", "name")
   given RootJsonFormat[Student] = jsonFormat(Student.apply, "id", "name")
@@ -96,10 +101,11 @@ trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
   given RootJsonFormat[Exam.CreateExamDetails] = jsonFormat2(Exam.CreateExamDetails.apply)
   given RootJsonFormat[ExamView] = jsonFormat8(ExamView.apply)
   given RootJsonFormat[QuizListed] = jsonFormat6(QuizListed.apply)
-  given RootJsonFormat[Set[Person]] = new:
-    def write(s: Set[Person]) = JsArray(s.map(_.toJson).toList)
-    def read(n: JsValue) = n.convertTo[Set[Person]]
-  
+  given RootJsonFormat[Set[Person]] =
+    new:
+      def write(s: Set[Person]) = JsArray(s.map(_.toJson).toList)
+      def read(n: JsValue) = n.convertTo[Set[Person]]
+
   given JsonEntityStreamingSupport = EntityStreamingSupport.json()
 
 trait EntityAware:
@@ -115,7 +121,6 @@ trait Read:
   def examList()(using ExecutionContext): Future[List[ExamView]]
   def testees(examId: ExamID)(using ExecutionContext): Future[List[Person]]
   def quizList()(using ExecutionContext): Future[List[QuizListed]]
-
 
 object HttpFrontend extends JsonFormats:
 
@@ -151,74 +156,88 @@ object HttpFrontend extends JsonFormats:
           complete(StatusCodes.InternalServerError, ex.getMessage)
       }
 
-
-    pathPrefix("pubapi")(pubapi(host, port))~
+    // format: off
+    pathPrefix("pubapi")(pubapi(host, port)) ~
     extractRequest { request =>
-      auth(request) { person => 
+      auth(request) { person =>
         pathPrefix("v1") {
           path("persons") {
             onSuccess(authService.getPersons.map(Source(_)))(complete)
-          }~
+          } ~
           path("quiz") {
             get {
               onComplete(read.quizList()) {
-                case Success(r) => complete(Source(r))
-                case Failure(ex) => complete(StatusCodes.InternalServerError, ex.getMessage)
+                case Success(r) =>
+                  complete(Source(r))
+                case Failure(ex) =>
+                  complete(StatusCodes.InternalServerError, ex.getMessage)
               }
             }
-          }~
+          } ~
           pathPrefix("exam") {
             pathEnd {
               get {
                 onComplete(read.examList()) {
-                  case Success(r) => complete(Source(r))
-                  case Failure(ex) => complete(StatusCodes.InternalServerError, ex.getMessage)
+                  case Success(r) =>
+                    complete(Source(r))
+                  case Failure(ex) =>
+                    complete(StatusCodes.InternalServerError, ex.getMessage)
                 }
-              }~
+              } ~
               post {
                 entity(as[CreateExam]) { ce =>
                   onComplete(authService.getPersons(ce.testees)) {
-                    case Success(set) => 
-                      onExam[Exam.CreateExamDetails](ce.id)(Exam.Create(ce.quizId, ce.trialLength,
-                        ExamPeriod(ce.start, ce.end), set, person, _))
+                    case Success(set) =>
+                      onExam[Exam.CreateExamDetails](ce.id)(
+                        Exam.Create(
+                          ce.quizId,
+                          ce.trialLength,
+                          ExamPeriod(ce.start, ce.end),
+                          set,
+                          person,
+                          _
+                        )
+                      )
                     case Failure(ex) =>
                       complete(StatusCodes.InternalServerError, ex.getMessage)
                   }
                 }
               }
-            }~
+            } ~
             path(Segment) { id =>
               get {
                 onComplete(read.testees(id)) {
-                  case Success(r) => complete(Source(r))
-                  case Failure(ex) => complete(StatusCodes.InternalServerError, ex.getMessage)
+                  case Success(r) =>
+                    complete(Source(r))
+                  case Failure(ex) =>
+                    complete(StatusCodes.InternalServerError, ex.getMessage)
                 }
-              }~
+              } ~
               post {
                 entity(as[ChangeLength]) { cl =>
                   onExam[Nothing](id)(Exam.SetTrialLength(cl.length, _))
                 }
-              }~ 
+              } ~
               put {
-                entity(as[StrList]) { inc =>
-                  onComplete(authService.getPersons(inc.list.toSet)) {
+                entity(as[Set[String]]) { inc =>
+                  onComplete(authService.getPersons(inc)) {
                     case Success(set) =>
                       onExam[Set[Person]](id)(Exam.IncludeTestees(set, _))
                     case Failure(ex) =>
                       complete(StatusCodes.InternalServerError, ex.getMessage)
                   }
                 }
-              }~
+              } ~
               patch {
-                entity(as[StrList]) { exc =>
-                  onComplete(authService.getPersons(exc.list.toSet)) {
+                entity(as[Set[String]]) { exc =>
+                  onComplete(authService.getPersons(exc)) {
                     case Success(set) =>
                       onExam[Set[Person]](id)(Exam.ExcludeTestees(set, _))
                     case Failure(ex) =>
                       complete(StatusCodes.InternalServerError, ex.getMessage)
                   }
                 }
-              }~
+              } ~
               delete {
                 onExam[Nothing](id)(Exam.Cancel(now(), _))
               }
@@ -227,6 +246,7 @@ object HttpFrontend extends JsonFormats:
         }
       }
     }
+  // format: on
 
   val yamlContentType = ContentType(
     MediaType.textWithFixedCharset("vnd.yaml", HttpCharsets.`UTF-8`, "yaml", "yml")

@@ -20,7 +20,11 @@ object Exam:
     val All = Vector("exam-1", "exam-2", "exam-3")
 
   enum State:
-    case Pending, Upcoming, InProgress, Ended, Cancelled
+    case Pending,
+      Upcoming,
+      InProgress,
+      Ended,
+      Cancelled
 
   final case class Blank() extends Exam
 

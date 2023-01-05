@@ -69,6 +69,8 @@ class ExamManagementSpec
     def to[C](using FromResponseUnmarshaller[C]) = Await.result(Unmarshal(response).to[C], 1.second)
   extension (path: String)
     def fullUrl = s"http://localhost:$httpPort/v1/$path"
+
+  given ToEntityMarshaller[Set[String]] = sprayJsonMarshaller[Set[String]]
   def request(req: HttpRequest, as: Person) = Await
     .result(http.singleRequest(req ~> addHeader("p", as.id)), 3.second)
   def post[C](path: String, as: Person, content: C)(using ToEntityMarshaller[C]) = request(
@@ -210,7 +212,7 @@ class ExamManagementSpec
       And("I am a Host")
       res0.to[CreateExamDetails].host shouldBe off1
       And("specified a user as a new Testee")
-      val include = StrList(List(stud2.id, stud4.id))
+      val include = Set(stud2.id, stud4.id)
       When("'add testee' request is performed")
       val res = put("exam/e3", off1, include)
       Then("specified user is on Exam list as a Testee")
@@ -229,7 +231,7 @@ class ExamManagementSpec
       And("a specific Testee is on list")
       get("exam/e4", off1).to[List[Person]] should contain theSameElementsAs Set(off2, stud1, stud3)
       When("'remove testee' request is performed")
-      val res = patch("exam/e4", off1, StrList(List(off2.id, stud3.id)))
+      val res = patch("exam/e4", off1, Set(off2.id, stud3.id))
       Then("specified Testee is no longer on Exam list")
       res.status shouldBe StatusCodes.OK
       res.to[List[Person]] should contain theSameElementsAs Set(off2, stud3)
