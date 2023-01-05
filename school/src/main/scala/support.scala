@@ -51,5 +51,10 @@ type QuizID = String
 type ExamID = String
 
 final case class ExamConfig(preparationPeriodHours: Int, trialLengthMinutesRange: (Int, Int))
+object ExamConfig:
+  def fromConfig(econf: com.typesafe.config.Config) = ExamConfig(
+    econf.getInt("preparationPeriodHours"),
+    (econf.getInt("trialLengthMinutes.min"), econf.getInt("trialLengthMinutes.max"))
+  )
 
 final case class Quiz(id: QuizID, title: String)

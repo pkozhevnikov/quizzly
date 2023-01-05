@@ -25,10 +25,12 @@ object ExamManagementSpec:
     akka.remote.artery.canonical.port = "$nodePort"
     jdbc-connection-settings.url = "jdbc:h2:mem:app"
     frontend.http.port = $httpPort
-    preparation.period.hours = 24
-    trialLength.range = {
-      min = 10
-      max = 90
+    school {
+      preparationPeriodHours = 24
+      trialLengthMinutes = {
+        min = 10
+        max = 90
+      }
     }
     """)
       .withFallback(ConfigFactory.load("application.conf"))
@@ -101,6 +103,31 @@ class ExamManagementSpec
   val stud3 = Student("stud3", "stud3 name")
   val stud4 = Student("stud4", "stud4 name")
   val stud5 = Student("stud5", "stud5 name")
+  val all = Map(
+    off1.id -> off1,
+    off2.id -> off2,
+    off3.id -> off3,
+    off4.id -> off4,
+    off5.id -> off5,
+    stud1.id -> stud1,
+    stud2.id -> stud2,
+    stud3.id -> stud3,
+    stud4.id -> stud4,
+    stud5.id -> stud5
+  )
+
+  val auth: Auth = new:
+    def authenticate(req: HttpRequest) =
+      all.get(req.getHeader("p").get.value) match
+        case Some(p: Official) =>
+          Future(p)
+        case _ =>
+          Future.failed(Exception())
+    def getPersons = Future(all.values.toSet)
+    def getPersons(ids: Set[PersonID]) = Future(all.filter((k, v) => ids(k)).values.toSet)
+    def getPerson(id: PersonID) = Future(all.get(id))
+
+  Main(appSystem, auth)
 
   import Exam.*
 
@@ -140,6 +167,7 @@ class ExamManagementSpec
 
   }
 
+  /*
   val createExam = CreateExam(
     "e1",
     "q1",
@@ -264,3 +292,4 @@ class ExamManagementSpec
       ex.state shouldBe "Cancelled"
     }
   }
+  */

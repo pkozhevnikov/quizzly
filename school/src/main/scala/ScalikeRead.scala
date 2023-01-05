@@ -50,7 +50,8 @@ class ScalikeRead(poolName: String) extends Read:
             ),
             Official(rs.string("host_id"), rs.string("host_name")),
             rs.string("state"),
-            rs.zonedDateTimeOpt("cancelled_at").map(_.withZoneSameInstant(ZoneId.of("Z")).toInstant),
+            rs.zonedDateTimeOpt("cancelled_at")
+              .map(_.withZoneSameInstant(ZoneId.of("Z")).toInstant),
             rs.int("trial_length"),
             rs.zonedDateTime("prestart_at").withZoneSameInstant(ZoneId.of("Z"))
           )
@@ -62,10 +63,12 @@ class ScalikeRead(poolName: String) extends Read:
 
   def testees(id: ExamID)(using ExecutionContext) = Future {
     NamedDB(poolName).readOnly { implicit session =>
-      sql"select * from testee where exam_id=? order by testee_name".bind(id)
-        .map(rs => Person.of(rs.string("testee_place"))(rs.string("testee_id"), rs.string("testee_name")))
+      sql"select * from testee where exam_id=? order by testee_name"
+        .bind(id)
+        .map(rs =>
+          Person.of(rs.string("testee_place"))(rs.string("testee_id"), rs.string("testee_name"))
+        )
         .list
         .apply()
     }
   }
-
