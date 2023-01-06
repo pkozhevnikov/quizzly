@@ -33,7 +33,6 @@ object QuizFact:
   val isAlreadyUsed = Reason(1105, "quiz is already used by this exam")
   val isUsed = Reason(1106, "quiz is in use")
 
-  // final case class MayBeUsed(examID: ExamID, replyTo: ActorRef[Boolean]) extends Command
   final case class Use(examID: ExamID, replyTo: ActorRef[Resp[Quiz]]) extends CommandWithReply[Quiz]
   final case class Used(examID: ExamID) extends Event
   final case class StopUse(examID: ExamID) extends Command
@@ -73,7 +72,7 @@ object QuizFact:
                 throw IllegalStateException(s"current state is $state should be None")
           case Some(fact) =>
             Some(fact.takeEvent(event))
-    )
+    ).withTagger(_ => Set(Tags.Single))
 
   import Resp.*
 

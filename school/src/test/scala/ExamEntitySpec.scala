@@ -224,7 +224,7 @@ class ExamEntitySpec
       "include testees" in {
         val initial = init
         val result1 = examKit.runCommand(IncludeTestees(Set(student1, student2, official2), _))
-        result1.reply shouldBe OK
+        result1.reply shouldBe Good(Set(student1, student2, official2))
         result1.state shouldBe initial.copy(testees = Set(student1, student2, official2))
       }
 
@@ -232,7 +232,7 @@ class ExamEntitySpec
         val initial = init
         examKit.runCommand(IncludeTestees(Set(student1, student2, official2), _))
         val result = examKit.runCommand(ExcludeTestees(Set(student1, official2, student3), _))
-        result.reply shouldBe OK
+        result.reply shouldBe Good(Set(student1, official2))
         result.state shouldBe initial.copy(testees = Set(student2))
       }
 

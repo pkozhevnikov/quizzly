@@ -63,10 +63,6 @@ class ExamManagementSpec
 
   val http = Http()(using clnSystem)
 
-  override def afterAll() =
-    clnSystem.terminate()
-    appSystem.terminate()
-
   extension (response: HttpResponse)
     def to[C](using FromResponseUnmarshaller[C]) = Await.result(Unmarshal(response).to[C], 1.second)
   extension (path: String)
@@ -116,18 +112,30 @@ class ExamManagementSpec
     stud5.id -> stud5
   )
 
-  val auth: Auth = new:
-    def authenticate(req: HttpRequest) =
-      all.get(req.getHeader("p").get.value) match
-        case Some(p: Official) =>
-          Future(p)
-        case _ =>
-          Future.failed(Exception())
-    def getPersons = Future(all.values.toSet)
-    def getPersons(ids: Set[PersonID]) = Future(all.filter((k, v) => ids(k)).values.toSet)
-    def getPerson(id: PersonID) = Future(all.get(id))
+  val auth: Auth =
+    new:
+      def authenticate(req: HttpRequest) =
+        all.get(req.getHeader("p").get.value) match
+          case Some(p: Official) =>
+            Future(p)
+          case _ =>
+            Future.failed(Exception())
+      def getPersons = Future(all.values.toSet)
+      def getPersons(ids: Set[PersonID]) = Future(all.filter((k, v) => ids(k)).values.toSet)
+      def getPerson(id: PersonID) = Future(all.get(id))
 
-  Main(appSystem, auth)
+  val getFact = Main(appSystem, auth)
+
+  override def beforeAll() =
+    super.beforeAll()
+    getFact("q1") ! QuizFact.Init("q1 title", false)
+    getFact("q2") ! QuizFact.Init("q2 title", false)
+    getFact("q3") ! QuizFact.Init("q3 title", false)
+
+  override def afterAll() =
+    super.afterAll()
+    clnSystem.terminate()
+    appSystem.terminate()
 
   import Exam.*
 
@@ -157,23 +165,25 @@ class ExamManagementSpec
 
     Scenario("getting quiz list") {
       When("quiz list is requested")
-      val res = get("quiz", off1)
       Then("quiz list is returned")
-      res.status shouldBe StatusCodes.OK
-      val list = res.to[List[QuizListed]]
-      list.size shouldBe 3
-      list.find(_.id == "q2").get shouldBe QuizListed("q2", "q2 title", false, true, false, false)
+      eventually {
+        val res = get("quiz", off1)
+        res.status shouldBe StatusCodes.OK
+        val list = res.to[List[QuizListed]]
+        list.size shouldBe 3
+        list.find(_.id == "q2").get shouldBe
+          QuizListed("q2", "q2 title", false, false, false, false)
+      }
     }
 
   }
 
-  /*
   val createExam = CreateExam(
     "e1",
     "q1",
     45,
     ZonedDateTime.parse("2023-01-10T10:00:00Z"),
-    ZonedDateTime.parse("2013-01-10T15:00:00Z"),
+    ZonedDateTime.parse("2023-01-10T15:00:00Z"),
     Set(off2.id, stud1.id, stud3.id)
   )
 
@@ -189,7 +199,7 @@ class ExamManagementSpec
       res.status shouldBe StatusCodes.OK
       And("its prestart time is correct")
       val details = res.to[CreateExamDetails]
-      details.preparationStart shouldBe ZonedDateTime.parse("2013-01-09T10T10:00:00Z")
+      details.preparationStart shouldBe ZonedDateTime.parse("2023-01-09T10:00:00Z")
       And("I am a Host of this Exam")
       details.host shouldBe off1
     }
@@ -203,33 +213,36 @@ class ExamManagementSpec
       Then("new Exam is not created")
       res.status shouldBe StatusCodes.UnprocessableEntity
       And("response contains detailed reason")
-      res.to[Error] shouldBe examAlreadyExists.error() + "ex"
+      res.to[Error] shouldBe illegalState.error() + "Pending"
     }
-  }
 
-  Feature("exam listing") {
-    Given("exams registered")
-    post("exam", off1, createExam.copy(id = "e7"))
-    When("exam list is requested")
-    val res = get("exam", off2)
-    Then("exam list is returned")
-    res.status shouldBe StatusCodes.OK
-    val list = res.to[List[ExamView]]
-    And("correct exam view is present")
-    list.find(_.id == "e7").get shouldBe
-      ExamView(
-        "e7",
-        QuizRef("q1", "q1 title"),
-        ExamPeriod(
-          ZonedDateTime.parse("2023-01-10T10:00:00Z"),
-          ZonedDateTime.parse("2023-01-10T15:00:00Z")
-        ),
-        off1,
-        "Pending",
-        None,
-        45,
-        ZonedDateTime.parse("2023-01-09T10:00:00Z")
-      )
+    Scenario("exam listing") {
+      Given("exams registered")
+      post("exam", off1, createExam.copy(id = "e7")).status shouldBe StatusCodes.OK
+      When("exam list is requested")
+      Then("exam list is returned")
+      And("correct exam view is present")
+      eventually {
+        val res = get("exam", off2)
+        res.status shouldBe StatusCodes.OK
+        val list = res.to[List[ExamView]]
+        list.find(_.id == "e7").get shouldBe
+          ExamView(
+            "e7",
+            QuizRef("q1", "q1 title"),
+            ExamPeriod(
+              ZonedDateTime.parse("2023-01-10T10:00:00Z"),
+              ZonedDateTime.parse("2023-01-10T15:00:00Z")
+            ),
+            off1,
+            "Pending",
+            None,
+            45,
+            ZonedDateTime.parse("2023-01-09T10:00:00Z")
+          )
+      }
+    }
+
   }
 
   Feature("Include/exclude a Testee") {
@@ -246,9 +259,11 @@ class ExamManagementSpec
       Then("specified user is on Exam list as a Testee")
       res.status shouldBe StatusCodes.OK
       res.to[List[Person]] should contain theSameElementsAs Set(stud2, stud4)
-      val res2 = get("exam/e3", off1)
-      res2.status shouldBe StatusCodes.OK
-      res2.to[List[Person]] should contain theSameElementsAs Set(off2, stud1, stud3, stud2, stud4)
+      eventually {
+        val res2 = get("exam/e3", off1)
+        res2.status shouldBe StatusCodes.OK
+        res2.to[List[Person]] should contain theSameElementsAs Set(off2, stud1, stud3, stud2, stud4)
+      }
     }
 
     Scenario("Testee removed") {
@@ -257,13 +272,18 @@ class ExamManagementSpec
       And("I am a Host")
       res0.to[CreateExamDetails].host shouldBe off1
       And("a specific Testee is on list")
-      get("exam/e4", off1).to[List[Person]] should contain theSameElementsAs Set(off2, stud1, stud3)
+      eventually {
+        get("exam/e4", off1).to[List[Person]] should contain theSameElementsAs
+          Set(off2, stud1, stud3)
+      }
       When("'remove testee' request is performed")
       val res = patch("exam/e4", off1, Set(off2.id, stud3.id))
       Then("specified Testee is no longer on Exam list")
       res.status shouldBe StatusCodes.OK
       res.to[List[Person]] should contain theSameElementsAs Set(off2, stud3)
-      get("exam/e4", off1).to[List[Person]] should contain only (stud1)
+      eventually {
+        get("exam/e4", off1).to[List[Person]] should contain only (stud1)
+      }
     }
   }
 
@@ -275,8 +295,10 @@ class ExamManagementSpec
       val res = post("exam/e5", off1, ChangeLength(54))
       Then("specified Trial Length is set on the Exam")
       res.status shouldBe StatusCodes.NoContent
-      val ex = get("exam", off1).to[List[ExamView]].find(_.id == "e5").get
-      ex.trialLength shouldBe 54
+      eventually {
+        val ex = get("exam", off1).to[List[ExamView]].find(_.id == "e5").get
+        ex.trialLength shouldBe 54
+      }
     }
   }
 
@@ -288,8 +310,9 @@ class ExamManagementSpec
       val res = delete("exam/e6", off1)
       Then("the exam is in Cancelled state")
       res.status shouldBe StatusCodes.NoContent
-      val ex = get("exam", off1).to[List[ExamView]].find(_.id == "e6").get
-      ex.state shouldBe "Cancelled"
+      eventually {
+        val ex = get("exam", off1).to[List[ExamView]].find(_.id == "e6").get
+        ex.state shouldBe "Cancelled"
+      }
     }
   }
-  */

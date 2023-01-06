@@ -13,9 +13,6 @@ class ExamProjectionHandler extends JdbcHandler[EventEnvelope[Exam.Event], Scali
 
   import Exam.*
 
-  val insMember = "insert into member (id,role,person_id,name) values (?,?,?,?)"
-  val delMember = "delete from member where id=? and person_id=?"
-
   override final def process(session: ScalikeJdbcSession, envelope: EventEnvelope[Exam.Event]) =
     val id = envelope.persistenceId.split("\\|")(1)
     given ScalikeJdbcSession = session

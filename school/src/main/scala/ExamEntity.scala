@@ -30,7 +30,7 @@ object ExamEntity:
       Blank(),
       commandHandler(ctx, id, facts, config),
       eventHandler
-    )
+    ).withTagger(_ => Set(Tags.Single))
   }
 
   given Timeout = 2.seconds
@@ -116,9 +116,17 @@ object ExamEntity:
         case pending: Pending =>
           cmd match
             case IncludeTestees(include, replyTo) =>
-              Effect.persist(TesteesIncluded(include)).thenReply(replyTo)(_ => Resp.OK)
+              val toadd = include &~ pending.testees
+              if toadd.isEmpty then
+                Effect.reply(replyTo)(Good(Set.empty[Person]))
+              else
+                Effect.persist(TesteesIncluded(toadd)).thenReply(replyTo)(_ => Good(toadd))
             case ExcludeTestees(exclude, replyTo) =>
-              Effect.persist(TesteesExcluded(exclude)).thenReply(replyTo)(_ => Resp.OK)
+              val toremove = pending.testees & exclude
+              if toremove.isEmpty then
+                Effect.reply(replyTo)(Good(Set.empty[Person]))
+              else
+                Effect.persist(TesteesExcluded(toremove)).thenReply(replyTo)(_ => Good(toremove))
             case SetTrialLength(length, replyTo) =>
               Effect.persist(TrialLengthSet(length)).thenReply(replyTo)(_ => Resp.OK)
             case Proceed =>

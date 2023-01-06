@@ -25,7 +25,7 @@ object Main:
 
   type NowInstant = () => Instant
 
-  def apply(system: ActorSystem[?], auth: Auth) =
+  def apply(system: ActorSystem[?], auth: Auth): String => EntityRef[QuizFact.Command] =
     given ActorSystem[?] = system
     given ExecutionContext = system.executionContext
     given NowInstant = () => Instant.now()
@@ -57,8 +57,10 @@ object Main:
       () => FactProjectionHandler()
     )
     val shardedProcess = ShardedDaemonProcess(system)
-    shardedProcess.init("exam-mgmt", 1, _ => ProjectionBehavior(examProjection), ProjectionBehavior.Stop)
-    shardedProcess.init("facts", 1, _ => ProjectionBehavior(factProjection), ProjectionBehavior.Stop)
+    shardedProcess
+      .init("facts", 1, _ => ProjectionBehavior(factProjection), ProjectionBehavior.Stop)
+    shardedProcess
+      .init("exams", 1, _ => ProjectionBehavior(examProjection), ProjectionBehavior.Stop)
     val entityAware: EntityAware =
       new:
         def exam(id: String) = getExam(id)
@@ -81,3 +83,5 @@ object Main:
           system.log.error("Failed to run exam management", ex)
           system.terminate()
       }
+
+    getFact
