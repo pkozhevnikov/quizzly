@@ -8,3 +8,4 @@ paths:
     put: /strings.yaml
     patch: /strings.yaml
     post: /change-length.yaml
+  /v1/quiz/*:

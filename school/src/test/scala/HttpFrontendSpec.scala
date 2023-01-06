@@ -58,6 +58,7 @@ class HttpFrontendSpec
 
   object eaware extends EntityAware:
     def exam(id: String) = TestEntityRef(ExamEntity.EntityKey, id, testKit.spawn(Behaviors.empty))
+    def fact(id: String) = TestEntityRef(QuizFact.EntityKey, id, testKit.spawn(Behaviors.empty))
 
   object read extends Read:
     def examList()(using ExecutionContext) = Future(List(exam1, exam2))
@@ -120,11 +121,30 @@ class HttpFrontendSpec
       def exam(id: String) =
         id shouldBe expectedId
         TestEntityRef(ExamEntity.EntityKey, id, testKit.spawn(beh))
+      def fact(id: String) = TestEntityRef(QuizFact.EntityKey, id, testKit.spawn(Behaviors.empty))
   def exam[R](expectedId: ExamID, beh: Behavior[Exam.Command]) =
     new EntityAware:
       def exam(id: String) =
         id shouldBe expectedId
         TestEntityRef(ExamEntity.EntityKey, id, testKit.spawn(beh))
+      def fact(id: String) = TestEntityRef(QuizFact.EntityKey, id, testKit.spawn(Behaviors.empty))
+
+  def fact[R](expectedId: QuizID, resp: Resp[R]) =
+    new EntityAware:
+      val beh = Behaviors.receiveMessage[QuizFact.Command] { case c: QuizFact.CommandWithReply[R] =>
+        c.replyTo ! resp
+        Behaviors.stopped
+      }
+      def fact(id: String) = 
+        id shouldBe expectedId
+        TestEntityRef(QuizFact.EntityKey, id, testKit.spawn(beh))
+      def exam(id: String) = TestEntityRef(ExamEntity.EntityKey, id, testKit.spawn(Behaviors.empty))
+  def fact[R](expectedId: QuizID, beh: Behavior[QuizFact.Command]) =
+    new EntityAware:
+      def fact(id: String) =
+        id shouldBe expectedId
+        TestEntityRef(QuizFact.EntityKey, id, testKit.spawn(beh))
+      def exam(id: String) = TestEntityRef(ExamEntity.EntityKey, id, testKit.spawn(Behaviors.empty))
 
   def stdexam[R](expectedId: ExamID, resp: Resp[R]) = HttpFrontend(
     read,
@@ -134,6 +154,16 @@ class HttpFrontendSpec
   def stdexam[R](expectedId: ExamID, beh: Behavior[Exam.Command])(using NowInstant) = HttpFrontend(
     read,
     exam(expectedId, beh),
+    auth
+  )
+  def stdfact[R](expectedId: QuizID, resp: Resp[R]) = HttpFrontend(
+    read,
+    fact(expectedId, resp),
+    auth
+  )
+  def stdfact[R](expectedId: QuizID, beh: Behavior[QuizFact.Command]) = HttpFrontend(
+    read,
+    fact(expectedId, beh),
     auth
   )
 
@@ -320,6 +350,52 @@ class HttpFrontendSpec
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe examNotFound.error()
           }
+      }
+    }
+
+  }
+
+  "quiz/{id}" when {
+    
+    "PATCH" should {
+      "publish responds with error" in {
+        patch("quiz/q1", off1) ~> stdfact("q1", Bad(QuizFact.isUsed.error())) ~> check {
+          status shouldBe StatusCodes.UnprocessableEntity
+          responseAs[Error] shouldBe QuizFact.isUsed.error()
+        }
+      }
+      "publish the quiz" in {
+        val beh = Behaviors.receiveMessage[QuizFact.Command] {
+          case QuizFact.Publish(replyTo) =>
+            replyTo ! Resp.OK
+            Behaviors.stopped
+          case _ =>
+            Behaviors.stopped
+        }
+        patch("quiz/q1", off1) ~> stdfact("q1", beh) ~> check {
+          status shouldBe StatusCodes.NoContent
+        }
+      }
+    }
+
+    "DELETE" should {
+      "unpublish responds with error" in {
+        delete("quiz/q1", off1) ~> stdfact("q1", Bad(QuizFact.isNotPublished.error())) ~> check {
+          status shouldBe StatusCodes.UnprocessableEntity
+          responseAs[Error] shouldBe QuizFact.isNotPublished.error()
+        }
+      }
+      "unpublish quiz" in {
+        val beh = Behaviors.receiveMessage[QuizFact.Command] {
+          case QuizFact.Unpublish(replyTo) =>
+            replyTo ! Resp.OK
+            Behaviors.stopped
+          case _ =>
+            Behaviors.stopped
+        }
+        delete("quiz/q1", off1) ~> stdfact("q1", beh) ~> check {
+          status shouldBe StatusCodes.NoContent
+        }
       }
     }
 

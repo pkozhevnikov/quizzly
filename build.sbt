@@ -44,8 +44,6 @@ val commonDependencies = Seq(
         .cross(CrossVersion.for3Use2_13),
   ("org.scalikejdbc" %% "scalikejdbc" % "3.5.0")
         .cross(CrossVersion.for3Use2_13),
-//  ("org.scalikejdbc" %% "scalikejdbc-jsr310" % "2.5.2")
-//        .cross(CrossVersion.for3Use2_13),
   "com.h2database" % "h2" % "2.1.212",
   "com.zaxxer" % "HikariCP" % "5.0.1",
   "org.flywaydb" % "flyway-core" % "9.7.0"
@@ -57,6 +55,20 @@ lazy val author = project
     name := "author",
     packMain := Map("author" -> "quizzly.author.run"),
     libraryDependencies ++= commonDependencies
+  )
+
+lazy val schoolClient = (project in file("clients/school"))
+  .enablePlugins(ScalaJSPlugin)
+  .settings(
+    scalaVersion := "3.1.2",
+    name := "school-client",
+    jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(),
+    libraryDependencies ++= Seq(
+      "org.scala-js" %%% "scalajs-dom" % "2.1.0",
+      "org.scalatest" %%% "scalatest" % "3.2.14" % Test,
+      "org.scalatest" %%% "scalatest-featurespec" % "3.2.14" % Test,
+    ),
+    scalaJSUseMainModuleInitializer := true
   )
 
 lazy val authorClient = (project in file("clients/author"))

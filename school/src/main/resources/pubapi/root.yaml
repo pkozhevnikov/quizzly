@@ -23,3 +23,5 @@ paths:
     $ref: points/v1/v1_persons.yaml
   /v1/quiz:
     $ref: points/v1/v1_quiz.yaml
+  /v1/quiz/{id}:
+    $ref: points/v1/v1_quiz_ID.yaml

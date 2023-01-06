@@ -5,3 +5,6 @@ misc
 .ctags
 *.swo
 author/quizzly_author.yaml
+node_modules
+/package-lock.json
+/package.json

@@ -202,6 +202,10 @@ class ExamManagementSpec
       details.preparationStart shouldBe ZonedDateTime.parse("2023-01-09T10:00:00Z")
       And("I am a Host of this Exam")
       details.host shouldBe off1
+      And("quiz is marked inUse")
+      eventually {
+        get("quiz", off1).to[List[QuizListed]].find(_.id == "q1").get.inUse shouldBe true
+      }
     }
 
     Scenario("Exam is not created if identifier is not unique") {
@@ -313,6 +317,46 @@ class ExamManagementSpec
       eventually {
         val ex = get("exam", off1).to[List[ExamView]].find(_.id == "e6").get
         ex.state shouldBe "Cancelled"
+      }
+    }
+  }
+
+  Feature("Quiz usage") {
+    Scenario("publishing quiz rejected") {
+      Given("a used quiz")
+      When("'publish quiz' request is done")
+      val res = patch("quiz/q1", off1)
+      Then("request is rejected")
+      res.status shouldBe StatusCodes.UnprocessableEntity
+      res.to[Error] shouldBe QuizFact.isUsed.error()
+    }
+    Scenario("publishing quiz succeeded") {
+      Given("not used quiz")
+      When("'publish quiz' request is done")
+      val res = patch("quiz/q3", off1)
+      Then("the quiz is published")
+      res.status shouldBe StatusCodes.NoContent
+      eventually {
+        val quiz = get("quiz", off1).to[List[QuizListed]].find(_.id == "q3").get
+        quiz.isPublished shouldBe true
+        quiz.everPublished shouldBe true
+      }
+    }
+    Scenario("unpublishing quiz") {
+      Given("published quiz")
+      eventually {
+        val quiz = get("quiz", off1).to[List[QuizListed]].find(_.id == "q3").get
+        quiz.isPublished shouldBe true
+        quiz.everPublished shouldBe true
+      }
+      When("'unpublish quiz' request is done")
+      val res = delete("quiz/q3", off1)
+      Then("the quiz is unpublished")
+      res.status shouldBe StatusCodes.NoContent
+      eventually {
+        val quiz = get("quiz", off1).to[List[QuizListed]].find(_.id == "q3").get
+        quiz.isPublished shouldBe false
+        quiz.everPublished shouldBe true
       }
     }
   }

@@ -1,0 +1,42 @@
+patch:
+  tags:
+  - v1
+  summary: publish for practicing
+  description: |
+    Publishes a quiz for practicing
+  operationId: publishquiz
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+
+  responses:
+    204:
+      description: quiz published
+    422:
+      description: error
+
+delete:
+  tags:
+  - v1
+  summary: unpublish from practicing
+  description: |
+    Removes a quiz from practicing
+  operationId: unpublishquiz
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+
+  responses:
+    204:
+      description: quiz unpublished
+    422:
+      description: error
+

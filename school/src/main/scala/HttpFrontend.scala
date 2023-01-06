@@ -70,7 +70,7 @@ trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
           case JsString(str) =>
             Instant.parse(str)
           case x =>
-            throw DeserializationException(s"unknown value for intant $x")
+            throw DeserializationException(s"unknown value for instant $x")
   given RootJsonFormat[ZonedDateTime] =
     new:
       def write(zdt: ZonedDateTime) = JsString(zdt.toString)
@@ -79,7 +79,7 @@ trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
           case JsString(str) =>
             ZonedDateTime.parse(str)
           case x =>
-            throw DeserializationException(s"unknown value for intant $x")
+            throw DeserializationException(s"unknown value for zoned datetime $x")
   given RootJsonFormat[Person] =
     new:
       def write(p: Person) = JsObject(
@@ -110,6 +110,7 @@ trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
 
 trait EntityAware:
   def exam(id: String): EntityRef[Exam.Command]
+  def fact(id: String): EntityRef[QuizFact.Command]
 
 trait Auth:
   def authenticate(request: HttpRequest): Future[Official]
@@ -144,8 +145,8 @@ object HttpFrontend extends JsonFormats:
 
     given akka.util.Timeout = 2.seconds
 
-    def onExam[R](id: String)(cmd: ActorRef[Resp[R]] => Exam.Command)(using ToEntityMarshaller[R]) =
-      onComplete(entities.exam(id).ask(cmd)) {
+    def call[R, Cmd](entity: EntityRef[Cmd])(cmd: ActorRef[Resp[R]] => Cmd)(using ToEntityMarshaller[R]) =
+      onComplete(entity.ask(cmd)) {
         case Success(Resp.OK) =>
           complete(StatusCodes.NoContent)
         case Success(Resp.Good(r)) =>
@@ -156,6 +157,12 @@ object HttpFrontend extends JsonFormats:
           complete(StatusCodes.InternalServerError, ex.getMessage)
       }
 
+    def onFact[R](id: QuizID)(cmd: ActorRef[Resp[R]] => QuizFact.Command)(using ToEntityMarshaller[R]) =
+        call[R, QuizFact.Command](entities.fact(id))(cmd)
+
+    def onExam[R](id: ExamID)(cmd: ActorRef[Resp[R]] => Exam.Command)(using ToEntityMarshaller[R]) =
+      call[R, Exam.Command](entities.exam(id))(cmd)
+
     // format: off
     pathPrefix("pubapi")(pubapi(host, port)) ~
     extractRequest { request =>
@@ -164,13 +171,23 @@ object HttpFrontend extends JsonFormats:
           path("persons") {
             onSuccess(authService.getPersons.map(Source(_)))(complete)
           } ~
-          path("quiz") {
-            get {
-              onComplete(read.quizList()) {
-                case Success(r) =>
-                  complete(Source(r))
-                case Failure(ex) =>
-                  complete(StatusCodes.InternalServerError, ex.getMessage)
+          pathPrefix("quiz") {
+            pathEnd {
+              get {
+                onComplete(read.quizList()) {
+                  case Success(r) =>
+                    complete(Source(r))
+                  case Failure(ex) =>
+                    complete(StatusCodes.InternalServerError, ex.getMessage)
+                }
+              }
+            }~
+            path(Segment) { quizId =>
+              patch {
+                onFact[Nothing](quizId)(QuizFact.Publish(_))
+              }~
+              delete {
+                onFact[Nothing](quizId)(QuizFact.Unpublish(_))
               }
             }
           } ~

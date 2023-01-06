@@ -64,6 +64,7 @@ object Main:
     val entityAware: EntityAware =
       new:
         def exam(id: String) = getExam(id)
+        def fact(id: String) = getFact(id)
     val host = system.settings.config.getString("frontend.http.host")
     val port = system.settings.config.getInt("frontend.http.port")
     Http()
