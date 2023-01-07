@@ -57,20 +57,6 @@ lazy val author = project
     libraryDependencies ++= commonDependencies
   )
 
-lazy val scalajsexp = (project in file("clients/scalajsexp"))
-  .enablePlugins(ScalaJSPlugin)
-  .settings(
-    scalaVersion := "3.1.2",
-    name := "scalajsexp",
-    jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(),
-    libraryDependencies ++= Seq(
-      "org.scala-js" %%% "scalajs-dom" % "2.1.0",
-      "org.scalatest" %%% "scalatest" % "3.2.14" % Test,
-      "org.scalatest" %%% "scalatest-featurespec" % "3.2.14" % Test,
-    ),
-    scalaJSUseMainModuleInitializer := true
-  )
-
 lazy val authorClient = (project in file("clients/author"))
   .settings(
     name := "author-client",
