@@ -57,11 +57,11 @@ lazy val author = project
     libraryDependencies ++= commonDependencies
   )
 
-lazy val schoolClient = (project in file("clients/school"))
+lazy val scalajsexp = (project in file("clients/scalajsexp"))
   .enablePlugins(ScalaJSPlugin)
   .settings(
     scalaVersion := "3.1.2",
-    name := "school-client",
+    name := "scalajsexp",
     jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(),
     libraryDependencies ++= Seq(
       "org.scala-js" %%% "scalajs-dom" % "2.1.0",
