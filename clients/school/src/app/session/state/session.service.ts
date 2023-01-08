@@ -1,15 +1,24 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { tap } from 'rxjs/operators';
-import { SessionStore } from './session.store';
+import { SessionStore, SessionState } from './session.store';
+import { UiStore, Notif } from '../../ui.store';
+
+interface OffList {
+  [key: string]: SessionState
+}
 
 @Injectable({ providedIn: 'root' })
 export class SessionService {
 
-  constructor(private sessionStore: SessionStore, private http: HttpClient) {
+  constructor(
+    private sessionStore: SessionStore, 
+    private http: HttpClient,
+    private uiStore: UiStore
+  ) {
   }
 
-  private const fakeOfficials = {
+  private readonly fakeOfficials: OffList = {
     off1: {id: "off1", name: "off1 name"},
     off2: {id: "off2", name: "off2 name"},
     off3: {id: "off3", name: "off3 name"},
@@ -18,11 +27,14 @@ export class SessionService {
   }
 
   login(username: string, password: string) {
-    if (fakeOfficials[username]) {
-      this.sessionStore.update(fakeOfficials[username])
+    if (this.fakeOfficials[username]) {
+      this.sessionStore.update(this.fakeOfficials[username])
+      return true
     } else {
-      //put message
+      this.uiStore.update({ notif: Notif.error("Wrong username or password") })
+      return false
     }
   }
+
 
 }
