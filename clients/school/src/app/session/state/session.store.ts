@@ -2,12 +2,14 @@ import { Injectable } from '@angular/core';
 import { Store, StoreConfig } from '@datorama/akita';
 
 export interface SessionState {
-   key: string;
+  id: string | null
+  name: string | null
 }
 
 export function createInitialState(): SessionState {
   return {
-    key: ''
+    id: null,
+    name: null
   };
 }
 
