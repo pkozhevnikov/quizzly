@@ -1,1 +1,7 @@
-<p>login works!</p>
+<h1>Login</h1>
+<div *ngIf="notif$|async as notif" class="notif" [ngClass]="notif.kind">{{ notif.text }}</div>
+<form class="loginform" (ngSubmit)="tryLogin()">
+  <input type="text" class="username" placeholder="Enter user name" name="un" [(ngModel)]="username"/>
+  <input type="password" class="password" placeholder="Enter password" name="pw" [(ngModel)]="password"/>
+  <button type="submit">Login</button>
+</form>

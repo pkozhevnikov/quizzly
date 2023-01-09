@@ -27,14 +27,19 @@ export class SessionService {
   }
 
   login(username: string, password: string) {
+    console.log(`try to login ${username} ${password}`)
     if (this.fakeOfficials[username]) {
+      console.log("set success")
       this.sessionStore.update(this.fakeOfficials[username])
       this.uiStore.info("Successfully logged in")
-      return true
     } else {
+      console.log("set wrong pw")
       this.uiStore.error("Wrong username or password")
-      return false
     }
+  }
+
+  logout() {
+    this.sessionStore.update({id: null, name: null})
   }
 
 

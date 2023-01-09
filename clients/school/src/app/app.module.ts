@@ -1,10 +1,13 @@
-import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core'
+import { BrowserModule } from '@angular/platform-browser'
+import { HttpClientModule } from "@angular/common/http"
 
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
-import { AkitaNgDevtools } from '@datorama/akita-ngdevtools';
-import { environment } from '../environments/environment';
+import { AkitaNgDevtools } from '@datorama/akita-ngdevtools'
+import { environment } from '../environments/environment'
+
+import { AppRoutingModule } from './app-routing.module'
+import { SessionModule } from "./session/session.module"
+import { AppComponent } from './app.component'
 
 @NgModule({
   declarations: [
@@ -13,6 +16,8 @@ import { environment } from '../environments/environment';
   imports: [
     BrowserModule,
     AppRoutingModule,
+    HttpClientModule,
+    SessionModule,
     environment.production ? [] : AkitaNgDevtools.forRoot()
   ],
   providers: [],

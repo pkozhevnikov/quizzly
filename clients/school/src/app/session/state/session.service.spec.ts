@@ -28,14 +28,19 @@ describe('SessionService', () => {
   })
 
   it("should not login", () => {
-    expect(sessionService.login("notexist", "")).toBeFalse()
+    sessionService.login("notexist", "")
     expect(uiStore.error).toHaveBeenCalledWith("Wrong username or password")
   })
 
   it("should login", () => {
-    expect(sessionService.login("off1", "")).toBeTrue()
+    sessionService.login("off1", "")
     expect(uiStore.info).toHaveBeenCalledWith("Successfully logged in")
     expect(sessionStore.update).toHaveBeenCalledWith({id: "off1", name: "off1 name"})
+  })
+
+  it("should logout", () => {
+    sessionService.logout()
+    expect(sessionStore.update).toHaveBeenCalledWith({id: null, name: null})
   })
 
 })

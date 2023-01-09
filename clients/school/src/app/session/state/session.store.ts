@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { Store, StoreConfig } from '@datorama/akita';
+import { Injectable } from '@angular/core'
+import { Store, StoreConfig } from '@datorama/akita'
 
 export interface SessionState {
   id: string | null
@@ -10,7 +10,7 @@ export function createInitialState(): SessionState {
   return {
     id: null,
     name: null
-  };
+  }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -18,7 +18,7 @@ export function createInitialState(): SessionState {
 export class SessionStore extends Store<SessionState> {
 
   constructor() {
-    super(createInitialState());
+    super(createInitialState())
   }
 
 }
