@@ -5,7 +5,7 @@ import { SessionStore, SessionState } from './session.store';
 @Injectable({ providedIn: 'root' })
 export class SessionQuery extends Query<SessionState> {
 
-  constructor(protected store: SessionStore) {
+  constructor(protected override store: SessionStore) {
     super(store);
   }
 

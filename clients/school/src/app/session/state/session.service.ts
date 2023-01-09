@@ -1,8 +1,8 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { tap } from 'rxjs/operators';
-import { SessionStore, SessionState } from './session.store';
-import { UiStore, Notif } from '../../ui.store';
+import { HttpClient } from '@angular/common/http'
+import { Injectable } from '@angular/core'
+import { tap } from 'rxjs/operators'
+import { SessionStore, SessionState } from './session.store'
+import { UiStore, Notif } from '../../ui.store'
 
 interface OffList {
   [key: string]: SessionState
@@ -29,9 +29,10 @@ export class SessionService {
   login(username: string, password: string) {
     if (this.fakeOfficials[username]) {
       this.sessionStore.update(this.fakeOfficials[username])
+      this.uiStore.info("Successfully logged in")
       return true
     } else {
-      this.uiStore.update({ notif: Notif.error("Wrong username or password") })
+      this.uiStore.error("Wrong username or password")
       return false
     }
   }
