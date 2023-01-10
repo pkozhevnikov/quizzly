@@ -19,6 +19,7 @@ describe('LoginComponent', () => {
   let router: Router
   let node: HTMLElement
 
+  let uname: HTMLInputElement
   let pword: HTMLInputElement
   let buttn: HTMLButtonElement
 
@@ -28,13 +29,14 @@ describe('LoginComponent', () => {
         SessionService, UiQuery, SessionStore, UiStore, SessionQuery,
         {provide: ComponentFixtureAutoDetect, useValue: true}
       ],
-      imports: [ HttpClientTestingModule, RouterTestingModule, FormsModule ],
+      imports: [ HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule ],
       declarations: [ LoginComponent ]
     })
     .compileComponents().then(v => {
       fixture = TestBed.createComponent(LoginComponent)
       component = fixture.componentInstance
       node = fixture.nativeElement
+      uname = node.querySelector("input.username")!
       pword = node.querySelector("input.password")!
       buttn = node.querySelector("button[type=submit]")!
       router = TestBed.inject(Router)
@@ -47,18 +49,12 @@ describe('LoginComponent', () => {
   })
 
   it("should show message on bad creds", () => {
-    const name: HTMLInputElement = node.querySelector("input.username")!
-    name.value = "notexists"
-    name.dispatchEvent(new Event("input"))
+    uname.value = "notexists"
     pword.value = "badpwd"
+    uname.dispatchEvent(new Event("input"))
     pword.dispatchEvent(new Event("input"))
-    fixture.detectChanges()
-    console.log(name)
-    console.log(`uname ${component.username}`)
     buttn.click()
 
-
-    fixture.detectChanges()
     const notif = node.querySelector(".notif")!
     expect(notif.textContent).toBe("Wrong username or password")
     expect(notif.classList).toContain("error")
@@ -66,13 +62,12 @@ describe('LoginComponent', () => {
   })
 
   it("should react on login", () => {
-    const uname: HTMLInputElement = node.querySelector("input.username")!
     uname.value = "off1"
-    uname.dispatchEvent(new Event("input"))
     pword.value = "goodpwd"
+    uname.dispatchEvent(new Event("input"))
     pword.dispatchEvent(new Event("input"))
-    fixture.detectChanges()
     buttn.click()
+
     expect(router.navigate).toHaveBeenCalledWith(["/quizzes"])
     const notif = node.querySelector(".notif")!
     expect(notif.textContent).toBe("Successfully logged in")

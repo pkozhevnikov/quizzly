@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core'
 import { Router } from "@angular/router"
+import { FormControl } from "@angular/forms"
 
 import { filter } from "rxjs"
 
@@ -28,11 +29,11 @@ export class LoginComponent implements OnInit {
       .subscribe(change => this.router.navigate(["/quizzes"]))
   }
 
-  username = 'x'
-  password = 'y'
+  uname = new FormControl("")
+  pword = new FormControl("")
 
   tryLogin() {
-    this.sessionService.login(this.username, this.password)
+    this.sessionService.login(this.uname.value!, this.pword.value!)
   }
 
 }
