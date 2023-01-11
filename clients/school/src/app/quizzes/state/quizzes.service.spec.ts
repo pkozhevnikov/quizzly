@@ -109,7 +109,7 @@ describe('QuizzesService', () => {
 
 })
 
-const idle = {
+export const idle = {
   id: "idle",
   title: "idle title",
   obsolete: false,
@@ -118,7 +118,7 @@ const idle = {
   everPublished: false
 }
 
-const idleobsolete = {
+export const idleobsolete = {
   id: "idleobsolete",
   title: "idle obsolete title",
   obsolete: true,
@@ -127,7 +127,7 @@ const idleobsolete = {
   everPublished: false
 }
 
-const used = {
+export const used = {
   id: "used",
   title: "used title",
   obsolete: false,
@@ -136,7 +136,7 @@ const used = {
   everPublished: false
 }
 
-const nowpublished = {
+export const nowpublished = {
   id: "nowpublished",
   title: "now published title",
   obsolete: false,
@@ -145,7 +145,7 @@ const nowpublished = {
   everPublished: true
 }
 
-const everpublished = {
+export const everpublished = {
   id: "everpublished",
   title: "ever published title",
   obsolete: false,
@@ -154,5 +154,5 @@ const everpublished = {
   everPublished: true
 }
 
-const testlist = [ idle, idleobsolete, used, nowpublished, everpublished ]
+export const testlist = [ idle, idleobsolete, used, nowpublished, everpublished ]
 

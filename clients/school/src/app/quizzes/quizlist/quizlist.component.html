@@ -1,1 +1,31 @@
-<p>quizlist works!</p>
+<h1>Quiz list</h1>
+<table class="quiz-list">
+<tr>
+  <th>ID</th>
+  <th>Title</th>
+  <th>Obsolete</th>
+  <th>Used</th>
+  <th>Is published</th>
+  <th>Was published</th>
+  <th></th>
+</tr>
+<tr class="quiz" *ngFor="let quiz of list$|async">
+  <td>{{ quiz.id }}</td>
+  <td>{{ quiz.title }}</td>
+  <td><span *ngIf="quiz.obsolete">Yes</span></td>
+  <td><span *ngIf="quiz.inUse">Yes</span></td>
+  <td><span *ngIf="quiz.isPublished">Yes</span></td>
+  <td><span *ngIf="quiz.everPublished">Yes</span></td>
+  <td>
+    <a class="toexam" *ngIf="!quiz.obsolete && !quiz.everPublished" [href]="'newexam?quiz=' + quiz.id">
+    Schedule exam
+    </a>
+    <a class="publish" *ngIf="!quiz.isPublished && !quiz.inUse" (click)="publish(quiz.id)">
+    Publish
+    </a>
+    <a class="unpublish" *ngIf="quiz.isPublished" (click)="unpublish(quiz.id)">
+    Unpublish
+    </a>
+  </td>
+</tr>
+</table>
