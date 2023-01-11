@@ -18,6 +18,12 @@ export class HttpBasedService {
   protected sessionQuery: SessionQuery
   protected uiStore: UiStore
 
+  protected readonly GET = "GET"
+  protected readonly POST = "POST"
+  protected readonly PUT = "PUT"
+  protected readonly PATCH = "PATCH"
+  protected readonly DELETE = "DELETE"
+
   constructor(
     baseApiUrl: string,
     http: HttpClient,
