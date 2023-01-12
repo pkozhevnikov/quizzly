@@ -10,7 +10,7 @@ import { idle, idleobsolete, used, nowpublished, everpublished,
             testlist } from "../state/quizzes.service.spec"
 import { Observable, of, from } from "rxjs"
 
-fdescribe('QuizlistComponent', () => {
+describe('QuizlistComponent', () => {
   let component: QuizlistComponent
   let fixture: ComponentFixture<QuizlistComponent>
   let node: HTMLElement

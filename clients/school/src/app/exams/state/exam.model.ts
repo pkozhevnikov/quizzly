@@ -11,9 +11,23 @@ export interface Exam {
   prestartAt: Date
 }
 
+export interface CreateExam {
+  id: string
+  quizId: string
+  start: Date
+  end: Date
+  trialLength: number
+  testees: string[]
+}
+
 export interface QuizRef {
   id: string
   title: string
+}
+
+export interface ExamPeriod {
+  start: Date
+  end: Date
 }
 
 export function createExam(params: Partial<Exam>) {
