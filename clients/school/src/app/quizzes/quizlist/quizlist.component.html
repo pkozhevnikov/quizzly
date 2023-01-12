@@ -17,7 +17,8 @@
   <td [ngClass]="{'checked':quiz.isPublished,'notchecked':!quiz.isPublished}"></td>
   <td [ngClass]="{'checked':quiz.everPublished,'notchecked':!quiz.everPublished}"></td>
   <td>
-    <a class="toexam" *ngIf="!quiz.obsolete && !quiz.everPublished" [href]="'newexam?quiz=' + quiz.id">
+    <a class="toexam" *ngIf="!quiz.obsolete && !quiz.everPublished" 
+        routerLink="/newexam/{{quiz.id}}">
     Schedule exam
     </a>
     <a class="publish" *ngIf="!quiz.isPublished && !quiz.inUse" (click)="publish(quiz.id)">

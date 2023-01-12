@@ -1,5 +1,6 @@
 import { flushMicrotasks, tick, fakeAsync, ComponentFixture, 
             TestBed, ComponentFixtureAutoDetect } from '@angular/core/testing'
+import { RouterTestingModule } from "@angular/router/testing"
 
 import { QuizlistComponent } from './quizlist.component'
 import { QuizzesQuery } from "../state/quizzes.query"
@@ -9,7 +10,7 @@ import { idle, idleobsolete, used, nowpublished, everpublished,
             testlist } from "../state/quizzes.service.spec"
 import { Observable, of, from } from "rxjs"
 
-describe('QuizlistComponent', () => {
+fdescribe('QuizlistComponent', () => {
   let component: QuizlistComponent
   let fixture: ComponentFixture<QuizlistComponent>
   let node: HTMLElement
@@ -28,7 +29,8 @@ describe('QuizlistComponent', () => {
           ["get", "publish", "unpublish"])},
         {provide: ComponentFixtureAutoDetect, useValue: true}
       ],
-      declarations: [ QuizlistComponent ]
+      declarations: [ QuizlistComponent ],
+      imports: [ RouterTestingModule ]
     }).compileComponents()
     
     quizzesService = TestBed.inject(QuizzesService) as jasmine.SpyObj<QuizzesService>
@@ -54,7 +56,7 @@ describe('QuizlistComponent', () => {
     (links: Alist) => {
       expect(links.length).toEqual(2)
       expect(links[0]).toHaveClass("toexam")
-      expect(links[0].getAttribute("href")).toEqual("newexam?quiz=idle")
+      expect(links[0].getAttribute("href")).toEqual("/newexam/idle")
       expect(links[1]).toHaveClass("publish")
     }],
     ["idle obsolete row", "idleobsolete", "idle obsolete title", "checked", "notchecked", "notchecked",
@@ -66,7 +68,7 @@ describe('QuizlistComponent', () => {
     (links: Alist) => {
       expect(links.length).toEqual(1)
       expect(links[0]).toHaveClass("toexam")
-      expect(links[0].getAttribute("href")).toEqual("newexam?quiz=used")
+      expect(links[0].getAttribute("href")).toEqual("/newexam/used")
     }],
     ["now published row", "nowpublished", "now published title", "notchecked", "notchecked",
       "checked", "checked", (links: Alist) => {
