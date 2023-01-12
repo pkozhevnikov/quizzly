@@ -12,10 +12,10 @@
 <tr class="quiz" *ngFor="let quiz of list$|async">
   <td>{{ quiz.id }}</td>
   <td>{{ quiz.title }}</td>
-  <td><span *ngIf="quiz.obsolete">Yes</span></td>
-  <td><span *ngIf="quiz.inUse">Yes</span></td>
-  <td><span *ngIf="quiz.isPublished">Yes</span></td>
-  <td><span *ngIf="quiz.everPublished">Yes</span></td>
+  <td [ngClass]="{'checked':quiz.obsolete,'notchecked':!quiz.obsolete}"></td>
+  <td [ngClass]="{'checked':quiz.inUse,'notchecked':!quiz.inUse}"></td>
+  <td [ngClass]="{'checked':quiz.isPublished,'notchecked':!quiz.isPublished}"></td>
+  <td [ngClass]="{'checked':quiz.everPublished,'notchecked':!quiz.everPublished}"></td>
   <td>
     <a class="toexam" *ngIf="!quiz.obsolete && !quiz.everPublished" [href]="'newexam?quiz=' + quiz.id">
     Schedule exam

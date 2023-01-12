@@ -41,20 +41,58 @@ describe('QuizlistComponent', () => {
     fixture.detectChanges()
   })
 
-  it("should show quiz list", () => { 
+  it ("should show correct number of quizzes", () => {
     expect(quizzesService.get).toHaveBeenCalled()
     expect(quizzesQuery.selectAll).toHaveBeenCalled()
-    const rows = node.querySelectorAll("table.quiz-list tr.quiz")
-    expect(rows.length).toEqual(5)
-    const idleRow = rows[0]
-    const idleCols = idleRow.querySelectorAll("td")
-    expect(idleCols[0].textContent).toEqual("idle")
-    expect(idleCols[1].textContent).toEqual("idle title")
-    expect(idleCols[2].textContent).toEqual("")
-    expect(idleCols[3].textContent).toEqual("")
-    expect(idleCols[4].textContent).toEqual("")
-    expect(idleCols[5].textContent).toEqual("")
-    
+    expect(node.querySelectorAll("table.quiz-list tr.quiz").length).toEqual(5)
   })
 
+  type Alist = NodeListOf<HTMLAnchorElement>
+  type CheckLinks = (ls: Alist) => void
+  const listParams = [
+    ["idle row", "idle", "idle title", "notchecked", "notchecked", "notchecked", "notchecked", 
+    (links: Alist) => {
+      expect(links.length).toEqual(2)
+      expect(links[0]).toHaveClass("toexam")
+      expect(links[0].getAttribute("href")).toEqual("newexam?quiz=idle")
+      expect(links[1]).toHaveClass("publish")
+    }],
+    ["idle obsolete row", "idleobsolete", "idle obsolete title", "checked", "notchecked", "notchecked",
+      "notchecked", (links: Alist) => {
+      expect(links.length).toEqual(1)
+      expect(links[0]).toHaveClass("publish")
+    }],
+    ["used row", "used", "used title", "notchecked", "checked", "notchecked", "notchecked",
+    (links: Alist) => {
+      expect(links.length).toEqual(1)
+      expect(links[0]).toHaveClass("toexam")
+      expect(links[0].getAttribute("href")).toEqual("newexam?quiz=used")
+    }],
+    ["now published row", "nowpublished", "now published title", "notchecked", "notchecked",
+      "checked", "checked", (links: Alist) => {
+      expect(links.length).toEqual(1)
+      expect(links[0]).toHaveClass("unpublish")
+    }],
+    ["ever published row", "everpublished", "ever published title", "notchecked", "notchecked",
+      "notchecked", "checked", (links: Alist) => {
+      expect(links.length).toEqual(1)
+      expect(links[0]).toHaveClass("publish")
+    }]
+  ]
+
+  for (let i = 0; i < listParams.length; i++) {
+    const params = listParams[i]
+    it (`should show row correctly: ${params[0]}`, () => {
+      const tds = node.querySelectorAll("table.quiz-list tr.quiz")[i].querySelectorAll("td")
+      expect(tds[0].textContent).toEqual(params[1] as string)
+      expect(tds[1].textContent).toEqual(params[2] as string)
+      expect(tds[2]).toHaveClass(params[3] as string)
+      expect(tds[3]).toHaveClass(params[4] as string)
+      expect(tds[4]).toHaveClass(params[5] as string)
+      expect(tds[5]).toHaveClass(params[6] as string)
+      const cl = params[7] as CheckLinks
+      cl(tds[6].querySelectorAll("a"))
+    })
+  }
+  
 })
