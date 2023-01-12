@@ -1,9 +1,23 @@
+import { Person } from "../../persons.state"
+
 export interface Exam {
-  id: number | string;
+  id: string
+  quiz: QuizRef
+  period: ExamPeriod
+  host: Person
+  state: string
+  cacelledAt?: Date
+  trialLength: number
+  prestartAt: Date
+}
+
+export interface QuizRef {
+  id: string
+  title: string
 }
 
 export function createExam(params: Partial<Exam>) {
   return {
-
-  } as Exam;
+    ...params
+  } as Exam
 }
