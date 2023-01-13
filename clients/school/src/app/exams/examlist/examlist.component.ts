@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core'
+
+import { ExamsService } from "../state/exams.service"
+import { ExamsQuery } from "../state/exams.query"
 
 @Component({
   selector: 'app-examlist',
@@ -7,9 +10,19 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ExamlistComponent implements OnInit {
 
-  constructor() { }
+  list$ = this.examsQuery.selectAll()
+
+  constructor(
+    private examsService: ExamsService,
+    private examsQuery: ExamsQuery
+  ) { }
 
   ngOnInit(): void {
+    this.examsService.get()
+  }
+
+  cancel(id: string) {
+    this.examsService.cancel(id)
   }
 
 }

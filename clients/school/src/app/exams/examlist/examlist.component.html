@@ -1,1 +1,29 @@
-<p>examlist works!</p>
+<h1>Exam list</h1>
+<table class="exam-list">
+  <tr>
+    <th>ID</th>
+    <th>Quiz ID</th>
+    <th>Quiz title</th>
+    <th>Host</th>
+    <th>State</th>
+    <th>Begin at</th>
+    <th>End at</th>
+    <th>Lengh, minutes</th>
+    <th></th>
+  <tr>
+  <tr class="exam" *ngFor="let exam of list$|async">
+    <td class="exam-id">{{ exam.id }}</td>
+    <td class="exam-quiz-id">{{ exam.quiz.id }}</td>
+    <td class="exam-quiz-title">{{ exam.quiz.title }}</td>
+    <td class="exam-host">{{ exam.host.name }}</td>
+    <td class="exam-state">{{ exam.state }}</td>
+    <td class="exam-start">{{ exam.period.start | date:'MMMM d, y, HH:mm' }}</td>
+    <td class="exam-end">{{ exam.period.end | date:'MMMM d, y, HH:mm' }}</td>
+    <td class="exam-length">{{ exam.trialLength }}</td>
+    <td class="exam-actions">
+      <a class="exam-edit" *ngIf="exam.state=='Pending'" routerLink="/exam/{{exam.id}}">Modify</a>
+      <a class="exam-cancel" *ngIf="exam.state=='Pending'||exam.state=='Upcoming'"
+                (click)="cancel(exam.id)">Cancel</a>
+    </td>
+  </tr>
+</table>
