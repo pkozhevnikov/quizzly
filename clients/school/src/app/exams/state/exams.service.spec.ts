@@ -40,6 +40,7 @@ describe('ExamsService', () => {
     spyOn(uiStore, "info")
     spyOn(examsStore, "set")
     spyOn(examsStore, "update")
+    spyOn(examsStore, "add")
   })
 
   afterEach (() => {
@@ -119,6 +120,20 @@ describe('ExamsService', () => {
     expect(req.request.body).toEqual(["stud2", "stud3"])
     req.flush([{id: "stud2", name: "stud2 name", place: "Student"}])
     expect(uiStore.info).toHaveBeenCalledWith("Testees excluded: stud2 name")
+  })
+
+  it ("should retrieve exam testees", done => {
+    const persons = [
+      {id: "off1", name: "off1 name", place: "Official"},
+      {id: "stud1", name: "stud1 name", place: "Student"}
+    ]
+    examsService.getTestees("pending").subscribe(l => {
+      expect(l).toEqual(persons)
+      done()
+    })
+    const req = controller.expectOne("apiroot/exam/pending")
+    expect(req.request.method).toEqual("GET")
+    req.flush(persons)
   })
 
 })

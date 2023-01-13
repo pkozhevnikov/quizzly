@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
 import { ID } from '@datorama/akita'
 import { tap } from 'rxjs/operators'
+import { Subject } from "rxjs"
 import { Exam, CreateExam } from './exam.model'
 import { ExamsStore } from './exams.store'
 import { HttpBasedService } from "../../util/httpbased.service"
@@ -10,6 +11,7 @@ import { SessionQuery } from "../../session/state/session.query"
 import { UiStore } from "../../ui.store"
 import { QuizzesQuery } from "../../quizzes/state/quizzes.query"
 import { QuizzesStore } from "../../quizzes/state/quizzes.store"
+import { Person } from "../../persons.state"
 
 @Injectable({ providedIn: 'root' })
 export class ExamsService extends HttpBasedService {
@@ -44,9 +46,9 @@ export class ExamsService extends HttpBasedService {
           host: d.host,
           state: "Pending",
           trialLength: createReq.trialLength,
-          prestartAt: d.prepartationStart
+          prestartAt: d.preparationStart
         })
-        this.quizzesStore.update({id: createReq.id, inUse: true})
+        this.quizzesStore.update({id: createReq.quizId, inUse: true})
       }}, createReq)
   }
 
@@ -61,11 +63,46 @@ export class ExamsService extends HttpBasedService {
     this.request(
       this.POST, 
       `exam/${id}`, 
-      {204: _ => this.uiStore.info("Trial length changed")},
+      {204: _ => {
+        this.uiStore.info("Trial length changed")
+        this.examsStore.update({id, trialLength: length})
+      }},
       {length}
     )
   }
 
-  includeTestees(
+  includeTestees(id: string, testeeIds: string[]) {
+    this.request(
+      this.PUT,
+      `exam/${id}`,
+      {200: (ps: Person[]) => this.uiStore
+        .info(`Testees included: ${ps.map(p => p.name).join(", ")}`)},
+      testeeIds
+    )
+  }
+
+  excludeTestees(id: string, testeeIds: string[]) {
+    this.request(
+      this.PATCH,
+      `exam/${id}`,
+      {200: (ps: Person[]) => this.uiStore
+        .info(`Testees excluded: ${ps.map(p => p.name).join(", ")}`)},
+      testeeIds
+    )
+  }
+
+  getTestees(id: string) {
+    const res$ = new Subject<Person[]>()
+    this.request(
+      this.GET,
+      `exam/${id}`,
+      {200: ps => {
+        res$.next(ps)
+        res$.complete()
+      }}
+    )
+    return res$
+  }
+      
 
 }
