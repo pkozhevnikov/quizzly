@@ -1,12 +1,31 @@
-import { tick, fakeAsync, ComponentFixture, TestBed, ComponentFixtureAutoDetect } from '@angular/core/testing'
+import { ComponentFixture, TestBed, ComponentFixtureAutoDetect } from '@angular/core/testing'
 import { RouterTestingModule } from "@angular/router/testing"
 import { formatDate, DATE_PIPE_DEFAULT_TIMEZONE } from "@angular/common" 
 import { ExamsQuery } from "../../exams/state/exams.query" 
 import { ExamsService } from "../../exams/state/exams.service" 
 import { ExamlistComponent } from './examlist.component' 
-import { testexams, examPending, examUpcoming, 
-      examInProgress, examEnded, examCancelled } from "../state/exams.service.spec" 
+import { testexams } from "../state/exams.service.spec" 
 import { of } from "rxjs" 
+
+const matchers: jasmine.CustomMatcherFactories = {
+  toHaveText: (util: jasmine.MatchersUtil) => {
+    return {
+      compare: function(actual: Element | null, expected: any) {
+        const result = {pass: false, message: ""}
+        if (actual instanceof HTMLElement) {
+          result.pass = util.equals(actual.textContent, expected)
+          result.message = result.pass ?
+            `Expected element to contain text '${expected}'` :
+            `Expected element to contain text '${expected}' but it was '${actual.textContent}'`
+        } else {
+          result.pass = false
+          result.message = "Tested object should be a Element"
+        }
+        return result
+      }
+    }
+  }
+}
 
 describe('ExamlistComponent', () => { 
   let component: ExamlistComponent 
@@ -16,6 +35,9 @@ describe('ExamlistComponent', () => {
   let node: HTMLElement
 
   beforeEach(async () => {
+
+    jasmine.addMatchers(matchers)
+
     await TestBed.configureTestingModule({
       providers: [
         {provide: ExamsService, useValue: jasmine.createSpyObj("ExamsService", ["get", "cancel"])},
@@ -35,10 +57,7 @@ describe('ExamlistComponent', () => {
     fixture = TestBed.createComponent(ExamlistComponent)
     component = fixture.componentInstance
     node = fixture.nativeElement
-  })
 
-  it('should create', () => {
-    expect(component).toBeTruthy()
   })
 
   it ("should load and show list", () => {
@@ -51,18 +70,18 @@ describe('ExamlistComponent', () => {
     const exam = testexams[i]
     it (`should show row correctly: ${exam.id}`, () => {
       const row = node.querySelectorAll("table.exam-list tr.exam")[i]!
-      expect(row.querySelector("td.exam-id")!.textContent).toEqual(exam.id)
-      expect(row.querySelector("td.exam-quiz-id")!.textContent).toEqual(exam.quiz.id)
-      expect(row.querySelector("td.exam-quiz-title")!.textContent).toEqual(exam.quiz.title)
-      expect(row.querySelector("td.exam-host")!.textContent).toEqual(exam.host.name)
-      expect(row.querySelector("td.exam-state")!.textContent).toEqual(exam.state)
+      expect(row.querySelector("td.exam-id")).toHaveText(exam.id)
+      expect(row.querySelector("td.exam-quiz-id")).toHaveText(exam.quiz.id)
+      expect(row.querySelector("td.exam-quiz-title")).toHaveText(exam.quiz.title)
+      expect(row.querySelector("td.exam-host")).toHaveText(exam.host.name)
+      expect(row.querySelector("td.exam-state")).toHaveText(exam.state)
       const start = formatDate(exam.period.start, "MMMM d, y, HH:mm", "en-US", "UTC")
       const end = formatDate(exam.period.end, "MMMM d, y, HH:mm", "en-US", "UTC")
-      expect(row.querySelector("td.exam-start")!.textContent).toEqual(start)
-      expect(row.querySelector("td.exam-end")!.textContent).toEqual(end)
-      expect(row.querySelector("td.exam-length")!.textContent).toEqual(exam.trialLength + "")
+      expect(row.querySelector("td.exam-start")).toHaveText(start)
+      expect(row.querySelector("td.exam-end")).toHaveText(end)
+      expect(row.querySelector("td.exam-length")).toHaveText(exam.trialLength + "")
       if (exam.state == "Pending" || exam.state == "Upcoming") {
-        const cancel = row.querySelector("a.exam-cancel")! as HTMLAnchorElement
+        const cancel: HTMLAnchorElement = row.querySelector("a.exam-cancel")! 
         cancel.click()
         expect(examsService.cancel).toHaveBeenCalledWith(exam.id)
       }
