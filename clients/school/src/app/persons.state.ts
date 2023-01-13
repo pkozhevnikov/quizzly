@@ -32,6 +32,10 @@ export class PersonsState extends HttpBasedService {
     super(config.baseApiUrl, http, sessionQuery, uiStore)
   }
 
+  selectAll() {
+    return this.query.selectAll()
+  }
+
   get() {
     this.request(this.GET, "persons", {200: l => this.store.set(l)})
   }
