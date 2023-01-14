@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
 import { ID } from '@datorama/akita'
 import { tap } from 'rxjs/operators'
-import { Subject } from "rxjs"
+import { Observable, Subject } from "rxjs"
 import { Exam, CreateExam } from './exam.model'
 import { ExamsStore } from './exams.store'
 import { HttpBasedService } from "../../util/httpbased.service"
@@ -91,7 +91,7 @@ export class ExamsService extends HttpBasedService {
     )
   }
 
-  getTestees(id: string) {
+  getTestees(id: string): Observable<Person[]> {
     const res$ = new Subject<Person[]>()
     this.request(
       this.GET,
