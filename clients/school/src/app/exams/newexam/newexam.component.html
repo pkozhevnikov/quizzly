@@ -1,1 +1,29 @@
-<p>newexam works!</p>
+<h1>New exam</h1>
+<h2 class="quiz-id">{{ quiz?.id }}</h2>
+<h3 class="quiz-title">{{ quiz?.title }}</h3>
+
+<label>ID:</label><input type="text" class="exam-id" [formControl]="examId"/>
+<label>Trial length:</label><input type="text" class="trial-length" [formControl]="trialLength"/>
+
+<label>Period:</label>
+<input type="text" ngxDaterangepickerMd 
+  [locale]="{separator:' to ',format:'YYYY-MM-DD HH:mm'}"
+  startKey="start"
+  endKey="end"
+  [(ngModel)]="period" class="form-control period"/>
+
+<input placeholder="Filter person" class="persons-filter" type="text" 
+    [formControl]="personFilter"/>
+<select class="persons-src" multiple [(ngModel)]="personsToSelect">
+  <option class="person" *ngFor="let pers of persons$|async" [ngValue]="pers">{{ pers.name }}</option>
+</select>
+
+<button class="persons-select" (click)="addTestees()">Select</button>
+
+<ul>
+  <li class="person-selected" *ngFor="let pers of selectedPersons">
+    {{ pers.name }} <a class="person-selected-remove" (click)="removeTestee(pers.id)">remove</a>
+  </li>
+</ul>
+
+<button class="create" (click)="createExam()">Create</button>

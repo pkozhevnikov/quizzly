@@ -5,6 +5,7 @@ import { UiStore } from "./ui.store"
 import { GlobalConfig } from "./global.config"
 import { HttpClient } from "@angular/common/http"
 import { SessionQuery } from "./session/state/session.query"
+import { empty, Observable } from "rxjs"
 
 export interface Person extends EntityState<Person, string> {
   id: string
@@ -32,8 +33,11 @@ export class PersonsState extends HttpBasedService {
     super(config.baseApiUrl, http, sessionQuery, uiStore)
   }
 
-  selectAll() {
-    return this.query.selectAll()
+  selectAll(namePart: string): Observable<Person[]> {
+    return this.query.selectAll({
+      filterBy: p => p.name.startsWith(namePart),
+      sortBy: "name"
+    })
   }
 
   get() {

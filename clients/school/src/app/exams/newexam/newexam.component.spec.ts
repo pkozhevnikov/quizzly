@@ -1,10 +1,14 @@
 import { ComponentFixture, TestBed, ComponentFixtureAutoDetect } from '@angular/core/testing'
+import { ActivatedRoute } from "@angular/router"
+import { NgxDaterangepickerMd } from "ngx-daterangepicker-material"
 import { PersonsState } from "../../persons.state"
 import { QuizzesQuery } from "../../quizzes/state/quizzes.query"
 import { ExamsService } from "../state/exams.service"
+import { FormsModule, ReactiveFormsModule } from "@angular/forms"
 
 import { of } from "rxjs"
 import { matchers } from "../../util/matchers"
+import * as dayjs from "dayjs"
 
 import { NewexamComponent } from './newexam.component'
 
@@ -18,6 +22,7 @@ describe('NewexamComponent', () => {
   let node: HTMLElement
 
   beforeEach(async () => {
+    jasmine.addMatchers(matchers)
     await TestBed.configureTestingModule({
       declarations: [ NewexamComponent ],
       providers: [
@@ -25,14 +30,19 @@ describe('NewexamComponent', () => {
         {provide: QuizzesQuery, useValue: jasmine.createSpyObj("QuizzesQuery", ["getEntity"])},
         {provide: PersonsState, useValue: jasmine.createSpyObj("PersonsState", ["selectAll"])},
         {provide: ExamsService, useValue: jasmine.createSpyObj("ExamsService", ["create"])},
+        {provide: ActivatedRoute, useValue: { params: of({quizId: "q1"}) } },
       ],
+      imports: [
+        FormsModule, ReactiveFormsModule, 
+        NgxDaterangepickerMd.forRoot()
+      ]
     })
     .compileComponents()
 
     quizzesQuery = TestBed.inject(QuizzesQuery) as jasmine.SpyObj<QuizzesQuery>
     personsState = TestBed.inject(PersonsState) as jasmine.SpyObj<PersonsState>
     examsService = TestBed.inject(ExamsService) as jasmine.SpyObj<ExamsService>
-    personsState.selectAll.and.returnValue(of(testpersons))
+    personsState.selectAll.withArgs("").and.returnValue(of(testpersons))
     quizzesQuery.getEntity.withArgs("q1").and.returnValue({
       id: "q1", title: "q1 title", obsolete: false, inUse: false, isPublished: false, everPublished: false
     })
@@ -40,19 +50,16 @@ describe('NewexamComponent', () => {
     fixture = TestBed.createComponent(NewexamComponent)
     component = fixture.componentInstance
     node = fixture.nativeElement
+
   })
 
-  it('should create', () => {
-    expect(component).toBeTruthy()
-  })
-
-  xit ("requests quiz locally", () => {
+  it ("requests quiz locally", () => {
     expect(quizzesQuery.getEntity).toHaveBeenCalledWith("q1")
     expect(node.querySelector(".quiz-id")).toHaveText("q1")
     expect(node.querySelector(".quiz-title")).toHaveText("q1 title")
   })
 
-  xit ("loads person list", () => {
+  it ("loads person list", () => {
     expect(personsState.selectAll).toHaveBeenCalled()
     const personsSrc = node.querySelector(".persons-src")!
     expect(personsSrc.querySelectorAll(".person")).toHaveSize(testpersons.length)
@@ -61,20 +68,21 @@ describe('NewexamComponent', () => {
     }
   })
 
-  xit ("filters person list", () => {
+  it ("filters person list", () => {
     const filterBox: HTMLInputElement = node.querySelector(".persons-filter")!
     const personsSrc = node.querySelector(".persons-src")!
     expect(personsSrc.querySelectorAll(".person")).toHaveSize(testpersons.length)
     const filtered = testpersons.filter(p => p.id.startsWith("off"))
+    personsState.selectAll.withArgs("off").and.returnValue(of(testpersons.slice(0, 3)))
     filterBox.value = "off"
     filterBox.dispatchEvent(new Event("input"))
-    expect(personsSrc.querySelectorAll(".person")).toHaveSize(3)
+    expect(personsSrc.querySelectorAll(".person")!.length).toEqual(3)
     for (let i = 0; i < 3; i++) {
       expect(personsSrc.querySelectorAll(".person")[i]).toHaveText(filtered[i].name)
     }
   })
 
-  xit ("moves selected persons to selection and removes from selection", () => {
+  it ("moves selected persons to selection and removes from selection", () => {
     const personsSrc: HTMLSelectElement = node.querySelector(".persons-src")!
     personsSrc.options[1].selected = true
     personsSrc.options[3].selected = true
@@ -82,7 +90,7 @@ describe('NewexamComponent', () => {
     personsSrc.dispatchEvent(new Event("change"))
     const selectButton: HTMLButtonElement = node.querySelector(".persons-select")!
     selectButton.click()
-    expect(node.querySelector(".person-selected")).toHaveSize(3)
+    expect(node.querySelectorAll(".person-selected").length).toEqual(3)
     expect(component.selectedPersons).toEqual([testpersons[1], testpersons[3], testpersons[5]])
     const removeLink = node.querySelectorAll(".person-selected-remove")[1]! as HTMLAnchorElement
     removeLink.click()
@@ -90,7 +98,10 @@ describe('NewexamComponent', () => {
 
   })
 
-  xit ("fills form and sends data to service", () => {
+  it ("fills form and sends data to service", () => {
+    const idBox: HTMLInputElement = node.querySelector(".exam-id")!
+    idBox.value = "e-q1"
+    idBox.dispatchEvent(new Event("input"))
     const lengthBox: HTMLInputElement = node.querySelector(".trial-length")!
     lengthBox.value = "35"
     lengthBox.dispatchEvent(new Event("input"))
@@ -98,10 +109,15 @@ describe('NewexamComponent', () => {
     personsSrc.options[2].selected = true
     personsSrc.options[4].selected = true
     personsSrc.dispatchEvent(new Event("change"))
+    const selectButton: HTMLButtonElement = node.querySelector(".persons-select")!
+    selectButton.click()
+    /** TODO find a way to select dates thru UI
     const periodBox: HTMLInputElement = node.querySelector(".period")!
-    periodBox.value = "2023-01-20 10:15 ~ 2023-01-23 11:30"
+    periodBox.value = "2023-01-20 10:15 to 2023-01-23 11:30"
     periodBox.dispatchEvent(new Event("input"))
+    */
     const createButton: HTMLButtonElement = node.querySelector(".create")!
+    component.period = {start: dayjs("2023-01-20T10:15:00Z"), end: dayjs("2023-01-23T11:30:00Z")}
     createButton.click()
     expect(examsService.create).toHaveBeenCalledWith({id: "e-q1", quizId: "q1",
       start: new Date("2023-01-20T10:15:00Z"), end: new Date("2023-01-23T11:30:00Z"),
