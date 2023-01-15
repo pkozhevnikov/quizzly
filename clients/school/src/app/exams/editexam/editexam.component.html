@@ -1,1 +1,31 @@
-<p>editexam works!</p>
+<h1>Modify exam</h1>
+<h2 class="quiz-id">{{ exam.quiz.id }}</h2>
+<h3 class="quiz-title">{{ exam.quiz.title }}</h3>
+<div>
+Starts at: <span class="exam-start">{{ exam.period.start | date:'MMMM d, y, HH:mm' }}</span>
+</div>
+<div>
+Ends at: <span class="exam-end">{{ exam.period.end | date:'MMMM d, y, HH:mm' }}</span>
+</div>
+<div>
+Prestart at: <span class="prestart">{{ exam.prestartAt | date:'MMMM d, y, HH:mm' }}</span>
+</div>
+<div>
+Host: <span class="host">{{ exam.host.name }}</span>
+</div>
+<div>
+State: <span class="state">{{ exam.state }}</span>
+</div>
+<div>
+<input class="trial-length" type="text" [formControl]="trialLength"/>
+<button class="change-length" (click)="changeLength()">Change</button>
+</div>
+
+<select class="testees" [(ngModel)]="testeesToExclude" multiple>
+  <option class="person" *ngFor="let pers of testees" [ngValue]="pers">{{ pers.name }}</option>
+</select>
+<button class="exclude" (click)="excludeTestees()">Exclude</button>
+
+<app-personchooser (onChange)="setTesteesToInclude($event)"></app-personchooser>
+<button class="include" (click)="includeTestees()">Include</button>
+

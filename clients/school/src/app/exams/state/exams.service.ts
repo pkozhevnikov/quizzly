@@ -73,7 +73,7 @@ export class ExamsService extends HttpBasedService {
 
   includeTestees(id: string, testeeIds: string[]) {
     let procRes: any
-    const p = new Promise((res, rej) => procRes = res)
+    const p = new Promise<Person[]>((res, rej) => procRes = res)
     this.request(
       this.PUT,
       `exam/${id}`,
@@ -88,7 +88,7 @@ export class ExamsService extends HttpBasedService {
 
   excludeTestees(id: string, testeeIds: string[]) {
     let procRes: any
-    const p = new Promise((res, rej) => procRes = res)
+    const p = new Promise<Person[]>((res, rej) => procRes = res)
     this.request(
       this.PATCH,
       `exam/${id}`,
@@ -103,7 +103,7 @@ export class ExamsService extends HttpBasedService {
 
   getTestees(id: string) {
     let procRes: any
-    const p = new Promise((res, rej) => procRes = res)
+    const p = new Promise<Person[]>((res, rej) => procRes = res)
     this.request(
       this.GET,
       `exam/${id}`,

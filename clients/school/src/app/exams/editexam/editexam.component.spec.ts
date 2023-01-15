@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed, ComponentFixtureAutoDetect } from '@angular/core/testing'
+import { fakeAsync, tick, 
+        ComponentFixture, TestBed, ComponentFixtureAutoDetect } from '@angular/core/testing'
 import { ActivatedRoute } from "@angular/router"
 import { PersonsState } from "../../persons.state"
 import { ExamsService } from "../state/exams.service"
@@ -10,6 +11,7 @@ import { matchers } from "../../util/matchers"
 import { of } from "rxjs"
 
 import { EditexamComponent } from './editexam.component'
+import { PersonchooserComponent } from "../personchooser/personchooser.component"
 
 import { examPending } from "../state/exams.service.spec"
 
@@ -25,14 +27,15 @@ describe('EditexamComponent', () => {
   beforeEach(async () => {
     jasmine.addMatchers(matchers)
     await TestBed.configureTestingModule({
-      declarations: [ EditexamComponent ],
+      declarations: [ EditexamComponent, PersonchooserComponent ],
       providers: [
         {provide: ComponentFixtureAutoDetect, useValue: true},
         {provide: PersonsState, useValue: jasmine.createSpyObj("PersonsState", ["selectAll"])},
         {provide: ExamsService, useValue: jasmine.createSpyObj("ExamsService", 
             ["changeTrialLength", "getTestees", "includeTestees", "excludeTestees"])},
         {provide: ExamsQuery, useValue: jasmine.createSpyObj("ExamsQuery", ["getEntity"])},
-        {provide: ActivatedRoute, useValue: { params: of({id: "q1-e1"}) } },
+        {provide: ActivatedRoute, useValue: { params: of({id: "pending"}) } },
+        {provide: DATE_PIPE_DEFAULT_TIMEZONE, useValue: "UTC"},
       ],
       imports: [
         FormsModule, ReactiveFormsModule, 
@@ -43,9 +46,9 @@ describe('EditexamComponent', () => {
     personsState = TestBed.inject(PersonsState) as jasmine.SpyObj<PersonsState>
     examsService = TestBed.inject(ExamsService) as jasmine.SpyObj<ExamsService>
     examsQuery = TestBed.inject(ExamsQuery) as jasmine.SpyObj<ExamsQuery>
-    examsQuery.getEntity.withArgs("q1-e1").and.returnValue(examPending)
+    examsQuery.getEntity.withArgs("pending").and.returnValue(examPending)
     personsState.selectAll.withArgs("").and.returnValue(of(testpersons))
-    examsService.getTestees.withArgs("q1-e1").and
+    examsService.getTestees.withArgs("pending").and
       .returnValue(Promise.resolve([testpersons[2], testpersons[4]]))
 
 
@@ -58,10 +61,10 @@ describe('EditexamComponent', () => {
     expect(component).toBeTruthy()
   })
 
-  xit ("initialiizes correctly", () => {
+  it ("initialiizes correctly", () => {
     expect(personsState.selectAll).toHaveBeenCalledWith("")
-    expect(examsService.getTestees).toHaveBeenCalledWith("q1-e1")
-    expect(examsQuery.getEntity).toHaveBeenCalledWith("q1-e1")
+    expect(examsService.getTestees).toHaveBeenCalledWith("pending")
+    expect(examsQuery.getEntity).toHaveBeenCalledWith("pending")
     expect(node.querySelector(".quiz-id")).toHaveText("q1")
     expect(node.querySelector(".quiz-title")).toHaveText("q1 title")
     const start = formatDate(examPending.period.start, "MMMM d, y, HH:mm", "en-US", "UTC")
@@ -70,6 +73,8 @@ describe('EditexamComponent', () => {
     expect(node.querySelector(".exam-end")).toHaveText(end)
     expect(node.querySelector(".host")).toHaveText("off1 name")
     expect(node.querySelector(".state")).toHaveText("Pending")
+    const trialLength: HTMLInputElement = node.querySelector(".trial-length")!
+    expect(trialLength.value).toEqual("45")
     const prestart = formatDate(examPending.prestartAt, "MMMM d, y, HH:mm", "en-US", "UTC")
     expect(node.querySelector(".prestart")).toHaveText(prestart)
     expect(node.querySelectorAll(".persons-src .person")).toHaveSize(6)
@@ -81,16 +86,38 @@ describe('EditexamComponent', () => {
     expect(node.querySelectorAll(".testees .person")[1]).toHaveText("stud2 name")
   })
 
-  xit ("sends exclude testees request and updates testee list on exclusion", () => {
+  it ("sends exclude testees request and updates testee list on exclusion", fakeAsync( () => {
     node.querySelectorAll(".testees .person").forEach(elem => (elem as HTMLElement).click())
     examsService.excludeTestees.and.returnValue(Promise.resolve([testpersons[2], testpersons[4]]))
+    component.testeesToExclude = [testpersons[2], testpersons[4]]
     const excludeButton: HTMLElement = node.querySelector(".exclude")!
     excludeButton.click()
-    expect(examsService.excludeTestees).toHaveBeenCalledWith("q1-e1", ["off3", "stud2"])
+    expect(examsService.excludeTestees).toHaveBeenCalledWith("pending", ["off3", "stud2"])
+    tick()
     expect(node.querySelectorAll(".testees .person")).toHaveSize(0)
-  })
+  }))
 
-  xit ("sends include testees request and updaes testee list on inclusion", () => {
+  it ("sends include testees request and updates testee list on inclusion", fakeAsync( () => {
+    examsService.includeTestees.and.returnValue(Promise.resolve([testpersons[3]]))
+    const includeButton: HTMLElement = node.querySelector(".include")!
+    component.testeesToInclude = [testpersons[3], testpersons[5]]
+    includeButton.click()
+    expect(examsService.includeTestees).toHaveBeenCalledWith("pending", ["stud1", "stud3"])
+    tick()
+    const testees = node.querySelectorAll(".testees .person")
+    expect(testees).toHaveSize(3)
+    expect(testees[0]).toHaveText("off3 name")
+    expect(testees[1]).toHaveText("stud2 name")
+    expect(testees[2]).toHaveText("stud1 name")
+  }))
+
+  it ("sends change trial length request", () => {
+    const lengthBox: HTMLInputElement = node.querySelector(".trial-length")!
+    lengthBox.value = "72"
+    lengthBox.dispatchEvent(new Event("input"))
+    const changeLengthButton: HTMLElement = node.querySelector(".change-length")!
+    changeLengthButton.click()
+    expect(examsService.changeTrialLength).toHaveBeenCalledWith("pending", 72)
   })
 
 })

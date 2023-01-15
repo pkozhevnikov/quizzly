@@ -1,4 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core'
+import { FormControl } from "@angular/forms"
+import { ActivatedRoute } from "@angular/router"
+
+import { Person } from "../../persons.state"
+import { ExamsQuery } from "../state/exams.query"
+import { ExamsService } from "../state/exams.service"
+import { Exam, createExam } from "../state/exam.model"
 
 @Component({
   selector: 'app-editexam',
@@ -7,9 +14,46 @@ import { Component, OnInit } from '@angular/core';
 })
 export class EditexamComponent implements OnInit {
 
-  constructor() { }
+  testeesToInclude: Person[] = []
+  testees: Person[] = []
+  testeesToExclude: Person[] = []
+  exam: Exam = createExam({})
+  trialLength = new FormControl("")
+
+  constructor(
+    private examsQuery: ExamsQuery,
+    private examsService: ExamsService,
+    private route: ActivatedRoute
+  ) { }
 
   ngOnInit(): void {
+    this.route.params.subscribe(params => {
+      const e = this.examsQuery.getEntity(params["id"])
+      if (e) {
+        this.exam = e
+        this.trialLength.setValue(String(e.trialLength))
+        this.examsService.getTestees(e.id)
+          .then(tl => this.testees = tl)
+      }
+    })
   }
 
+  changeLength() {
+    this.examsService.changeTrialLength(this.exam.id, Number(this.trialLength.value))
+  }
+
+  setTesteesToInclude(testees: Person[]) {
+    this.testeesToInclude = testees
+  }
+
+  includeTestees() {
+    this.examsService.includeTestees(this.exam.id, this.testeesToInclude.map(p => p.id))
+      .then(included => this.testees = this.testees.concat(included))
+  }
+
+  excludeTestees() {
+    this.examsService.excludeTestees(this.exam.id, this.testeesToExclude.map(p => p.id))
+      .then(excluded => this.testees = this.testees.filter(t => !excluded.includes(t)))
+  }
+  
 }
