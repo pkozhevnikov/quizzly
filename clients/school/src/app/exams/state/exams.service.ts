@@ -72,36 +72,46 @@ export class ExamsService extends HttpBasedService {
   }
 
   includeTestees(id: string, testeeIds: string[]) {
+    let procRes: any
+    const p = new Promise((res, rej) => procRes = res)
     this.request(
       this.PUT,
       `exam/${id}`,
-      {200: (ps: Person[]) => this.uiStore
-        .info(`Testees included: ${ps.map(p => p.name).join(", ")}`)},
+      {200: (ps: Person[]) => {
+        this.uiStore.info(`Testees included: ${ps.map(p => p.name).join(", ")}`)
+        procRes(ps)
+      }},
       testeeIds
     )
+    return p
   }
 
   excludeTestees(id: string, testeeIds: string[]) {
+    let procRes: any
+    const p = new Promise((res, rej) => procRes = res)
     this.request(
       this.PATCH,
       `exam/${id}`,
-      {200: (ps: Person[]) => this.uiStore
-        .info(`Testees excluded: ${ps.map(p => p.name).join(", ")}`)},
+      {200: (ps: Person[]) => {
+        this.uiStore.info(`Testees excluded: ${ps.map(p => p.name).join(", ")}`)
+        procRes(ps)
+      }},
       testeeIds
     )
+    return p
   }
 
-  getTestees(id: string): Observable<Person[]> {
-    const res$ = new Subject<Person[]>()
+  getTestees(id: string) {
+    let procRes: any
+    const p = new Promise((res, rej) => procRes = res)
     this.request(
       this.GET,
       `exam/${id}`,
       {200: ps => {
-        res$.next(ps)
-        res$.complete()
+        procRes(ps)
       }}
     )
-    return res$
+    return p
   }
       
 

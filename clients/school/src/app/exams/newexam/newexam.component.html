@@ -12,18 +12,6 @@
   endKey="end"
   [(ngModel)]="period" class="form-control period"/>
 
-<input placeholder="Filter person" class="persons-filter" type="text" 
-    [formControl]="personFilter"/>
-<select class="persons-src" multiple [(ngModel)]="personsToSelect">
-  <option class="person" *ngFor="let pers of persons$|async" [ngValue]="pers">{{ pers.name }}</option>
-</select>
-
-<button class="persons-select" (click)="addTestees()">Select</button>
-
-<ul>
-  <li class="person-selected" *ngFor="let pers of selectedPersons">
-    {{ pers.name }} <a class="person-selected-remove" (click)="removeTestee(pers.id)">remove</a>
-  </li>
-</ul>
+<app-personchooser (onChange)="personsSelected($event)"></app-personchooser>
 
 <button class="create" (click)="createExam()">Create</button>

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core'
 import { FormControl } from "@angular/forms"
-import { Person, PersonsState } from "../../persons.state"
+import { Person } from "../../persons.state"
 import { QuizzesQuery } from "../../quizzes/state/quizzes.query"
 import { ExamsService } from "../state/exams.service"
 import { Quiz, createQuiz } from "../../quizzes/state/quiz.model"
@@ -15,22 +15,15 @@ import { startWith, switchMap, tap, map } from "rxjs"
 })
 export class NewexamComponent implements OnInit {
 
-  personsToSelect: Person[] = []
   selectedPersons: Person[] = []
   period: {start: dayjs.Dayjs, end: dayjs.Dayjs} = {start: dayjs(), end: dayjs()}
   quiz: Quiz = createQuiz({})
   examId = new FormControl("")
   trialLength = new FormControl("")
-  personFilter = new FormControl("")
-  persons$ = this.personFilter.valueChanges
-    .pipe(startWith(""))
-    .pipe(map(v => (typeof v === "string") ? v : ""))
-    .pipe(switchMap(v => this.personsState.selectAll(v)))
 
   constructor(
     private quizzesQuery: QuizzesQuery,
     private examsService: ExamsService,
-    private personsState: PersonsState,
     private route: ActivatedRoute
   ) { }
 
@@ -42,12 +35,8 @@ export class NewexamComponent implements OnInit {
     })
   }
 
-  removeTestee(id: string) {
-    this.selectedPersons = this.selectedPersons.filter(p => p.id != id)
-  }
-
-  addTestees() {
-    this.selectedPersons = [...this.personsToSelect]
+  personsSelected(persons: Person[]) {
+    this.selectedPersons = persons
   }
 
   createExam() {

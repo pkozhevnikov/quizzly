@@ -1,0 +1,16 @@
+
+<input placeholder="Filter person" class="persons-filter" type="text" 
+    [formControl]="filter"/>
+<select class="persons-src" multiple [(ngModel)]="toChoose">
+  <option class="person" *ngFor="let pers of list$|async" [ngValue]="pers">{{ pers.name }}</option>
+</select>
+
+<button class="persons-select" (click)="add()">Select</button>
+
+<ul>
+  <li class="person-selected" *ngFor="let pers of chosen">
+    {{ pers.name }} <a class="person-selected-remove" (click)="remove(pers.id)">remove</a>
+  </li>
+</ul>
+
+

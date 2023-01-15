@@ -11,6 +11,8 @@ import { matchers } from "../../util/matchers"
 import * as dayjs from "dayjs"
 
 import { NewexamComponent } from './newexam.component'
+import { PersonchooserComponent } from "../personchooser/personchooser.component"
+import { ExamsModule } from "../exams.module"
 
 describe('NewexamComponent', () => {
   let component: NewexamComponent
@@ -24,7 +26,7 @@ describe('NewexamComponent', () => {
   beforeEach(async () => {
     jasmine.addMatchers(matchers)
     await TestBed.configureTestingModule({
-      declarations: [ NewexamComponent ],
+      declarations: [ NewexamComponent, PersonchooserComponent ],
       providers: [
         {provide: ComponentFixtureAutoDetect, useValue: true},
         {provide: QuizzesQuery, useValue: jasmine.createSpyObj("QuizzesQuery", ["getEntity"])},
@@ -34,7 +36,8 @@ describe('NewexamComponent', () => {
       ],
       imports: [
         FormsModule, ReactiveFormsModule, 
-        NgxDaterangepickerMd.forRoot()
+        NgxDaterangepickerMd.forRoot(),
+        //ExamsModule
       ]
     })
     .compileComponents()
@@ -95,7 +98,6 @@ describe('NewexamComponent', () => {
     const removeLink = node.querySelectorAll(".person-selected-remove")[1]! as HTMLAnchorElement
     removeLink.click()
     expect(component.selectedPersons).toEqual([testpersons[1], testpersons[5]])
-
   })
 
   it ("fills form and sends data to service", () => {

@@ -45,7 +45,8 @@ describe('EditexamComponent', () => {
     examsQuery = TestBed.inject(ExamsQuery) as jasmine.SpyObj<ExamsQuery>
     examsQuery.getEntity.withArgs("q1-e1").and.returnValue(examPending)
     personsState.selectAll.withArgs("").and.returnValue(of(testpersons))
-    examsService.getTestees.withArgs("q1-e1").and.returnValue(of([testpersons[0], testpersons[4]]))
+    examsService.getTestees.withArgs("q1-e1").and
+      .returnValue(Promise.resolve([testpersons[2], testpersons[4]]))
 
 
     fixture = TestBed.createComponent(EditexamComponent)
@@ -71,13 +72,25 @@ describe('EditexamComponent', () => {
     expect(node.querySelector(".state")).toHaveText("Pending")
     const prestart = formatDate(examPending.prestartAt, "MMMM d, y, HH:mm", "en-US", "UTC")
     expect(node.querySelector(".prestart")).toHaveText(prestart)
-    expect(node.querySelectorAll(".person-src .person")).toHaveSize(6)
+    expect(node.querySelectorAll(".persons-src .person")).toHaveSize(6)
     for (let i = 0; i < testpersons.length; i++) {
-      expect(node.querySelectorAll(".person-src .person")[i]).toHaveText(testpersons[i].name)
+      expect(node.querySelectorAll(".persons-src .person")[i]).toHaveText(testpersons[i].name)
     }
     expect(node.querySelectorAll(".testees .person")).toHaveSize(2)
     expect(node.querySelectorAll(".testees .person")[0]).toHaveText("off3 name")
     expect(node.querySelectorAll(".testees .person")[1]).toHaveText("stud2 name")
+  })
+
+  xit ("sends exclude testees request and updates testee list on exclusion", () => {
+    node.querySelectorAll(".testees .person").forEach(elem => (elem as HTMLElement).click())
+    examsService.excludeTestees.and.returnValue(Promise.resolve([testpersons[2], testpersons[4]]))
+    const excludeButton: HTMLElement = node.querySelector(".exclude")!
+    excludeButton.click()
+    expect(examsService.excludeTestees).toHaveBeenCalledWith("q1-e1", ["off3", "stud2"])
+    expect(node.querySelectorAll(".testees .person")).toHaveSize(0)
+  })
+
+  xit ("sends include testees request and updaes testee list on inclusion", () => {
   })
 
 })

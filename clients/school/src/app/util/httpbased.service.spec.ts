@@ -74,15 +74,24 @@ describe('HttpBasedService', () => {
     expect(uiStore.error).toHaveBeenCalledWith('(456) invalid data: ["clue1","clue2"]')
   })
 
-  it("processes 200", () => {
+  it("processes 200", done => {
     sessionStore.update({id: "user3", name: ""})
-    service.request(GET, "test3", {200: v => uiStore.warn(v)})
+    let resultProc: any
+    const resp = new Promise((res, rej) => resultProc = res)
+    service.request(GET, "test3", {200: v => {
+      uiStore.warn(v)
+      resultProc(v)
+    }})
     const req = controller.expectOne("apiroot/test3")
     expect(req.request.method).toEqual(GET)
     expect(req.request.headers).toEqual(new HttpHeaders().append("p", "user3"))
     req.flush("hello world")
     expect(uiStore.warn).toHaveBeenCalledWith("hello world")
     expect(uiStore.error).not.toHaveBeenCalled()
+    resp.then(v => {
+      expect(v).toEqual("hello world")
+      done()
+    })
   })
 
   it("processes status dependent function", () => {

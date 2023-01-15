@@ -104,22 +104,32 @@ describe('ExamsService', () => {
     expect(examsStore.update).toHaveBeenCalledWith({id: "pending", trialLength: 180})
   })
 
-  it ("should include testees", () => {
-    examsService.includeTestees("pending", ["stud4", "stud5"])
+  it ("should include testees", done => {
+    const resp = examsService.includeTestees("pending", ["stud4", "stud5"])
     const req = controller.expectOne("apiroot/exam/pending")
     expect(req.request.method).toEqual("PUT")
     expect(req.request.body).toEqual(["stud4", "stud5"])
-    req.flush([{id: "stud5", name: "stud5 name", place: "Student"}])
+    const included = [{id: "stud5", name: "stud5 name", place: "Student"}]
+    req.flush(included)
     expect(uiStore.info).toHaveBeenCalledWith("Testees included: stud5 name")
+    resp.then(res => {
+      expect(res).toEqual(included)
+      done()
+    })
   })
 
-  it ("should exclude testees", () => {
-    examsService.excludeTestees("pending", ["stud2", "stud3"])
+  it ("should exclude testees", done => {
+    const resp = examsService.excludeTestees("pending", ["stud2", "stud3"])
     const req = controller.expectOne("apiroot/exam/pending")
     expect(req.request.method).toEqual("PATCH")
     expect(req.request.body).toEqual(["stud2", "stud3"])
-    req.flush([{id: "stud2", name: "stud2 name", place: "Student"}])
+    const excluded = [{id: "stud2", name: "stud2 name", place: "Student"}]
+    req.flush(excluded)
     expect(uiStore.info).toHaveBeenCalledWith("Testees excluded: stud2 name")
+    resp.then(res => {
+      expect(res).toEqual(excluded)
+      done()
+    })
   })
 
   it ("should retrieve exam testees", done => {
@@ -127,7 +137,7 @@ describe('ExamsService', () => {
       {id: "off1", name: "off1 name", place: "Official"},
       {id: "stud1", name: "stud1 name", place: "Student"}
     ]
-    examsService.getTestees("pending").subscribe(l => {
+    examsService.getTestees("pending").then(l => {
       expect(l).toEqual(persons)
       done()
     })
