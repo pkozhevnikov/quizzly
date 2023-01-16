@@ -6,6 +6,7 @@ import { ExamsService } from "../state/exams.service"
 import { Quiz, createQuiz } from "../../quizzes/state/quiz.model"
 import { ActivatedRoute } from "@angular/router"
 import * as dayjs from "dayjs"
+import { PersonsState } from "../../persons.state"
 
 @Component({
   selector: "app-newexam",
@@ -23,7 +24,8 @@ export class NewexamComponent implements OnInit {
   constructor(
     private quizzesQuery: QuizzesQuery,
     private examsService: ExamsService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private personsState: PersonsState
   ) { }
 
   ngOnInit(): void {
@@ -32,6 +34,7 @@ export class NewexamComponent implements OnInit {
       if (q)
         this.quiz = q
     })
+    this.personsState.get()
   }
 
   personsSelected(persons: Person[]) {

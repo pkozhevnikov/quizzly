@@ -22,7 +22,7 @@
     <td class="exam-length">{{ exam.trialLength }}</td>
     <td class="exam-actions">
       <a class="exam-edit" *ngIf="exam.state=='Pending'" routerLink="/exam/{{exam.id}}">Modify</a>
-      <a class="exam-cancel" *ngIf="exam.state=='Pending'||exam.state=='Upcoming'"
+      <a class="action-link exam-cancel" *ngIf="exam.state=='Pending'||exam.state=='Upcoming'"
                 (click)="cancel(exam.id)">Cancel</a>
     </td>
   </tr>

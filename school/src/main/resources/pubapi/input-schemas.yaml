@@ -5,7 +5,7 @@ paths:
   /v1/exam:
     post: /create-exam.yaml
   /v1/exam/*:
+    post: /change-length.yaml
     put: /strings.yaml
     patch: /strings.yaml
-    post: /change-length.yaml
   /v1/quiz/*:

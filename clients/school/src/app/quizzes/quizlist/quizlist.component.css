@@ -1,0 +1,3 @@
+.checked:after{content:'YES'}
+.notchecked:after{content:'-'}
+td{padding:5px}

@@ -21,10 +21,10 @@
         routerLink="/newexam/{{quiz.id}}">
     Schedule exam
     </a>
-    <a class="publish" *ngIf="!quiz.isPublished && !quiz.inUse" (click)="publish(quiz.id)">
+    <a class="action-link publish" *ngIf="!quiz.isPublished && !quiz.inUse" (click)="publish(quiz.id)">
     Publish
     </a>
-    <a class="unpublish" *ngIf="quiz.isPublished" (click)="unpublish(quiz.id)">
+    <a class="action-link unpublish" *ngIf="quiz.isPublished" (click)="unpublish(quiz.id)">
     Unpublish
     </a>
   </td>

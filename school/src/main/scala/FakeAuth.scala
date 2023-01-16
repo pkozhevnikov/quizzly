@@ -3,6 +3,7 @@ package quizzly.school
 import akka.http.scaladsl.model.*
 
 import scala.concurrent.Future
+import scala.jdk.OptionConverters.*
 
 object FakeAuth extends Auth:
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,7 +36,7 @@ object FakeAuth extends Auth:
     stud8.id -> stud8
   )
   def authenticate(req: HttpRequest) =
-    all.get(req.getHeader("p").get.value) match
+    req.getHeader("p").toScala.map(_.value).flatMap(all.get(_)) match
       case Some(p: Official) =>
         Future(p)
       case _ =>

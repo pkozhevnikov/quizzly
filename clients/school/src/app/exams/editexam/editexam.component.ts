@@ -6,6 +6,7 @@ import { Person } from "../../persons.state"
 import { ExamsQuery } from "../state/exams.query"
 import { ExamsService } from "../state/exams.service"
 import { Exam, createExam } from "../state/exam.model"
+import { PersonsState } from "../../persons.state"
 
 @Component({
   selector: 'app-editexam',
@@ -23,7 +24,8 @@ export class EditexamComponent implements OnInit {
   constructor(
     private examsQuery: ExamsQuery,
     private examsService: ExamsService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private personsState: PersonsState
   ) { }
 
   ngOnInit(): void {
@@ -36,6 +38,7 @@ export class EditexamComponent implements OnInit {
           .then(tl => this.testees = tl)
       }
     })
+    this.personsState.get()
   }
 
   changeLength() {

@@ -48,7 +48,7 @@ export class HttpBasedService {
       msg = "Access denied"
     } else if (error.status == 422) {
       const err = error.error
-      msg = `(${err.reason.code}) ${err.reason.text}: ${JSON.stringify(err.clues)}`
+      msg = `(${err.reason.code}) ${err.reason.phrase}: ${JSON.stringify(err.clues)}`
     } else {
       msg = error.message
     }
@@ -88,7 +88,7 @@ export class HttpBasedService {
             this.uiStore.warn(message)
           }
         }, 
-        error: this.uiStore.error
+        error: msg => this.uiStore.error(msg)
       })
   }
 

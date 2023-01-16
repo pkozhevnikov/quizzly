@@ -21,9 +21,11 @@ import java.time.Instant
 type NowInstant = () => Instant
 
 @main
-def run =
+def run(fakeQuizCount: Int = 0) =
   given NowInstant = () => Instant.now()
-  Main(ActorSystem(Behaviors.empty, "ExamManagement"), FakeAuth)
+  val fact = Main(ActorSystem(Behaviors.empty, "ExamManagement"), FakeAuth)
+  if fakeQuizCount > 0 then
+    (1 to fakeQuizCount).foreach(n => fact(s"Q-$n") ! QuizFact.Init(s"Q-$n title", false))
 
 object Main:
 

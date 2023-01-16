@@ -9,7 +9,7 @@
 
 <ul>
   <li class="person-selected" *ngFor="let pers of chosen">
-    {{ pers.name }} <a class="person-selected-remove" (click)="remove(pers.id)">remove</a>
+    {{ pers.name }} <a class="action-link person-selected-remove" (click)="remove(pers.id)">remove</a>
   </li>
 </ul>
 

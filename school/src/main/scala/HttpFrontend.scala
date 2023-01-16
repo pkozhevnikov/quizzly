@@ -25,6 +25,8 @@ import scala.util.Try
 
 import java.time.*
 
+import ch.megard.akka.http.cors.scaladsl.CorsDirectives.*
+
 case class CreateExam(
     id: String,
     quizId: String,
@@ -167,6 +169,7 @@ object HttpFrontend extends JsonFormats:
       call[R, Exam.Command](entities.exam(id))(cmd)
 
     // format: off
+    cors() {
     pathPrefix("pubapi")(pubapi(host, port)) ~
     extractRequest { request =>
       auth(request) { person =>
@@ -266,6 +269,7 @@ object HttpFrontend extends JsonFormats:
         }
       }
     }
+  }
   // format: on
 
   val yamlContentType = ContentType(

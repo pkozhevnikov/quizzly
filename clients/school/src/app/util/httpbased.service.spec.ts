@@ -69,7 +69,7 @@ describe('HttpBasedService', () => {
     const req = controller.expectOne("apiroot/test2")
     expect(req.request.method).toEqual(DELETE)
     expect(req.request.headers).toEqual(new HttpHeaders().append("p", "user2"))
-    req.flush({reason: {code: 456, text: "invalid data"}, clues: ["clue1", "clue2"]}, 
+    req.flush({reason: {code: 456, phrase: "invalid data"}, clues: ["clue1", "clue2"]}, 
       {status: 422, statusText: ""})
     expect(uiStore.error).toHaveBeenCalledWith('(456) invalid data: ["clue1","clue2"]')
   })

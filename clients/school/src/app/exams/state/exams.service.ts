@@ -55,7 +55,7 @@ export class ExamsService extends HttpBasedService {
   cancel(id: string) {
     this.request(this.DELETE, `exam/${id}`, {204: _ => {
       this.uiStore.info("Exam cancelled")
-      this.examsStore.update({id, state: "Cancelled"})
+      this.examsStore.update({id: id, state: "Cancelled"})
     }})
   }
 

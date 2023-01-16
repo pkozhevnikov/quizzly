@@ -1,6 +1,6 @@
 import { Injectable, NgModule } from "@angular/core"
 import { RouterModule, Routes, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot,
-      UrlSegment, UrlSegmentGroup, UrlTree} from "@angular/router"
+      UrlSegment, UrlSegmentGroup, UrlTree, Router } from "@angular/router"
 import { LoginComponent } from "./session/login/login.component"
 import { QuizlistComponent } from "./quizzes/quizlist/quizlist.component"
 import { NewexamComponent } from "./exams/newexam/newexam.component"
@@ -13,10 +13,10 @@ import { map } from "rxjs"
 export class CommonCanActivate implements CanActivate {
   private loginUrl: UrlTree
   constructor(
-    private sessionQuery: SessionQuery
+    private sessionQuery: SessionQuery,
+    private router: Router
   ) {
-    this.loginUrl = new UrlTree()
-    this.loginUrl.root.segments.push(new UrlSegment("login", {}))
+    this.loginUrl = router.parseUrl("/login")
   }
 
   canActivate(
