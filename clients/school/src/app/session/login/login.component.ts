@@ -6,7 +6,6 @@ import { filter } from "rxjs"
 
 import { SessionService } from "../state/session.service"
 import { SessionQuery } from "../state/session.query"
-import { UiQuery } from "../../ui.query"
 
 @Component({
   selector: 'app-login',
@@ -15,12 +14,9 @@ import { UiQuery } from "../../ui.query"
 })
 export class LoginComponent implements OnInit {
 
-  notif$ = this.uiQuery.notif$
-
   constructor(
     private sessionService: SessionService, 
     private sessionQuery: SessionQuery,
-    private uiQuery: UiQuery,
     private router: Router
   ) { }
 

@@ -17,11 +17,12 @@ describe('LoginComponent', () => {
   let component: LoginComponent
   let fixture: ComponentFixture<LoginComponent>
   let router: Router
+  let uiStore: UiStore
   let node: HTMLElement
 
   let uname: HTMLInputElement
   let pword: HTMLInputElement
-  let buttn: HTMLButtonElement
+  let buttn: HTMLElement
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -38,9 +39,12 @@ describe('LoginComponent', () => {
       node = fixture.nativeElement
       uname = node.querySelector("input.username")!
       pword = node.querySelector("input.password")!
-      buttn = node.querySelector("button[type=submit]")!
+      buttn = node.querySelector(".try-login")!
       router = TestBed.inject(Router)
       spyOn(router, "navigate")
+      uiStore = TestBed.inject(UiStore)
+      spyOn(uiStore, "error")
+      spyOn(uiStore, "info")
     })
   })
 
@@ -55,10 +59,8 @@ describe('LoginComponent', () => {
     pword.dispatchEvent(new Event("input"))
     buttn.click()
 
-    const notif = node.querySelector(".notif")!
-    expect(notif.textContent).toBe("Wrong username or password")
-    expect(notif.classList).toContain("error")
-    
+    expect(uiStore.error).toHaveBeenCalledWith("Wrong username or password")
+
   })
 
   it("should react on login", () => {
@@ -69,9 +71,7 @@ describe('LoginComponent', () => {
     buttn.click()
 
     expect(router.navigate).toHaveBeenCalledWith(["/quizzes"])
-    const notif = node.querySelector(".notif")!
-    expect(notif.textContent).toBe("Successfully logged in")
-    expect(notif.classList).toContain("info")
+    expect(uiStore.info).toHaveBeenCalledWith("Successfully logged in")
     
   })
 

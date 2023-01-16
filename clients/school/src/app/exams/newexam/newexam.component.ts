@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'
+import { Component, OnInit } from "@angular/core"
 import { FormControl } from "@angular/forms"
 import { Person } from "../../persons.state"
 import { QuizzesQuery } from "../../quizzes/state/quizzes.query"
@@ -6,12 +6,11 @@ import { ExamsService } from "../state/exams.service"
 import { Quiz, createQuiz } from "../../quizzes/state/quiz.model"
 import { ActivatedRoute } from "@angular/router"
 import * as dayjs from "dayjs"
-import { startWith, switchMap, tap, map } from "rxjs"
 
 @Component({
-  selector: 'app-newexam',
-  templateUrl: './newexam.component.html',
-  styleUrls: ['./newexam.component.css']
+  selector: "app-newexam",
+  templateUrl: "./newexam.component.html",
+  styleUrls: ["./newexam.component.css"]
 })
 export class NewexamComponent implements OnInit {
 

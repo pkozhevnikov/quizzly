@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core'
-import { Query } from '@datorama/akita'
-import { SessionStore, SessionState } from './session.store'
+import { Injectable } from "@angular/core"
+import { Query } from "@datorama/akita"
+import { SessionStore, SessionState } from "./session.store"
 
 import { map } from "rxjs"
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class SessionQuery extends Query<SessionState> {
 
   loggedIn$ = this.select("id").pipe(map(v => !!v))
