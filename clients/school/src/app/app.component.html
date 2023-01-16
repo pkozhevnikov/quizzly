@@ -5,6 +5,8 @@
 <div *ngIf="sessionQuery.loggedIn$|async">
   {{ sessionQuery.userName$|async }}
   <a routerLink="/logout">Logout</a>
-</div
+</div>
 <div *ngIf="uiQuery.notif$|async as notif" class="notif" [ngClass]="notif.kind">{{ notif.text }}</div>
 <router-outlet></router-outlet>
+
+

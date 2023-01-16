@@ -1,5 +1,4 @@
 import { HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse, HttpClient } from '@angular/common/http'
-import { Injectable } from '@angular/core'
 import { map, tap, catchError, filter } from 'rxjs/operators'
 import { throwError, Observable } from "rxjs"
 
@@ -10,7 +9,6 @@ interface ResponseActions {
   [key: number]: (resp: any) => void
 }
 
-@Injectable({ providedIn: 'root' })
 export class HttpBasedService {
 
   private baseApiUrl: string

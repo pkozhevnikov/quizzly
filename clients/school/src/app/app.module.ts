@@ -8,11 +8,15 @@ import { environment } from "../environments/environment"
 
 import { AppRoutingModule } from "./app-routing.module"
 import { SessionModule } from "./session/session.module"
+import { QuizzesModule } from "./quizzes/quizzes.module"
+import { ExamsModule } from "./exams/exams.module"
 import { AppComponent } from "./app.component"
 
 import { UiStore } from "./ui.store"
 import { UiQuery } from "./ui.query"
 import { PersonsState } from "./persons.state"
+import { formatDate, DATE_PIPE_DEFAULT_TIMEZONE } from "@angular/common" 
+import { GlobalConfig } from "./global.config"
 
 @NgModule({
   declarations: [
@@ -33,6 +37,8 @@ import { PersonsState } from "./persons.state"
     PersonsState,
     UiStore,
     UiQuery,
+    {provide: DATE_PIPE_DEFAULT_TIMEZONE, useValue: "UTC"},
+    {provide: GlobalConfig, useValue: {baseApiUrl: "http://localhost:9099/v1"}},
   ],
   bootstrap: [AppComponent]
 })

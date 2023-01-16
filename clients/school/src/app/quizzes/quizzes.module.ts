@@ -1,6 +1,8 @@
-import { NgModule } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { QuizlistComponent } from "./quizlist/quizlist.component";
+import { NgModule } from "@angular/core"
+import { CommonModule } from "@angular/common"
+import { FormsModule, ReactiveFormsModule } from "@angular/forms"
+import { RouterModule } from "@angular/router"
+import { QuizlistComponent } from "./quizlist/quizlist.component"
 
 
 
@@ -9,6 +11,9 @@ import { QuizlistComponent } from "./quizlist/quizlist.component";
     QuizlistComponent
   ],
   imports: [
+    RouterModule,
+    FormsModule,
+    ReactiveFormsModule,
     CommonModule
   ]
 })
