@@ -85,9 +85,13 @@ lazy val authorClient = (project in file("clients/author"))
     )
   )
 
-lazy val school = project.settings(
-  libraryDependencies ++= commonDependencies
-)
+lazy val school = project
+  .enablePlugins(PackPlugin)
+  .settings(
+    name := "school",
+    packMain := Map("school" -> "quizzly.school.run"),
+    libraryDependencies ++= commonDependencies
+  )
 
 lazy val exam = project.settings(
 )

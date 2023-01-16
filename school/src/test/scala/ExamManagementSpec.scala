@@ -60,6 +60,7 @@ class ExamManagementSpec
 
   given ActorSystem[?] = clnSystem
   given ExecutionContext = clnSystem.executionContext
+  given (() => Instant) = () => Instant.parse("2022-11-01T00:00:00Z")
 
   val http = Http()(using clnSystem)
 

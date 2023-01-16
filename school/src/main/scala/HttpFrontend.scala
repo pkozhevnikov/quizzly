@@ -145,7 +145,9 @@ object HttpFrontend extends JsonFormats:
 
     given akka.util.Timeout = 2.seconds
 
-    def call[R, Cmd](entity: EntityRef[Cmd])(cmd: ActorRef[Resp[R]] => Cmd)(using ToEntityMarshaller[R]) =
+    def call[R, Cmd](
+        entity: EntityRef[Cmd]
+    )(cmd: ActorRef[Resp[R]] => Cmd)(using ToEntityMarshaller[R]) =
       onComplete(entity.ask(cmd)) {
         case Success(Resp.OK) =>
           complete(StatusCodes.NoContent)
@@ -157,8 +159,9 @@ object HttpFrontend extends JsonFormats:
           complete(StatusCodes.InternalServerError, ex.getMessage)
       }
 
-    def onFact[R](id: QuizID)(cmd: ActorRef[Resp[R]] => QuizFact.Command)(using ToEntityMarshaller[R]) =
-        call[R, QuizFact.Command](entities.fact(id))(cmd)
+    def onFact[R](id: QuizID)(cmd: ActorRef[Resp[R]] => QuizFact.Command)(using
+        ToEntityMarshaller[R]
+    ) = call[R, QuizFact.Command](entities.fact(id))(cmd)
 
     def onExam[R](id: ExamID)(cmd: ActorRef[Resp[R]] => Exam.Command)(using ToEntityMarshaller[R]) =
       call[R, Exam.Command](entities.exam(id))(cmd)

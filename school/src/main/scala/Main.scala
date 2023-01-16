@@ -18,17 +18,20 @@ import scala.util.Success
 
 import java.time.Instant
 
+type NowInstant = () => Instant
+
 @main
-def run = Main(ActorSystem(Behaviors.empty, "ExamManagement"), FakeAuth)
+def run =
+  given NowInstant = () => Instant.now()
+  Main(ActorSystem(Behaviors.empty, "ExamManagement"), FakeAuth)
 
 object Main:
 
-  type NowInstant = () => Instant
-
-  def apply(system: ActorSystem[?], auth: Auth): String => EntityRef[QuizFact.Command] =
+  def apply(system: ActorSystem[?], auth: Auth)(using
+      NowInstant
+  ): String => EntityRef[QuizFact.Command] =
     given ActorSystem[?] = system
     given ExecutionContext = system.executionContext
-    given NowInstant = () => Instant.now()
     ScalikeJdbcSetup(system)
     SchemaUtils.createIfNotExists()
     val sharding = ClusterSharding(system)
