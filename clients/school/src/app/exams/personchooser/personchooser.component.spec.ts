@@ -65,11 +65,19 @@ describe('PersonchooserComponent', () => {
     personsSrc.dispatchEvent(new Event("change"))
     const selectButton: HTMLButtonElement = node.querySelector(".persons-select")!
     selectButton.click()
+    //expect(personsSrc.selectedOptions.length).toEqual(0)
     expect(node.querySelectorAll(".person-selected").length).toEqual(3)
     expect(component.chosen).toEqual([testpersons[1], testpersons[3], testpersons[5]])
+    personsSrc.options[0].selected = true
+    personsSrc.dispatchEvent(new Event("change"))
+    selectButton.click()
+    //expect(personsSrc.selectedOptions.length).toEqual(0)
+    //expect(node.querySelectorAll(".person-selected").length).toEqual(4)
+    expect(component.chosen).toEqual([testpersons[1], testpersons[3], testpersons[5], testpersons[0]])
+    
     const removeLink = node.querySelectorAll(".person-selected-remove")[1]! as HTMLAnchorElement
     removeLink.click()
-    expect(component.chosen).toEqual([testpersons[1], testpersons[5]])
+    expect(component.chosen).toEqual([testpersons[1], testpersons[5], testpersons[0]])
   })
 
 })

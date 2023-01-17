@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing'
 
 import { HttpHeaders } from "@angular/common/http"
 
-import { HttpBasedService } from "./httpbased.service"
+import { HttpBasedService, DONE } from "./httpbased.service"
 import { UiStore } from "../ui.store"
 import { UiQuery } from "../ui.query"
 import { HttpClient } from "@angular/common/http"
@@ -48,37 +48,49 @@ describe('HttpBasedService', () => {
     controller.verify()
   })
 
-  it("should not make request if not logged in", () => {
-    service.request(GET, "quiz", {})
+  it("should not make request if not logged in", done => {
+    const resp = service.request(GET, "quiz", {})
     controller.expectNone("apiroot/quiz")
     expect(uiStore.error).toHaveBeenCalledWith("Not logged in")
+    resp.catch((e: string) => {
+      expect(e).toEqual("Not logged in")
+      done()
+    })
   })
 
-  it("processes 401", () => {
+  it("processes 401", done => {
     sessionStore.update({id: "user1", name: "user1 name"})
-    service.request(GET, "quiz", {})
+    const resp = service.request(GET, "quiz", {})
     const req = controller.expectOne("apiroot/quiz")
     expect(req.request.method).toEqual(GET)
     req.flush("", {status: 401, statusText: ""})
     expect(uiStore.error).toHaveBeenCalledWith("Access denied")
+    resp.catch((e: string) => {
+      expect(e).toEqual("Access denied")
+      done()
+    })
   })
 
-  it("processes 422", () => {
+  it("processes 422", done => {
     sessionStore.update({id: "user2", name: ""})
-    service.request(DELETE, "test2", {})
+    const resp = service.request(DELETE, "test2", {})
     const req = controller.expectOne("apiroot/test2")
     expect(req.request.method).toEqual(DELETE)
     expect(req.request.headers).toEqual(new HttpHeaders().append("p", "user2"))
     req.flush({reason: {code: 456, phrase: "invalid data"}, clues: ["clue1", "clue2"]}, 
       {status: 422, statusText: ""})
     expect(uiStore.error).toHaveBeenCalledWith('(456) invalid data: ["clue1","clue2"]')
+    resp.catch((e: string) => {
+      expect(e).toEqual('(456) invalid data: ["clue1","clue2"]')
+      done()
+    })
   })
 
   it("processes 200", done => {
     sessionStore.update({id: "user3", name: ""})
     let resultProc: any
     const resp = new Promise((res, rej) => resultProc = res)
-    service.request(GET, "test3", {200: v => {
+    const resp0 = service.request(GET, "test3", {200: v => {
       uiStore.warn(v)
       resultProc(v)
     }})
@@ -88,49 +100,67 @@ describe('HttpBasedService', () => {
     req.flush("hello world")
     expect(uiStore.warn).toHaveBeenCalledWith("hello world")
     expect(uiStore.error).not.toHaveBeenCalled()
-    resp.then(v => {
-      expect(v).toEqual("hello world")
+    Promise.all([resp0, resp]).then(vals => {
+      expect(vals[0]).toEqual(DONE)
+      expect(vals[1]).toEqual("hello world")
       done()
     })
   })
 
-  it("processes status dependent function", () => {
+  it("processes status dependent function", done => {
     sessionStore.update({id: "user4", name: ""})
-    service.request(DELETE, "test4", {204: _ => uiStore.info("Item deleted")})
+    const resp = service.request(DELETE, "test4", {204: _ => uiStore.info("Item deleted")})
     const req = controller.expectOne("apiroot/test4")
     expect(req.request.method).toEqual(DELETE)
     expect(req.request.headers).toEqual(new HttpHeaders().append("p", "user4"))
     req.flush({}, {status: 204, statusText: ""})
     expect(uiStore.info).toHaveBeenCalledWith("Item deleted")
+    resp.then(r => {
+      expect(r).toEqual(DONE)
+      done()
+    })
   })
 
-  it("passes request body", () => {
+  it("passes request body", done => {
     sessionStore.update({id: "user5", name: ""})
-    service.request(PUT, "test5", {204: _ => uiStore.info("processed")}, {some: "body"})
+    const resp = service.request(PUT, "test5", {204: _ => uiStore.info("processed")}, {some: "body"})
     const req = controller.expectOne("apiroot/test5")
     expect(req.request.method).toEqual(PUT)
     expect(req.request.headers).toEqual(new HttpHeaders().append("p", "user5"))
     expect(req.request.body).toEqual({some:"body"})
     req.flush({}, {status: 204, statusText: ""})
     expect(uiStore.info).toHaveBeenCalledWith("processed")
+    resp.then(r => {
+      expect(r).toEqual(DONE)
+      done()
+    })
   })
 
-  it("notifies of unknown good status", () => {
+  it("notifies of unknown good status", done => {
     sessionStore.update({id: "user6", name: null})
-    service.request(GET, "test6", {})
+    const resp = service.request(GET, "test6", {})
     const req = controller.expectOne("apiroot/test6")
     expect(req.request.method).toEqual(GET)
     req.flush({}, {status: 202, statusText: ""})
     expect(uiStore.warn).toHaveBeenCalledWith("action for GET test6 202 not specified")
+    resp.catch((e: string) => {
+      expect(e).toEqual("action for GET test6 202 not specified")
+      done()
+    })
   })
 
-  it("notifies of unknow error status", () => {
+  it("notifies of unknow error status", done => {
     sessionStore.update({id: "user7", name: null})
-    service.request(GET, "test7", {})
+    const resp = service.request(GET, "test7", {})
     const req = controller.expectOne("apiroot/test7")
     req.flush({}, {status: 400, statusText: "not found"})
+    const errmsg = "Http failure response for apiroot/test7: 400 not found"
     expect(uiStore.error)
-      .toHaveBeenCalledWith("Http failure response for apiroot/test7: 400 not found")
+      .toHaveBeenCalledWith(errmsg)
+    resp.catch((e: string) => {
+      expect(e).toEqual(errmsg)
+      done()
+    })
   })
 
 })

@@ -1,5 +1,6 @@
 import { Component, OnInit } from "@angular/core"
 import { FormControl } from "@angular/forms"
+import { Router } from "@angular/router"
 import { Person } from "../../persons.state"
 import { QuizzesQuery } from "../../quizzes/state/quizzes.query"
 import { ExamsService } from "../state/exams.service"
@@ -25,7 +26,8 @@ export class NewexamComponent implements OnInit {
     private quizzesQuery: QuizzesQuery,
     private examsService: ExamsService,
     private route: ActivatedRoute,
-    private personsState: PersonsState
+    private personsState: PersonsState,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -34,7 +36,7 @@ export class NewexamComponent implements OnInit {
       if (q)
         this.quiz = q
     })
-    this.personsState.get()
+    this.personsState.init()
   }
 
   personsSelected(persons: Person[]) {
@@ -49,7 +51,7 @@ export class NewexamComponent implements OnInit {
       end: this.period.end.toDate(),
       trialLength: Number(this.trialLength.value),
       testees: this.selectedPersons.map(p => p.id)
-    })
+    }).then(_ => this.router.navigate(["/exam"]))
   }
 
 }

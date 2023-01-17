@@ -1,0 +1,9 @@
+.persons-filter{display:block}
+.persons-src{width:100%;height:200px}
+.all{
+  display: flex;
+  margin-bottom: 20px;
+}
+.half{
+  flex: 50%;
+}

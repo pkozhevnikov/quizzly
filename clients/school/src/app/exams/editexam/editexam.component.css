@@ -1,0 +1,32 @@
+.exam-start:after,.exam-end:after,.prestart:after,.exam-id:after,
+    .quiz-id:after,.quiz-title:after,
+    .host:after,.state:after,.change-length:after {
+  content: '\a';
+  white-space: pre;
+}
+label {
+  text-align: right;
+  width: 150px;
+  padding-right: 5px;
+  display: inline-block;
+}
+span {
+  font-weight: bold;
+}
+.two-columns{
+  display: flex;
+}
+.half{
+  flex: 50%;
+}
+.testees {
+  width: 100%;
+  height: 300px;
+}
+.trial-length {
+  width: 50px;
+  margin-right: 5px;
+}
+.exclude {
+  margin-top: 5px;
+}

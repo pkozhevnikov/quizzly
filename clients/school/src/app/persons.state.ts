@@ -40,7 +40,7 @@ export class PersonsState extends HttpBasedService {
     })
   }
 
-  get() {
+  init() {
     this.request(this.GET, "persons", {200: l => this.store.set(l)})
   }
 }

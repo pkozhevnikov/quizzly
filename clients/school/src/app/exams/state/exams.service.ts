@@ -5,7 +5,7 @@ import { tap } from 'rxjs/operators'
 import { Observable, Subject } from "rxjs"
 import { Exam, CreateExam } from './exam.model'
 import { ExamsStore } from './exams.store'
-import { HttpBasedService } from "../../util/httpbased.service"
+import { HttpBasedService, Done } from "../../util/httpbased.service"
 import { GlobalConfig } from "../../global.config"
 import { SessionQuery } from "../../session/state/session.query"
 import { UiStore } from "../../ui.store"
@@ -33,12 +33,15 @@ export class ExamsService extends HttpBasedService {
     this.request(this.GET, "exam", {200: l => this.examsStore.set(l)})
   }
 
-  create(createReq: CreateExam) {
+  create(createReq: CreateExam): Promise<Done> {
     const quiz = this.quizzesQuery.getEntity(createReq.quizId)
-    if (!quiz)
-      this.uiStore.warn(`Quiz [${createReq.quizId}] not found`)
-    else
-      this.request(this.POST, "exam", {200: d => {
+    
+    if (!quiz) {
+      const msg = `Quiz [${createReq.quizId}] not found`
+      this.uiStore.warn(msg)
+      return Promise.reject(msg)
+    } else {
+      return this.request(this.POST, "exam", {200: d => {
         this.examsStore.add({
           id: createReq.id,
           quiz: {id: quiz.id, title: quiz.title},
@@ -50,6 +53,7 @@ export class ExamsService extends HttpBasedService {
         })
         this.quizzesStore.update({id: createReq.quizId, inUse: true})
       }}, createReq)
+    }
   }
 
   cancel(id: string) {

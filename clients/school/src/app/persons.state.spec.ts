@@ -31,7 +31,7 @@ describe('PersonsState', () => {
   })
 
   it ("loads person list", done => {
-    state.get()
+    state.init()
     const req = controller.expectOne("apiroot/persons")
     expect(req.request.method).toEqual("GET")
     const data = [

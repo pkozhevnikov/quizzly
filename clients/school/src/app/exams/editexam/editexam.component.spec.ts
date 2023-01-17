@@ -30,7 +30,7 @@ describe('EditexamComponent', () => {
       declarations: [ EditexamComponent, PersonchooserComponent ],
       providers: [
         {provide: ComponentFixtureAutoDetect, useValue: true},
-        {provide: PersonsState, useValue: jasmine.createSpyObj("PersonsState", ["selectAll"])},
+        {provide: PersonsState, useValue: jasmine.createSpyObj("PersonsState", ["selectAll", "init"])},
         {provide: ExamsService, useValue: jasmine.createSpyObj("ExamsService", 
             ["changeTrialLength", "getTestees", "includeTestees", "excludeTestees"])},
         {provide: ExamsQuery, useValue: jasmine.createSpyObj("ExamsQuery", ["getEntity"])},
@@ -86,14 +86,14 @@ describe('EditexamComponent', () => {
     expect(node.querySelectorAll(".testees .person")[1]).toHaveText("stud2 name")
   })
 
-  it ("sends exclude testees request and updates testee list on exclusion", fakeAsync( () => {
-    node.querySelectorAll(".testees .person").forEach(elem => (elem as HTMLElement).click())
+  fit ("sends exclude testees request and updates testee list on exclusion", fakeAsync( () => {
     examsService.excludeTestees.and.returnValue(Promise.resolve([testpersons[2], testpersons[4]]))
     component.testeesToExclude = [testpersons[2], testpersons[4]]
     const excludeButton: HTMLElement = node.querySelector(".exclude")!
     excludeButton.click()
     expect(examsService.excludeTestees).toHaveBeenCalledWith("pending", ["off3", "stud2"])
     tick()
+    expect(component.testeesToExclude).toHaveSize(0)
     expect(node.querySelectorAll(".testees .person")).toHaveSize(0)
   }))
 

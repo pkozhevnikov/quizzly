@@ -31,7 +31,8 @@ export class PersonchooserComponent implements OnInit {
   }
 
   add() {
-    this.chosen = [...this.toChoose]
+    this.toChoose.filter(p => !this.chosen.includes(p)).forEach(p => this.chosen.push(p))
+    this.toChoose = []
     this.onChange.emit(this.chosen)
   }
 }

@@ -38,7 +38,7 @@ export class EditexamComponent implements OnInit {
           .then(tl => this.testees = tl)
       }
     })
-    this.personsState.get()
+    this.personsState.init()
   }
 
   changeLength() {
@@ -56,7 +56,11 @@ export class EditexamComponent implements OnInit {
 
   excludeTestees() {
     this.examsService.excludeTestees(this.exam.id, this.testeesToExclude.map(p => p.id))
-      .then(excluded => this.testees = this.testees.filter(t => !excluded.includes(t)))
+      .then(excluded => {
+        this.testeesToExclude = []
+        const eids = excluded.map(t => t.id)
+        this.testees = this.testees.filter(t => !eids.includes(t.id))
+      })
   }
   
 }

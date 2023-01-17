@@ -1,5 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
 
+body {
+  max-width: 700px;
+}
 
 .action-link{cursor:pointer;text-decoration:underline}
 a{padding-left:5px;padding-right:5px}

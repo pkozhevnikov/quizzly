@@ -9,6 +9,7 @@ import { SessionStore } from "../../session/state/session.store"
 import { SessionQuery } from "../../session/state/session.query"
 import { QuizzesQuery } from "../../quizzes/state/quizzes.query"
 import { QuizzesStore } from "../../quizzes/state/quizzes.store"
+import { DONE } from "../../util/httpbased.service"
 
 describe('ExamsService', () => {
   let examsService: ExamsService
@@ -56,7 +57,7 @@ describe('ExamsService', () => {
     expect(examsStore.set).toHaveBeenCalledWith(testexams)
   })
 
-  it ("should create an exam", () => {
+  it ("should create an exam", done => {
     quizzesQuery.getEntity.withArgs("q1").and.returnValue({
       id: "q1", title: "q1 title", obsolete: false, inUse: false, isPublished: false,
         everPublished: false})
@@ -68,7 +69,7 @@ describe('ExamsService', () => {
       trialLength: 75,
       testees: ["off2", "stud1", "stud2"]
     }
-    examsService.create(createReq)
+    const resp = examsService.create(createReq)
     const req = controller.expectOne("apiroot/exam")
     expect(req.request.method).toEqual("POST")
     expect(req.request.body).toEqual(createReq)
@@ -85,6 +86,10 @@ describe('ExamsService', () => {
       prestartAt: createDetails.preparationStart
     })
     expect(quizzesStore.update).toHaveBeenCalledWith({id: "q1", inUse: true})
+    resp.then(r => {
+      expect(r).toEqual(DONE)
+      done()
+    })
   })
 
   it ("should cancel exam", () => {

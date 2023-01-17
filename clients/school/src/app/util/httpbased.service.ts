@@ -5,6 +5,9 @@ import { throwError, Observable } from "rxjs"
 import { SessionQuery } from "../session/state/session.query"
 import { UiStore } from "../ui.store"
 
+export interface Done {}
+export const DONE: Done = {}
+
 interface ResponseActions {
   [key: number]: (resp: any) => void
 }
@@ -69,11 +72,17 @@ export class HttpBasedService {
   }
 
 
-  request(method: string, path: string, actions: ResponseActions, body?: any) {
+  request(method: string, path: string, actions: ResponseActions, body?: any): Promise<Done> {
     if (this.headers === null) {
       this.uiStore.error("Not logged in")
-      return
+      return Promise.reject("Not logged in")
     }
+    let res: any
+    let rej: any
+    const p = new Promise<Done>((resolve, reject) => {
+      res = resolve
+      rej = reject
+    })
     this.http.request(this.req(method, path, body))
       .pipe(catchError(this.handleError))
       .pipe(filter(e => e.type == 4))
@@ -82,14 +91,20 @@ export class HttpBasedService {
         next: resp => {
           if (actions && actions[resp.status]) {
             actions[resp.status](resp.body)
+            res(DONE)
           } else {
             const message = `action for ${method} ${path} ${resp.status} not specified`
             console.log(message)
             this.uiStore.warn(message)
+            rej(message)
           }
         }, 
-        error: msg => this.uiStore.error(msg)
+        error: msg => {
+          this.uiStore.error(msg)
+          rej(msg)
+        }
       })
+    return p
   }
 
 
