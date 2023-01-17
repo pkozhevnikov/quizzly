@@ -14,6 +14,7 @@ describe('QuizzesService', () => {
   let quizzesStore: QuizzesStore
   let quizzesQuery: QuizzesQuery
   let sessionStore: SessionStore
+  let quizzesUpdate: jasmine.Spy
 
   let controller: HttpTestingController
   let uiStore: UiStore
@@ -35,7 +36,7 @@ describe('QuizzesService', () => {
     sessionStore.update({id: "user1", name: null})
     quizzesQuery = TestBed.inject(QuizzesQuery)
     spyOn(quizzesStore, "set")
-    spyOn(quizzesStore, "update")
+    quizzesUpdate = spyOn(quizzesStore, "update")
     spyOn(uiStore, "error")
     spyOn(uiStore, "info")
     spyOn(uiStore, "warn")
@@ -76,12 +77,13 @@ describe('QuizzesService', () => {
   })
 
   it("updates store on publish", () => {
+    quizzesUpdate.calls.reset()
     spyOn(quizzesQuery, "getEntity").withArgs("idle").and.returnValue(idle)
     quizzesService.publish("idle")
     const req = controller.expectOne("apiroot/quiz/idle")
     expect(req.request.method).toEqual("PATCH")
     req.flush("", {status: 204, statusText: ""})
-    expect(quizzesStore.update).toHaveBeenCalledWith({id: "idle", isPublished: true, everPublished: true})
+    expect(quizzesUpdate.calls.argsFor(0)).toEqual(["idle", {isPublished: true, everPublished: true}])
   })
 
   it("doesn't make unpublish request if quiz not found", () => {
@@ -99,12 +101,13 @@ describe('QuizzesService', () => {
   })
 
   it("updates store on unpublish", () => {
+    quizzesUpdate.calls.reset()
     spyOn(quizzesQuery, "getEntity").withArgs("nowpublished").and.returnValue(nowpublished)
     quizzesService.unpublish("nowpublished")
     const req = controller.expectOne("apiroot/quiz/nowpublished")
     expect(req.request.method).toEqual("DELETE")
     req.flush("", {status: 204, statusText: ""})
-    expect(quizzesStore.update).toHaveBeenCalledWith({id: "nowpublished", isPublished: false})
+    expect(quizzesUpdate.calls.argsFor(0)).toEqual(["nowpublished", {isPublished: false}])
   })
 
 })

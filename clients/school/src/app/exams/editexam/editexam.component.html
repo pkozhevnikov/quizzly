@@ -22,6 +22,6 @@
 </div>
 
 <div>Include testees</div>
-<app-personchooser (onChange)="setTesteesToInclude($event)"></app-personchooser>
+<app-personchooser [(chosen)]="testeesToInclude"></app-personchooser>
 <button class="include" (click)="includeTestees()">Include</button>
 

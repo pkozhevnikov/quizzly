@@ -40,7 +40,7 @@ export class QuizzesService extends HttpBasedService {
       this.uiStore.warn(`[${id}] is already published`)
     else
       this.request(this.PATCH, `quiz/${id}`, {
-        204: _ => this.quizzesStore.update({id, isPublished: true, everPublished: true})
+        204: _ => this.quizzesStore.update(id, {isPublished: true, everPublished: true})
       })
   }
 
@@ -52,7 +52,7 @@ export class QuizzesService extends HttpBasedService {
       this.uiStore.warn(`[${id}] is not published`)
     else
       this.request(this.DELETE, `quiz/${id}`, {
-        204: _ => this.quizzesStore.update({id, isPublished: false})
+        204: _ => this.quizzesStore.update(id, {isPublished: false})
       })
   }
 

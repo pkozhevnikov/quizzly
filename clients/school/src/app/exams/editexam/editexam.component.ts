@@ -51,7 +51,10 @@ export class EditexamComponent implements OnInit {
 
   includeTestees() {
     this.examsService.includeTestees(this.exam.id, this.testeesToInclude.map(p => p.id))
-      .then(included => this.testees = this.testees.concat(included))
+      .then(included => {
+        this.testees = this.testees.concat(included)
+        this.testeesToInclude = []
+      })
   }
 
   excludeTestees() {

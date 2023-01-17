@@ -1,4 +1,4 @@
-import { Output, EventEmitter, Component, OnInit } from '@angular/core'
+import { Input, Output, EventEmitter, Component, OnInit } from '@angular/core'
 import { FormControl } from "@angular/forms"
 import { startWith, map, switchMap } from "rxjs"
 
@@ -11,8 +11,8 @@ import { Person, PersonsState } from "../../persons.state"
 })
 export class PersonchooserComponent implements OnInit {
   
-  chosen: Person[] = []
-  @Output() onChange = new EventEmitter<Person[]>()
+  @Input() chosen: Person[] = []
+  @Output() chosenChange = new EventEmitter<Person[]>()
   toChoose: Person[] = []
   filter = new FormControl("")
   list$ = this.filter.valueChanges
@@ -27,12 +27,13 @@ export class PersonchooserComponent implements OnInit {
 
   remove(id: string) {
     this.chosen = this.chosen.filter(p => p.id != id)
-    this.onChange.emit(this.chosen)
+    this.chosenChange.emit(this.chosen)
   }
 
   add() {
     this.toChoose.filter(p => !this.chosen.includes(p)).forEach(p => this.chosen.push(p))
     this.toChoose = []
-    this.onChange.emit(this.chosen)
+    this.chosenChange.emit(this.chosen)
   }
+
 }

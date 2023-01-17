@@ -86,7 +86,7 @@ describe('EditexamComponent', () => {
     expect(node.querySelectorAll(".testees .person")[1]).toHaveText("stud2 name")
   })
 
-  fit ("sends exclude testees request and updates testee list on exclusion", fakeAsync( () => {
+  it ("sends exclude testees request and updates testee list on exclusion", fakeAsync( () => {
     examsService.excludeTestees.and.returnValue(Promise.resolve([testpersons[2], testpersons[4]]))
     component.testeesToExclude = [testpersons[2], testpersons[4]]
     const excludeButton: HTMLElement = node.querySelector(".exclude")!
@@ -109,6 +109,8 @@ describe('EditexamComponent', () => {
     expect(testees[0]).toHaveText("off3 name")
     expect(testees[1]).toHaveText("stud2 name")
     expect(testees[2]).toHaveText("stud1 name")
+    expect(component.testeesToInclude).toHaveSize(0)
+    expect(node.querySelectorAll("person-selected")).toHaveSize(0)
   }))
 
   it ("sends change trial length request", () => {

@@ -93,7 +93,7 @@ describe('NewexamComponent', () => {
     }
   })
 
-  it ("moves selected persons to selection and removes from selection", () => {
+  it ("moves selected persons to selection and removes from selection", fakeAsync( () => {
     const personsSrc: HTMLSelectElement = node.querySelector(".persons-src")!
     personsSrc.options[1].selected = true
     personsSrc.options[3].selected = true
@@ -105,8 +105,10 @@ describe('NewexamComponent', () => {
     expect(component.selectedPersons).toEqual([testpersons[1], testpersons[3], testpersons[5]])
     const removeLink = node.querySelectorAll(".person-selected-remove")[1]! as HTMLAnchorElement
     removeLink.click()
+    tick()
+    expect(node.querySelectorAll(".person-selected").length).toEqual(2)
     expect(component.selectedPersons).toEqual([testpersons[1], testpersons[5]])
-  })
+  }))
 
   it ("fills form and sends data to service", fakeAsync( () => {
     const idBox: HTMLInputElement = node.querySelector(".exam-id")!

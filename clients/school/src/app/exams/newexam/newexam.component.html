@@ -22,6 +22,6 @@
   [(ngModel)]="period" class="form-control period"/>
 </div>
 Testees:<br>
-<app-personchooser (onChange)="personsSelected($event)"></app-personchooser>
+<app-personchooser [(chosen)]="selectedPersons"></app-personchooser>
 
 <button class="create" (click)="createExam()">Create</button>

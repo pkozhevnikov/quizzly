@@ -15,6 +15,8 @@ describe('ExamsService', () => {
   let examsService: ExamsService
   let examsStore: ExamsStore
 
+  let examsUpdate: jasmine.Spy
+
   let controller: HttpTestingController
   let uiStore: UiStore
   let quizzesQuery: jasmine.SpyObj<QuizzesQuery>
@@ -40,7 +42,7 @@ describe('ExamsService', () => {
     uiStore = TestBed.inject(UiStore)
     spyOn(uiStore, "info")
     spyOn(examsStore, "set")
-    spyOn(examsStore, "update")
+    examsUpdate = spyOn(examsStore, "update")
     spyOn(examsStore, "add")
   })
 
@@ -85,7 +87,7 @@ describe('ExamsService', () => {
       trialLength: 75,
       prestartAt: createDetails.preparationStart
     })
-    expect(quizzesStore.update).toHaveBeenCalledWith({id: "q1", inUse: true})
+    expect(quizzesStore.update.calls.argsFor(0) as any[]).toEqual(["q1", {inUse: true}])
     resp.then(r => {
       expect(r).toEqual(DONE)
       done()
@@ -93,20 +95,22 @@ describe('ExamsService', () => {
   })
 
   it ("should cancel exam", () => {
+    examsUpdate.calls.reset()
     examsService.cancel("upcoming")
     const req = controller.expectOne("apiroot/exam/upcoming")
     expect(req.request.method).toEqual("DELETE")
     req.flush("", {status: 204, statusText: ""})
-    expect(examsStore.update).toHaveBeenCalledWith({id: "upcoming", state: "Cancelled"})
+    expect(examsUpdate.calls.argsFor(0) as any[]).toEqual(["upcoming", {state: "Cancelled"}])
   })
 
   it ("should change trial length", () => {
+    examsUpdate.calls.reset()
     examsService.changeTrialLength("pending", 180)
     const req = controller.expectOne("apiroot/exam/pending")
     expect(req.request.method).toEqual("POST")
     expect(req.request.body).toEqual({length: 180})
     req.flush("", {status: 204, statusText: ""})
-    expect(examsStore.update).toHaveBeenCalledWith({id: "pending", trialLength: 180})
+    expect(examsUpdate.calls.argsFor(0) as any[]).toEqual(["pending", {trialLength: 180}])
   })
 
   it ("should include testees", done => {
