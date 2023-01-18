@@ -65,10 +65,11 @@ export class HttpBasedService {
       return new HttpRequest(method, `${this.baseApiUrl}/${path}`, body, {
         headers: this.headers!
       })
-    else
-      return new HttpRequest(method, `${this.baseApiUrl}/${path}`, {
+    else {
+      return new HttpRequest(method, `${this.baseApiUrl}/${path}`, {}, {
         headers: this.headers!
       })
+    }
   }
 
 
