@@ -1,4 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing'
+import { RouterTestingModule } from "@angular/router/testing"
+import { Router } from "@angular/router"
 import { TestBed } from '@angular/core/testing'
 import { SessionService } from './session.service'
 import { SessionStore } from './session.store'
@@ -8,16 +10,19 @@ describe('SessionService', () => {
   let sessionService: SessionService
   let sessionStore: SessionStore
   let uiStore: UiStore
+  let router: Router
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [SessionService, SessionStore, UiStore],
-      imports: [ HttpClientTestingModule ]
+      imports: [ HttpClientTestingModule, RouterTestingModule ]
     })
 
     sessionService = TestBed.inject(SessionService)
     sessionStore = TestBed.inject(SessionStore)
     uiStore = TestBed.inject(UiStore)
+    router = TestBed.inject(Router)
+    spyOn(router, "navigate")
     spyOn(uiStore, "error")
     spyOn(uiStore, "info")
     spyOn(sessionStore, "update")
@@ -41,6 +46,7 @@ describe('SessionService', () => {
   it("should logout", () => {
     sessionService.logout()
     expect(sessionStore.update).toHaveBeenCalledWith({id: null, name: null})
+    expect(router.navigate).toHaveBeenCalledWith(["/login"])
   })
 
 })

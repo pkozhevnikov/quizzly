@@ -2,10 +2,20 @@
 
 body {
   max-width: 700px;
+  margin: 20px;
 }
 
 .action-link{cursor:pointer;text-decoration:underline}
 a{padding-left:5px;padding-right:5px}
 
-table{background-color:#ddd}
-th,td{background-color:white;padding:5px}
+.real-table {
+  background-color:#ddd;
+  width: 100%;
+}
+.real-table th,td{background-color:white;padding:5px}
+.two-columns{
+  display: flex;
+}
+.two-columns>.half{
+  flex: 50%;
+}

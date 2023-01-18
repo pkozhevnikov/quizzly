@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
+import { Router } from "@angular/router"
 import { tap } from 'rxjs/operators'
 import { SessionStore, SessionState } from './session.store'
 import { UiStore, Notif } from '../../ui.store'
@@ -14,7 +15,8 @@ export class SessionService {
   constructor(
     private sessionStore: SessionStore, 
     private http: HttpClient,
-    private uiStore: UiStore
+    private uiStore: UiStore,
+    private router: Router
   ) {
   }
 
@@ -36,7 +38,9 @@ export class SessionService {
   }
 
   logout() {
+    this.uiStore.clearNotif()
     this.sessionStore.update({id: null, name: null})
+    this.router.navigate(["/login"])
   }
 
 

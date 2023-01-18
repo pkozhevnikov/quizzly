@@ -1,10 +1,12 @@
-<nav *ngIf="sessionQuery.loggedIn$|async">
-  <a routerLink="/quizzes" routerLinkActive="active">Quizzes</a>
-  <a routerLink="/exam" routerLinkActive="active">Exams</a>
-</nav>
-<div *ngIf="sessionQuery.loggedIn$|async">
-  {{ sessionQuery.userName$|async }}
-  <a routerLink="/logout">Logout</a>
+<div class="two-columns" *ngIf="sessionQuery.loggedIn$|async">
+  <nav class="half">
+    <a routerLink="/quizzes" routerLinkActive="active">Quizzes</a>
+    <a routerLink="/exam" routerLinkActive="active">Exams</a>
+  </nav>
+  <div clas="half">
+    {{ sessionQuery.userName$|async }}
+    <a (click)="logout()" class="action-link">Logout</a>
+  </div>
 </div>
 <div *ngIf="uiQuery.notif$|async as notif" class="notif" [ngClass]="notif.kind">{{ notif.text }}</div>
 <router-outlet></router-outlet>

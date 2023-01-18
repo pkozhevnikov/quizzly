@@ -45,5 +45,8 @@ export class UiStore extends Store<UiState> {
   error(text: string) {
     this.update({notif: Notif.error(text)})
   }
+  clearNotif() {
+    this.update({notif: Notif.EMPTY})
+  }
 
 }

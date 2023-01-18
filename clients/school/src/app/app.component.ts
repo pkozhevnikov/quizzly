@@ -1,6 +1,7 @@
 import { Component } from '@angular/core'
 import { UiQuery } from "./ui.query"
 import { SessionQuery } from "./session/state/session.query"
+import { SessionService } from "./session/state/session.service"
 
 @Component({
   selector: 'app-root',
@@ -10,7 +11,13 @@ import { SessionQuery } from "./session/state/session.query"
 export class AppComponent {
   constructor(
     public uiQuery: UiQuery,
-    public sessionQuery: SessionQuery
+    public sessionQuery: SessionQuery,
+    public sessionService: SessionService
   ) {}
   title = 'Quizzly :: Exam management'
+
+  logout() {
+    this.sessionService.logout()
+  }
+
 }

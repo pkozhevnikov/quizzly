@@ -1,35 +1,28 @@
 import { Injectable, NgModule } from "@angular/core"
 import { RouterModule, Routes, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot,
-      UrlSegment, UrlSegmentGroup, UrlTree, Router } from "@angular/router"
+      UrlTree, Router } from "@angular/router"
 import { LoginComponent } from "./session/login/login.component"
 import { QuizlistComponent } from "./quizzes/quizlist/quizlist.component"
 import { NewexamComponent } from "./exams/newexam/newexam.component"
 import { ExamlistComponent } from "./exams/examlist/examlist.component"
 import { EditexamComponent } from "./exams/editexam/editexam.component"
 import { SessionQuery } from "./session/state/session.query"
-import { map } from "rxjs"
+import { map, Observable } from "rxjs"
 
 @Injectable({providedIn: "root"})
 export class CommonCanActivate implements CanActivate {
-  private loginUrl: UrlTree
   constructor(
     private sessionQuery: SessionQuery,
     private router: Router
   ) {
-    this.loginUrl = router.parseUrl("/login")
   }
 
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ) {
+  ): Observable<boolean | UrlTree> {
     return this.sessionQuery.loggedIn$
-      .pipe(map(loggedin => {
-        if (loggedin)
-          return true
-        else
-          return this.loginUrl
-      }))
+      .pipe(map(loggedin => loggedin || this.router.createUrlTree(["/login"])))
   }
 }
 
@@ -40,7 +33,7 @@ export const routes: Routes = [
   {path: "exam/:id", component: EditexamComponent, canActivate: [CommonCanActivate]},
   {path: "exam", component: ExamlistComponent, canActivate: [CommonCanActivate]},
   {path: "", redirectTo: "/quizzes", pathMatch: "full"},
-  {path: "**", component: QuizlistComponent},
+  {path: "**", component: QuizlistComponent, canActivate: [CommonCanActivate]},
 ]
 
 @NgModule({
