@@ -27,9 +27,9 @@ See
 
 Controls usage of Quizzes, supports scheduling Exams.
 
- * `School` - root
  * `QuizFact` - entity, controls Quiz usage
  * `Exam` - entity
+ * `ExamTracker` - single entity, manages and tracks state of Exams
 
 Implemented by module **`school`**.
 
@@ -37,7 +37,14 @@ See
 
  * [QuizFact entity](../school/src/main/scala/QuizFact.scala)
  * [Exam entity](../school/src/main/scala/ExamEntity.scala)
- * [School root](../school/src/main/scala/School.scala)
+ * [ExamTracker entity](../school/src/main/scala/ExamTracker.scala)
+
+`ExamTracker` is a singleton entity, that registers creation of new exams, periodically checks
+if an exam is about to progress its state from `Pending` to `Upcoming` and from `Upcoming` to
+`InProgress`. If time till progress is equal to or less than configured value the `ExamTracker`
+notifies the `Exam` to 'awake' it if it's passivated.  When an `Exam` proceeds to next state,
+the `ExamTracker` registers the state change. On change to `InProgress` or `Cancelled` state,
+`ExamTracker` stops tracking the exam and removes it from the tracked exams list.
 
 ### Trial
 

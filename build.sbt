@@ -47,6 +47,8 @@ val commonDependencies = Seq(
   ("ch.megard" %% "akka-http-cors" % "1.1.3"),
   "com.h2database" % "h2" % "2.1.212",
   "com.zaxxer" % "HikariCP" % "5.0.1",
+  "com.github.pjfanning" %% "jackson-module-scala3-enum" % "2.13.+",
+  "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % "2.13.+",
   "org.flywaydb" % "flyway-core" % "9.7.0"
 )
 

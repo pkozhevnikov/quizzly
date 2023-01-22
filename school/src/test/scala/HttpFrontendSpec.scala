@@ -135,7 +135,7 @@ class HttpFrontendSpec
         c.replyTo ! resp
         Behaviors.stopped
       }
-      def fact(id: String) = 
+      def fact(id: String) =
         id shouldBe expectedId
         TestEntityRef(QuizFact.EntityKey, id, testKit.spawn(beh))
       def exam(id: String) = TestEntityRef(ExamEntity.EntityKey, id, testKit.spawn(Behaviors.empty))
@@ -356,13 +356,14 @@ class HttpFrontendSpec
   }
 
   "quiz/{id}" when {
-    
+
     "PATCH" should {
       "publish responds with error" in {
-        patch("quiz/q1", off1) ~> stdfact("q1", Bad(QuizFact.isUsed.error())) ~> check {
-          status shouldBe StatusCodes.UnprocessableEntity
-          responseAs[Error] shouldBe QuizFact.isUsed.error()
-        }
+        patch("quiz/q1", off1) ~> stdfact("q1", Bad(QuizFact.isUsed.error())) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe QuizFact.isUsed.error()
+          }
       }
       "publish the quiz" in {
         val beh = Behaviors.receiveMessage[QuizFact.Command] {
@@ -372,18 +373,20 @@ class HttpFrontendSpec
           case _ =>
             Behaviors.stopped
         }
-        patch("quiz/q1", off1) ~> stdfact("q1", beh) ~> check {
-          status shouldBe StatusCodes.NoContent
-        }
+        patch("quiz/q1", off1) ~> stdfact("q1", beh) ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
       }
     }
 
     "DELETE" should {
       "unpublish responds with error" in {
-        delete("quiz/q1", off1) ~> stdfact("q1", Bad(QuizFact.isNotPublished.error())) ~> check {
-          status shouldBe StatusCodes.UnprocessableEntity
-          responseAs[Error] shouldBe QuizFact.isNotPublished.error()
-        }
+        delete("quiz/q1", off1) ~> stdfact("q1", Bad(QuizFact.isNotPublished.error())) ~>
+          check {
+            status shouldBe StatusCodes.UnprocessableEntity
+            responseAs[Error] shouldBe QuizFact.isNotPublished.error()
+          }
       }
       "unpublish quiz" in {
         val beh = Behaviors.receiveMessage[QuizFact.Command] {
@@ -393,9 +396,10 @@ class HttpFrontendSpec
           case _ =>
             Behaviors.stopped
         }
-        delete("quiz/q1", off1) ~> stdfact("q1", beh) ~> check {
-          status shouldBe StatusCodes.NoContent
-        }
+        delete("quiz/q1", off1) ~> stdfact("q1", beh) ~>
+          check {
+            status shouldBe StatusCodes.NoContent
+          }
       }
     }
 

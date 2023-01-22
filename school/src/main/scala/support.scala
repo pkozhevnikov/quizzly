@@ -50,11 +50,18 @@ case class Student(id: PersonID, name: String) extends Person:
 type QuizID = String
 type ExamID = String
 
-final case class ExamConfig(preparationPeriodHours: Int, trialLengthMinutesRange: (Int, Int))
+final case class ExamConfig(
+  preparationPeriodHours: Int, 
+  trialLengthMinutesRange: (Int, Int),
+  trackerCheckRateMinutes: Int = 5,
+  awakeExamBeforeProceeedMinutes: Int = 3
+)
 object ExamConfig:
   def fromConfig(econf: com.typesafe.config.Config) = ExamConfig(
     econf.getInt("preparationPeriodHours"),
-    (econf.getInt("trialLengthMinutes.min"), econf.getInt("trialLengthMinutes.max"))
+    (econf.getInt("trialLengthMinutes.min"), econf.getInt("trialLengthMinutes.max")),
+    econf.getInt("trackerCheckRateMinutes"),
+    econf.getInt("awakeExamBeforeProceedMinutes")
   )
 
 final case class Quiz(id: QuizID, title: String)
