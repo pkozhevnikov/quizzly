@@ -51,10 +51,10 @@ type QuizID = String
 type ExamID = String
 
 final case class ExamConfig(
-  preparationPeriodHours: Int, 
-  trialLengthMinutesRange: (Int, Int),
-  trackerCheckRateMinutes: Int = 5,
-  awakeExamBeforeProceeedMinutes: Int = 3
+    preparationPeriodHours: Int,
+    trialLengthMinutesRange: (Int, Int),
+    trackerCheckRateMinutes: Int = 5,
+    awakeExamBeforeProceedMinutes: Int = 3
 )
 object ExamConfig:
   def fromConfig(econf: com.typesafe.config.Config) = ExamConfig(

@@ -1,9 +1,11 @@
 package quizzly.school
 
-import akka.actor.typed.ActorRef
-import akka.actor.testkit.typed.scaladsl.ActorTestKit
-import akka.persistence.testkit.scaladsl.{EventSourcedBehaviorTestKit as TestKit}
+import akka.actor.typed.*
+import akka.actor.testkit.typed.scaladsl.*
+import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit
 import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit.*
+
+import scala.concurrent.duration.*
 
 import java.time.*
 
@@ -33,7 +35,8 @@ object ExamTrackerSpec:
         jackson-modules += "com.github.pjfanning.enum.EnumModule"
       }
       """)
-    .withFallback(TestKit.config)
+    .withFallback(ManualTime.config)
+    .withFallback(EventSourcedBehaviorTestKit.config)
     .resolve
 
 class ExamTrackerSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, BeforeAndAfterEach:
@@ -42,13 +45,26 @@ class ExamTrackerSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Be
 
   import ExamTracker.*
 
-  val now = Instant.parse("2023-01-20T10:00:00Z")
+  var now = Instant.parse("2023-01-20T10:00:00Z")
   given (() => Instant) = () => now
 
-  private val kit = TestKit[Command, Event, Tracked](
+  var exams = Map.empty[String, ActorRef[Exam.Command]]
+  def putExam(id: String, ref: ActorRef[Exam.Command]) =
+    exams += (id -> ref)
+  def putExam(id: String, beh: Behavior[Exam.Command]) =
+    exams += (id -> testKit.spawn(beh))
+
+  private val kit = EventSourcedBehaviorTestKit[Command, Event, Tracked](
     testKit.system,
-    ExamTracker(ExamConfig(24, (1, 2), 5, 3))
+    ExamTracker(ExamConfig(
+      preparationPeriodHours = 24,
+      trialLengthMinutesRange = (1, 2),
+      trackerCheckRateMinutes = 1,
+      awakeExamBeforeProceedMinutes = 3
+    ), exams(_))
   )
+
+  val manualTime = ManualTime()(using testKit.system)
 
   override protected def beforeEach(): Unit =
     super.beforeEach()
@@ -103,7 +119,26 @@ class ExamTrackerSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Be
       result.state.all shouldBe empty
     }
 
-    
+    "wake exam before transition to upcoming" in {
+      register
+      val probe = testKit.createTestProbe[Exam.Command]()
+      putExam("E1", probe.ref)
+      now = Instant.parse("2023-01-21T09:57:00Z")
+      probe.expectNoMessage()
+      manualTime.timePasses(1.minutes)
+      probe.expectMessage(Exam.Awake)
+    }
+
+    "wake exam before transition to 'in progress'" in {
+      register
+      kit.runCommand(RegisterStateChange("E1", Exam.State.Upcoming))
+      val probe = testKit.createTestProbe[Exam.Command]()
+      putExam("E1", probe.ref)
+      now = Instant.parse("2023-01-22T09:57:00Z")
+      probe.expectNoMessage()
+      manualTime.timePasses(1.minutes)
+      probe.expectMessage(Exam.Awake)
+    }
 
 
   }

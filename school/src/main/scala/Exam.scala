@@ -87,6 +87,7 @@ object Exam:
       extends CommandWithReply[Nothing]
   final case class TrialLengthSet(length: Int) extends Event
 
+  case object Awake extends Command
   case object Proceed extends Command
 
   final case class Upcoming(
