@@ -1,6 +1,6 @@
 package quizzly.school
 
-import akka.actor.typed.{Behavior, ActorRef}
+import akka.actor.typed.{Behavior, ActorRef, RecipientRef}
 import akka.actor.typed.scaladsl.{Behaviors, ActorContext}
 import akka.cluster.sharding.typed.scaladsl.EntityTypeKey
 import akka.persistence.typed.PersistenceId
@@ -21,14 +21,15 @@ object ExamEntity:
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("Exam")
 
-  def apply(id: ExamID, facts: String => EntityRef[QuizFact.Command], config: ExamConfig)(
+  def apply(id: ExamID, facts: String => EntityRef[QuizFact.Command],
+        tracker: RecipientRef[ExamTracker.Command], config: ExamConfig)(
       using () => Instant,
       ExecutionContext
   ): Behavior[Command] = Behaviors.setup { ctx =>
     EventSourcedBehavior[Command, Event, Exam](
       PersistenceId.of(EntityKey.name, id),
       Blank(),
-      commandHandler(ctx, id, facts, config),
+      commandHandler(ctx, id, facts, tracker, config),
       eventHandler
     ).withTagger(_ => Set(Tags.Single))
   }
@@ -41,6 +42,7 @@ object ExamEntity:
       ctx: ActorContext[Command],
       id: ExamID,
       facts: String => EntityRef[QuizFact.Command],
+      tracker: RecipientRef[ExamTracker.Command],
       config: ExamConfig
   )(using now: () => Instant, ec: ExecutionContext): (Exam, Command) => Effect[Event, Exam] =
     (state, cmd) =>

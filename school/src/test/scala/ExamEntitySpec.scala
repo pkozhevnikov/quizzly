@@ -41,6 +41,8 @@ class ExamEntitySpec
 
   import Exam.*
 
+  val tracker = testKit.createTestProbe[ExamTracker.Command]()
+
   private var factm = Map.empty[QuizID, EntityRef[QuizFact.Command]]
   private def putFact(id: QuizID, beh: Behavior[QuizFact.Command]) =
     factm += (id -> TestEntityRef(QuizFact.EntityKey, id, testKit.spawn(beh)))
@@ -53,6 +55,7 @@ class ExamEntitySpec
     ExamEntity(
       id,
       factm(_),
+      tracker.ref,
       ExamConfig(preparationPeriodHours = 48, trialLengthMinutesRange = (5, 180))
     )
   )

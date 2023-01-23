@@ -1,6 +1,6 @@
 package quizzly.school
 
-import akka.actor.typed.{Behavior, ActorRef}
+import akka.actor.typed.{Behavior, ActorRef, RecipientRef}
 import akka.actor.typed.scaladsl.{Behaviors, ActorContext}
 import akka.cluster.sharding.typed.scaladsl.EntityTypeKey
 import akka.persistence.typed.PersistenceId
@@ -44,7 +44,7 @@ object ExamTracker:
     else
       throw IllegalArgumentException(s"unexpected state $forState")
 
-  def apply(config: ExamConfig, examsAware: String => ActorRef[Exam.Command])(
+  def apply(config: ExamConfig, examsAware: String => RecipientRef[Exam.Command])(
       using () => Instant
   ): Behavior[Command] = Behaviors.withTimers { timers =>
     timers.startTimerAtFixedRate(Check, FiniteDuration(config.trackerCheckRateMinutes, MINUTES))
@@ -60,7 +60,7 @@ object ExamTracker:
       state: Tracked,
       cmd: Command,
       config: ExamConfig,
-      examsAware: String => ActorRef[Exam.Command]
+      examsAware: String => RecipientRef[Exam.Command]
   )(using now: () => Instant): Effect[Event, Tracked] =
     cmd match
       case Register(prestart, start, id) =>
