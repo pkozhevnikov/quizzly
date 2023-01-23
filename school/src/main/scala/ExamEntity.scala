@@ -27,12 +27,16 @@ object ExamEntity:
       tracker: () => RecipientRef[ExamTracker.Command],
       config: ExamConfig
   )(using () => Instant, ExecutionContext): Behavior[Command] = Behaviors.setup { ctx =>
-    EventSourcedBehavior[Command, Event, Exam](
-      PersistenceId.of(EntityKey.name, id),
-      Blank(),
-      commandHandler(ctx, id, facts, tracker, config),
-      eventHandler
-    ).withTagger(_ => Set(Tags.Single))
+    Behaviors.withTimers { timers => 
+      def scheduleProceeding(in: Long) = 
+        timers.startSingleTimer(Proceed, in.millis)
+      EventSourcedBehavior[Command, Event, Exam](
+        PersistenceId.of(EntityKey.name, id),
+        Blank(),
+        commandHandler(ctx, id, facts, tracker, config, scheduleProceeding),
+        eventHandler
+      ).withTagger(_ => Set(Tags.Single))
+    }
   }
 
   given Timeout = 2.seconds
@@ -44,7 +48,8 @@ object ExamEntity:
       id: ExamID,
       facts: String => EntityRef[QuizFact.Command],
       tracker: () => RecipientRef[ExamTracker.Command],
-      config: ExamConfig
+      config: ExamConfig,
+      scheduleProceeding: Long => Unit
   )(using now: () => Instant, ec: ExecutionContext): (Exam, Command) => Effect[Event, Exam] =
     (state, cmd) =>
       state match
@@ -149,6 +154,9 @@ object ExamEntity:
                   tracker() ! ExamTracker.RegisterStateChange(id, Exam.State.Cancelled)
                 )
                 .thenReply(replyTo)(_ => Resp.OK)
+            case Awake =>
+              scheduleProceeding(now().until(pending.preparationStart, ChronoUnit.MILLIS))
+              Effect.none
             case _ =>
               Effect.unhandled
 

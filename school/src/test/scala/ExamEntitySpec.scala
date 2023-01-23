@@ -27,6 +27,8 @@ object ExamEntitySpec:
       }
       """)
     .withFallback(TestKit.config)
+    .withFallback(ManualTime.config)
+    .resolve
 
 class ExamEntitySpec
     extends wordspec.AnyWordSpec,
@@ -50,15 +52,19 @@ class ExamEntitySpec
     factm += (id -> TestEntityRef(QuizFact.EntityKey, id, ref))
   given (() => Instant) = () => Instant.parse("2022-11-01T00:00:00Z")
 
+  val config = ExamConfig(preparationPeriodHours = 48, trialLengthMinutesRange = (5, 180))
+
   private val examKit = TestKit[Command, Event, Exam](
     testKit.system,
     ExamEntity(
       id,
       factm(_),
       () => tracker.ref,
-      ExamConfig(preparationPeriodHours = 48, trialLengthMinutesRange = (5, 180))
+      config
     )
   )
+
+  val manualTime = ManualTime()(using testKit.system)
 
   override def beforeEach(): Unit =
     super.beforeEach()
@@ -100,6 +106,9 @@ class ExamEntitySpec
         rejected(IncludeTestees(Set.empty, _), ExcludeTestees(Set.empty, _), SetTrialLength(1, _))
 
         val result = examKit.runCommand(Proceed)
+        result.hasNoEvents shouldBe true
+        result.state shouldBe Blank()
+        val result2 = examKit.runCommand(Awake)
         result.hasNoEvents shouldBe true
         result.state shouldBe Blank()
       }
@@ -304,6 +313,17 @@ class ExamEntitySpec
         val result = examKit.runCommand(Create("", 1, period, Set.empty, official1, _))
         result.reply shouldBe Bad(illegalState.error() + "Pending")
         result.state shouldBe initial
+      }
+
+      "be awaken and then go to upcoming" ignore {
+        init
+        examKit.runCommand(Proceed).event shouldBe GoneUpcoming
+        val result1 = examKit.runCommand(Awake)
+        result1.state shouldBe an [Pending]
+        manualTime.timePasses(config.awakeExamBeforeProceedMinutes.minutes)
+        val result2 = examKit.runCommand(Create("", 1, period, Set.empty, official1, _))
+        result2.hasNoEvents shouldBe true
+        result2.reply shouldBe Bad(illegalState.error() + "Upcoming")
       }
 
     }
