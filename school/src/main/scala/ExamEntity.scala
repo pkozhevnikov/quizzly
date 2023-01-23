@@ -175,6 +175,9 @@ object ExamEntity:
                 .thenRun(_ => tracker() ! ExamTracker.RegisterStateChange(id, State.InProgress))
             case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(illegalState.error() + "Upcoming"))
+            case Awake =>
+              scheduleProceeding(now().until(upcoming.period.start, ChronoUnit.MILLIS))
+              Effect.none
             case _ =>
               Effect.unhandled
 

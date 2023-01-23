@@ -2,6 +2,7 @@ package quizzly.school
 
 import java.util.UUID
 import java.time.*
+import java.time.temporal.ChronoUnit;
 
 import akka.actor.typed.*
 import akka.actor.typed.scaladsl.*
@@ -50,7 +51,8 @@ class ExamEntitySpec
     factm += (id -> TestEntityRef(QuizFact.EntityKey, id, testKit.spawn(beh)))
   private def putFact(id: QuizID, ref: ActorRef[QuizFact.Command]) =
     factm += (id -> TestEntityRef(QuizFact.EntityKey, id, ref))
-  given (() => Instant) = () => Instant.parse("2022-11-01T00:00:00Z")
+  var nowTime = Instant.parse("2022-11-01T00:00:00Z")
+  given (() => Instant) = () => nowTime
 
   val config = ExamConfig(preparationPeriodHours = 48, trialLengthMinutesRange = (5, 180))
 
@@ -69,6 +71,7 @@ class ExamEntitySpec
   override def beforeEach(): Unit =
     super.beforeEach()
     tracker = testKit.createTestProbe[ExamTracker.Command]()
+    nowTime = Instant.parse("2022-11-01T00:00:00Z")
     examKit.clear()
   override def afterAll(): Unit = testKit.shutdownTestKit()
 
@@ -315,10 +318,11 @@ class ExamEntitySpec
         result.state shouldBe initial
       }
 
-      "be awaken and then go to upcoming" ignore {
+      "be awaken and then go to upcoming" in {
         init
-        examKit.runCommand(Proceed).event shouldBe GoneUpcoming
+        nowTime = prepStart.toInstant.minus(config.awakeExamBeforeProceedMinutes, ChronoUnit.MINUTES)
         val result1 = examKit.runCommand(Awake)
+        result1.hasNoEvents shouldBe true
         result1.state shouldBe an [Pending]
         manualTime.timePasses(config.awakeExamBeforeProceedMinutes.minutes)
         val result2 = examKit.runCommand(Create("", 1, period, Set.empty, official1, _))
@@ -389,6 +393,19 @@ class ExamEntitySpec
             pending.host
           )
         tracker.expectMessage(ExamTracker.RegisterStateChange("exam-1", State.InProgress))
+      }
+
+      "be awaken and then go to 'in progress'" in {
+        init
+        examKit.runCommand(Proceed)
+        nowTime = period.start.toInstant.minus(config.awakeExamBeforeProceedMinutes, ChronoUnit.MINUTES)
+        val result1 = examKit.runCommand(Awake)
+        result1.hasNoEvents shouldBe true
+        result1.state shouldBe an [Upcoming]
+        manualTime.timePasses(config.awakeExamBeforeProceedMinutes.minutes)
+        val result2 = examKit.runCommand(Create("", 1, period, Set.empty, official1, _))
+        result2.hasNoEvents shouldBe true
+        result2.reply shouldBe Bad(illegalState.error() + "InProgress")
       }
 
     }
