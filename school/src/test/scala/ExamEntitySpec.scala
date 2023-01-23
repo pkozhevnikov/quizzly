@@ -41,7 +41,7 @@ class ExamEntitySpec
 
   import Exam.*
 
-  val tracker = testKit.createTestProbe[ExamTracker.Command]()
+  var tracker = testKit.createTestProbe[ExamTracker.Command]()
 
   private var factm = Map.empty[QuizID, EntityRef[QuizFact.Command]]
   private def putFact(id: QuizID, beh: Behavior[QuizFact.Command]) =
@@ -55,13 +55,14 @@ class ExamEntitySpec
     ExamEntity(
       id,
       factm(_),
-      tracker.ref,
+      () => tracker.ref,
       ExamConfig(preparationPeriodHours = 48, trialLengthMinutesRange = (5, 180))
     )
   )
 
   override def beforeEach(): Unit =
     super.beforeEach()
+    tracker = testKit.createTestProbe[ExamTracker.Command]()
     examKit.clear()
   override def afterAll(): Unit = testKit.shutdownTestKit()
 
@@ -115,11 +116,13 @@ class ExamEntitySpec
               Behaviors.stopped
           }
         )
+        tracker.expectNoMessage()
         val result = examKit
           .runCommand(Create(quiz.id, 60, period, Set(student1, student2, official3), official4, _))
         result.reply shouldBe Good(CreateExamDetails(prepStart, official4))
         result.state shouldBe
           Pending(quiz, 60, prepStart, period, Set(student1, student2, official3), official4)
+        tracker.expectMessage(ExamTracker.Register(prepStart, period.start, "exam-1"))
       }
 
       def reject(reason: Reason) =
@@ -248,6 +251,7 @@ class ExamEntitySpec
 
       "proceed to upcoming" in {
         val initial = init
+        tracker.expectMessageType[ExamTracker.Register]
         val result = examKit.runCommand(Proceed)
         result.event shouldBe GoneUpcoming
         result.state shouldBe
@@ -258,6 +262,7 @@ class ExamEntitySpec
             initial.testees,
             initial.host
           )
+        tracker.expectMessage(ExamTracker.RegisterStateChange(id, State.Upcoming))
       }
 
       "be cancelled" in {
@@ -276,6 +281,7 @@ class ExamEntitySpec
         val result0 = examKit.runCommand(Create(qz.id, 60, period, Set.empty, official1, _))
         val initial = result0.stateOfType[Pending]
         val at = Instant.now()
+        tracker.expectMessageType[ExamTracker.Register]
         val result = examKit.runCommand(Cancel(at, _))
         result.reply shouldBe OK
         result.state shouldBe
@@ -290,6 +296,7 @@ class ExamEntitySpec
 
         probe.expectMessageType[QuizFact.Use]
         probe.expectMessage(QuizFact.StopUse("exam-1"))
+        tracker.expectMessage(ExamTracker.RegisterStateChange("exam-1", State.Cancelled))
       }
 
       "reject creation" in {
@@ -316,6 +323,7 @@ class ExamEntitySpec
           )
 
         val at = Instant.now()
+        tracker.receiveMessages(2)
         val result = examKit.runCommand(Cancel(at, _))
         result.reply shouldBe OK
         result.state shouldBe
@@ -327,6 +335,7 @@ class ExamEntitySpec
             initial.host,
             at
           )
+        tracker.expectMessage(ExamTracker.RegisterStateChange("exam-1", State.Cancelled))
       }
 
       "reject any other action" in {
@@ -348,6 +357,7 @@ class ExamEntitySpec
       "proceed to in progress" in {
         val pending = init
         examKit.runCommand(Proceed)
+        tracker.receiveMessages(2)
         val result = examKit.runCommand(Proceed)
         result.event shouldBe GoneInProgress
         result.state shouldBe
@@ -358,6 +368,7 @@ class ExamEntitySpec
             pending.testees,
             pending.host
           )
+        tracker.expectMessage(ExamTracker.RegisterStateChange("exam-1", State.InProgress))
       }
 
     }
@@ -378,6 +389,7 @@ class ExamEntitySpec
           )
 
         val at = Instant.now()
+        tracker.receiveMessages(3)
         val result = examKit.runCommand(Cancel(at, _))
         result.reply shouldBe OK
         result.state shouldBe
@@ -389,6 +401,7 @@ class ExamEntitySpec
             initial.host,
             at
           )
+        tracker.expectMessage(ExamTracker.RegisterStateChange("exam-1", State.Cancelled))
       }
 
       "reject any other action" in {

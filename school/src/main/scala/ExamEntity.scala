@@ -21,11 +21,12 @@ object ExamEntity:
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("Exam")
 
-  def apply(id: ExamID, facts: String => EntityRef[QuizFact.Command],
-        tracker: RecipientRef[ExamTracker.Command], config: ExamConfig)(
-      using () => Instant,
-      ExecutionContext
-  ): Behavior[Command] = Behaviors.setup { ctx =>
+  def apply(
+      id: ExamID,
+      facts: String => EntityRef[QuizFact.Command],
+      tracker: () => RecipientRef[ExamTracker.Command],
+      config: ExamConfig
+  )(using () => Instant, ExecutionContext): Behavior[Command] = Behaviors.setup { ctx =>
     EventSourcedBehavior[Command, Event, Exam](
       PersistenceId.of(EntityKey.name, id),
       Blank(),
@@ -42,7 +43,7 @@ object ExamEntity:
       ctx: ActorContext[Command],
       id: ExamID,
       facts: String => EntityRef[QuizFact.Command],
-      tracker: RecipientRef[ExamTracker.Command],
+      tracker: () => RecipientRef[ExamTracker.Command],
       config: ExamConfig
   )(using now: () => Instant, ec: ExecutionContext): (Exam, Command) => Effect[Event, Exam] =
     (state, cmd) =>
@@ -107,6 +108,9 @@ object ExamEntity:
                     c.host
                   )
                 )
+                .thenRun((_: Exam) =>
+                  tracker() ! ExamTracker.Register(c.preparationStart, c.period.start, id)
+                )
                 .thenReply(c.replyTo)(_ => Good(CreateExamDetails(c.preparationStart, c.host)))
 
             case c: CommandWithReply[?] =>
@@ -132,21 +136,35 @@ object ExamEntity:
             case SetTrialLength(length, replyTo) =>
               Effect.persist(TrialLengthSet(length)).thenReply(replyTo)(_ => Resp.OK)
             case Proceed =>
-              Effect.persist(GoneUpcoming)
+              Effect
+                .persist(GoneUpcoming)
+                .thenRun(_ => tracker() ! ExamTracker.RegisterStateChange(id, State.Upcoming))
             case c: Create =>
               Effect.reply(c.replyTo)(Bad(illegalState.error() + "Pending"))
             case Cancel(at, replyTo) =>
               facts(pending.quiz.id) ! QuizFact.StopUse(id)
-              Effect.persist(GoneCancelled(at)).thenReply(replyTo)(_ => Resp.OK)
+              Effect
+                .persist(GoneCancelled(at))
+                .thenRun((_: Exam) =>
+                  tracker() ! ExamTracker.RegisterStateChange(id, Exam.State.Cancelled)
+                )
+                .thenReply(replyTo)(_ => Resp.OK)
             case _ =>
               Effect.unhandled
 
         case upcoming: Upcoming =>
           cmd match
             case Cancel(at, replyTo) =>
-              Effect.persist(GoneCancelled(at)).thenReply(replyTo)(_ => Resp.OK)
+              Effect
+                .persist(GoneCancelled(at))
+                .thenRun((_: Exam) =>
+                  tracker() ! ExamTracker.RegisterStateChange(id, Exam.State.Cancelled)
+                )
+                .thenReply(replyTo)(_ => Resp.OK)
             case Proceed =>
-              Effect.persist(GoneInProgress)
+              Effect
+                .persist(GoneInProgress)
+                .thenRun(_ => tracker() ! ExamTracker.RegisterStateChange(id, State.InProgress))
             case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(illegalState.error() + "Upcoming"))
             case _ =>
@@ -155,7 +173,12 @@ object ExamEntity:
         case inprogress: InProgress =>
           cmd match
             case Cancel(at, replyTo) =>
-              Effect.persist(GoneCancelled(at)).thenReply(replyTo)(_ => Resp.OK)
+              Effect
+                .persist(GoneCancelled(at))
+                .thenRun((_: Exam) =>
+                  tracker() ! ExamTracker.RegisterStateChange(id, Exam.State.Cancelled)
+                )
+                .thenReply(replyTo)(_ => Resp.OK)
             case Proceed =>
               facts(inprogress.quiz.id) ! QuizFact.StopUse(id)
               Effect.persist(GoneEnded)

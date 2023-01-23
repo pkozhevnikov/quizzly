@@ -14,8 +14,9 @@ import org.scalatest.*
 import com.typesafe.config.*
 
 object ExamTrackerSpec:
-  val config: Config = ConfigFactory
-    .parseString("""
+  val config: Config =
+    ConfigFactory
+      .parseString("""
       akka.actor {
         serialization-bindings {
           "quizzly.school.CborSerializable" = jackson-cbor
@@ -35,9 +36,9 @@ object ExamTrackerSpec:
         jackson-modules += "com.github.pjfanning.enum.EnumModule"
       }
       """)
-    .withFallback(ManualTime.config)
-    .withFallback(EventSourcedBehaviorTestKit.config)
-    .resolve
+      .withFallback(ManualTime.config)
+      .withFallback(EventSourcedBehaviorTestKit.config)
+      .resolve
 
 class ExamTrackerSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, BeforeAndAfterEach:
 
@@ -49,19 +50,20 @@ class ExamTrackerSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Be
   given (() => Instant) = () => now
 
   var exams = Map.empty[String, ActorRef[Exam.Command]]
-  def putExam(id: String, ref: ActorRef[Exam.Command]) =
-    exams += (id -> ref)
-  def putExam(id: String, beh: Behavior[Exam.Command]) =
-    exams += (id -> testKit.spawn(beh))
+  def putExam(id: String, ref: ActorRef[Exam.Command]) = exams += (id -> ref)
+  def putExam(id: String, beh: Behavior[Exam.Command]) = exams += (id -> testKit.spawn(beh))
 
   private val kit = EventSourcedBehaviorTestKit[Command, Event, Tracked](
     testKit.system,
-    ExamTracker(ExamConfig(
-      preparationPeriodHours = 24,
-      trialLengthMinutesRange = (1, 2),
-      trackerCheckRateMinutes = 1,
-      awakeExamBeforeProceedMinutes = 3
-    ), exams(_))
+    ExamTracker(
+      ExamConfig(
+        preparationPeriodHours = 24,
+        trialLengthMinutesRange = (1, 2),
+        trackerCheckRateMinutes = 1,
+        awakeExamBeforeProceedMinutes = 3
+      ),
+      exams(_)
+    )
   )
 
   val manualTime = ManualTime()(using testKit.system)
@@ -108,7 +110,7 @@ class ExamTrackerSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Be
       result.event shouldBe StateChanged("E1", Exam.State.Cancelled)
       result.state.all shouldBe empty
     }
-    
+
     "move exam to cancelled from upcoming" in {
       register
       val res0 = kit.runCommand(RegisterStateChange("E1", Exam.State.Upcoming))
@@ -139,6 +141,5 @@ class ExamTrackerSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Be
       manualTime.timePasses(1.minutes)
       probe.expectMessage(Exam.Awake)
     }
-
 
   }

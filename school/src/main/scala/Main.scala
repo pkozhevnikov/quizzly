@@ -41,9 +41,16 @@ object Main:
     val getExam = sharding.entityRefFor(ExamEntity.EntityKey, _)
     val getFact = sharding.entityRefFor(QuizFact.EntityKey, _)
     sharding.init(Entity(ExamTracker.EntityKey)(ctx => ExamTracker(examConfig, getExam)))
-    sharding
-      .init(Entity(ExamEntity.EntityKey)(ctx => ExamEntity(ctx.entityId, getFact,
-          sharding.entityRefFor(ExamTracker.EntityKey, ExamTracker.ID), examConfig)))
+    sharding.init(
+      Entity(ExamEntity.EntityKey)(ctx =>
+        ExamEntity(
+          ctx.entityId,
+          getFact,
+          () => sharding.entityRefFor(ExamTracker.EntityKey, ExamTracker.ID),
+          examConfig
+        )
+      )
+    )
     sharding.init(Entity(QuizFact.EntityKey)(ctx => QuizFact(ctx.entityId, examConfig)))
     val examEventProvider = EventSourcedProvider
       .eventsByTag[Exam.Event](system, JdbcReadJournal.Identifier, Exam.Tags.Single)
