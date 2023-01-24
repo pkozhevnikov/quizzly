@@ -48,15 +48,35 @@ the `ExamTracker` registers the state change. On change to `InProgress` or `Canc
 
 ### Trial
 
-Controls Trial and Practice sessions by means the only entity in different modes
+Entities:
 
- * `Trial` - entity and root
+ * `Trial` - controls a trial for an Exam of specific Testee
+ * `Exam` - local representation of an Exam from the *school* module
 
 Implemented by module **`trial`**.
 
+Every Quiz that is released by *author* module is sent to the *trial* module entirely.
+
+#### Trial workflow
+
+When an Exam transits to the InProgress state, the *school* module sends a notification about
+started Exam to all testees, and all exam attributes to the *trial* module.
+
+The exam page displays main attributes of the exam and the button for start of the trial. Clicking
+the button creates new Trial entity. The Trial is limited in time by *trial length* attribute
+of the Exam. Every page of the trial corresponds to a section of the exam quiz. The testee
+submits her solution of every quiz item. Submitted item cannot be re-submitted again. After all
+items are submitted, the testee is enabled to move to the next section. When all sections are
+submitted, the trial is finished. After trial length passed and the trial is not yet finished,
+the trial is finished automatically.
+
+During all trial remaining time is displayed.
+
 See
 
+ * [Trial model](../trial/src/main/scala/Trial.scala)
  * [Trial entity](../trial/src/main/scala/TrialEntity.scala)
+ * [Exam entity](../trial/src/main/scala/ExamEntity.scala)
 
 ### Registration and authentication
 

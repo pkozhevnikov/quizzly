@@ -96,7 +96,11 @@ lazy val school = project
     libraryDependencies ++= commonDependencies
   )
 
-lazy val exam = project.settings(
-)
-
+lazy val trial = project
+  .enablePlugins(PackPlugin)
+  .settings(
+    name := "trial",
+    packMain := Map("trial" -> "quizzly.trial.run"),
+    libraryDependencies ++= commonDependencies
+  )
 
