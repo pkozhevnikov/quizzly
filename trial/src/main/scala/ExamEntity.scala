@@ -21,11 +21,12 @@ object ExamEntity:
       availableWithin: TimeSpan,
       trialLength: Int,
       @JsonSerialize(keyUsing = classOf[PlainPersonSerializer])
-      @JsonDeserialize(keyUsing = classOf[PlainPersonKeyDeserializer])
-      testees: Map[Person, Option[TrialID]]
+      @JsonDeserialize(keyUsing = classOf[PlainPersonKeyDeserializer]) testees: Map[Person, Option[
+        TrialID
+      ]]
   ) extends CborSerializable
 
-  case class ExamAttrs(quiz: QuizID, start: Instant, end: Instant, trialLength: Int)
+  case class ExamAttrs(id: ExamID, quiz: QuizID, start: Instant, end: Instant, trialLength: Int)
 
   sealed trait Command extends CborSerializable
   sealed trait CommandWithReply[R] extends Command:
@@ -58,38 +59,49 @@ object ExamEntity:
 
   def handleCommand(id: ExamID, state: Option[Exam], command: Command)(using
       now: () => Instant
-  ): Effect[Event, Option[Exam]] = state match
-    case None =>
-      command match
-        case Register(quizId, period, trialLength, testees) =>
-          Effect.persist(Registered(quizId, period, trialLength, testees))
-        case c: CommandWithReply[?] =>
-          Effect.reply(c.replyTo)(Bad(Trial.examNotFound.error()))
-        case _ =>
-          Effect.none
-
-    case Some(exam) =>
-      command match
-        case RegisterTestee(trial, testee, replyTo) =>
-          if !exam.testees.exists(_(0) == testee) then
-            Effect.reply(replyTo)(Bad(Trial.notTestee.error()))
-          else if exam.testees(testee).isDefined then
-            Effect.reply(replyTo)(Bad(Trial.trialAlreadyStarted.error()))
-          else if now().isAfter(exam.availableWithin(1)) then
-            Effect.reply(replyTo)(Bad(Trial.examEnded.error()))
-          else
-            Effect.persist(TesteeRegistered(trial, testee))
-              .thenReply(replyTo)(_ => Good(ExamAttrs(exam.quiz, exam.availableWithin(0),
-                exam.availableWithin(1), exam.trialLength)))
-        case Unregister =>
-          if !now().isAfter(exam.availableWithin(1)) then
+  ): Effect[Event, Option[Exam]] =
+    state match
+      case None =>
+        command match
+          case Register(quizId, period, trialLength, testees) =>
+            Effect.persist(Registered(quizId, period, trialLength, testees))
+          case c: CommandWithReply[?] =>
+            Effect.reply(c.replyTo)(Bad(Trial.examNotFound.error()))
+          case _ =>
             Effect.none
-          else
-            Effect.persist(Unregistered)
-        case _ =>
-          Effect.none
 
-  def handleEvent(state: Option[Exam], event: Event): Option[Exam] = 
+      case Some(exam) =>
+        command match
+          case RegisterTestee(trial, testee, replyTo) =>
+            if !exam.testees.exists(_(0) == testee) then
+              Effect.reply(replyTo)(Bad(Trial.notTestee.error()))
+            else if exam.testees(testee).isDefined then
+              Effect.reply(replyTo)(Bad(Trial.trialAlreadyStarted.error()))
+            else if now().isAfter(exam.availableWithin(1)) then
+              Effect.reply(replyTo)(Bad(Trial.examEnded.error()))
+            else
+              Effect
+                .persist(TesteeRegistered(trial, testee))
+                .thenReply(replyTo)(_ =>
+                  Good(
+                    ExamAttrs(
+                      id,
+                      exam.quiz,
+                      exam.availableWithin(0),
+                      exam.availableWithin(1),
+                      exam.trialLength
+                    )
+                  )
+                )
+          case Unregister =>
+            if !now().isAfter(exam.availableWithin(1)) then
+              Effect.none
+            else
+              Effect.persist(Unregistered)
+          case _ =>
+            Effect.none
+
+  def handleEvent(state: Option[Exam], event: Event): Option[Exam] =
     state match
       case None =>
         event match

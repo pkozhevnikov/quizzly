@@ -30,16 +30,56 @@ type ItemIdx = Int
 
 case class Person(id: PersonID, name: String)
 
-case class Quiz(id: QuizID)
+type SC = String
+type HintIdx = Int
+final case class Statement(text: String, image: Option[String]) extends CborSerializable
+type Hint = List[Statement]
+final case class Item(
+    sc: SC,
+    intro: String,
+    definition: Statement,
+    hints: List[Hint],
+    hintsVisible: Boolean,
+    solutions: List[HintIdx]
+) extends CborSerializable:
+  def view = ItemView(
+    sc,
+    intro,
+    definition,
+    if hintsVisible then
+      hints
+    else
+      List.empty
+  )
 
-case class ExamPeriod(start: ZonedDateTime, end: ZonedDateTime)
+final case class Section(sc: SC, title: String, intro: String, items: List[Item])
+    extends CborSerializable:
+  def view = SectionView(title, intro, items.map(_.view))
+
+final case class Quiz(id: QuizID, title: String, intro: String, sections: List[Section])
+    extends CborSerializable
+
+final case class ItemView(sc: SC, intro: String, definition: Statement, hints: List[Hint])
+    extends CborSerializable
+
+final case class SectionView(title: String, intro: String, items: List[ItemView])
+    extends CborSerializable
+
+case class ExamPeriod(start: ZonedDateTime, end: ZonedDateTime) extends CborSerializable
 
 class PlainPersonSerializer extends JsonSerializer[Person]:
-  override def serialize(person: Person, gen: JsonGenerator, serializers: SerializerProvider) = 
-    gen.writeFieldName(s"${person.id}|${person.name}")
+  override def serialize(person: Person, gen: JsonGenerator, serializers: SerializerProvider) = gen
+    .writeFieldName(s"${person.id}|${person.name}")
 
 class PlainPersonKeyDeserializer extends KeyDeserializer:
   override def deserializeKey(plain: String, ctx: DeserializationContext): Person =
     val parts = plain.split("|")
     Person(parts(0), parts(1))
-  
+
+class StringPairSerializer extends JsonSerializer[(String, String)]:
+  override def serialize(pair: (String, String), gen: JsonGenerator, serializers: SerializerProvider) =
+    gen.writeFieldName(s"${pair(0)}|${pair(1)}")
+class StringPairKeyDeserializer extends KeyDeserializer:
+  override def deserializeKey(plain: String, ctx: DeserializationContext): (String, String) =
+    val parts = plain.split("|")
+    (parts(0), parts(1))

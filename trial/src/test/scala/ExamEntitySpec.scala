@@ -122,11 +122,25 @@ class ExamEntitySpec
         kit.runCommand(Register("q1", period, 55, persons))
         val result = kit.runCommand(RegisterTestee("t3", person3, _))
         result.event shouldBe TesteeRegistered("t3", person3)
-        result.reply shouldBe Good(ExamAttrs("q1", Instant.parse("2023-01-29T10:00:00Z"),
-          Instant.parse("2023-01-30T09:05:00Z"), 55))
-        result.state shouldBe Some(Exam("q1", (Instant.parse("2023-01-29T10:00:00Z"),
-          Instant.parse("2023-01-30T09:05:00Z")), 55, Map(person1 -> None,
-            person2 -> None, person3 -> Some("t3"))))
+        result.reply shouldBe
+          Good(
+            ExamAttrs(
+              "e1",
+              "q1",
+              Instant.parse("2023-01-29T10:00:00Z"),
+              Instant.parse("2023-01-30T09:05:00Z"),
+              55
+            )
+          )
+        result.state shouldBe
+          Some(
+            Exam(
+              "q1",
+              (Instant.parse("2023-01-29T10:00:00Z"), Instant.parse("2023-01-30T09:05:00Z")),
+              55,
+              Map(person1 -> None, person2 -> None, person3 -> Some("t3"))
+            )
+          )
       }
 
       "reject unregister if exam is still in progress" in {
