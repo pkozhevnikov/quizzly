@@ -1,5 +1,10 @@
 package quizzly.trial
 
+import java.time.ZonedDateTime
+
+import com.fasterxml.jackson.core.*
+import com.fasterxml.jackson.databind.*
+
 trait CborSerializable
 
 final case class Reason(code: Int, phrase: String) extends CborSerializable:
@@ -26,3 +31,15 @@ type ItemIdx = Int
 case class Person(id: PersonID, name: String)
 
 case class Quiz(id: QuizID)
+
+case class ExamPeriod(start: ZonedDateTime, end: ZonedDateTime)
+
+class PlainPersonSerializer extends JsonSerializer[Person]:
+  override def serialize(person: Person, gen: JsonGenerator, serializers: SerializerProvider) = 
+    gen.writeFieldName(s"${person.id}|${person.name}")
+
+class PlainPersonKeyDeserializer extends KeyDeserializer:
+  override def deserializeKey(plain: String, ctx: DeserializationContext): Person =
+    val parts = plain.split("|")
+    Person(parts(0), parts(1))
+  

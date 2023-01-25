@@ -53,11 +53,7 @@ object Trial:
   ) extends CommandWithReply[Option[SectionView]]
   val itemNotFound = Reason(3006, "item not found")
   val trialNotStarted = Reason(3007, "trial not started")
-  case class Submitted(
-    sectionSC: SC,
-    itemSC: SC,
-    solution: List[Int]
-  ) extends Event
+  case class Submitted(sectionSC: SC, itemSC: SC, solution: List[Int]) extends Event
 
   case class Finalize(replyTo: ActorRef[RespOK]) extends CommandWithReply[Nothing]
   case class Finalized(at: Instant) extends Event
