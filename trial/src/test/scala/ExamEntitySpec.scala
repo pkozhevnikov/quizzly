@@ -125,7 +125,7 @@ class ExamEntitySpec
         result.reply shouldBe
           Good(
             ExamAttrs(
-              "e1",
+              "exam-1",
               "q1",
               Instant.parse("2023-01-29T10:00:00Z"),
               Instant.parse("2023-01-30T09:05:00Z"),

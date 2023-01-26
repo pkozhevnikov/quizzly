@@ -77,8 +77,11 @@ class PlainPersonKeyDeserializer extends KeyDeserializer:
     Person(parts(0), parts(1))
 
 class StringPairSerializer extends JsonSerializer[(String, String)]:
-  override def serialize(pair: (String, String), gen: JsonGenerator, serializers: SerializerProvider) =
-    gen.writeFieldName(s"${pair(0)}|${pair(1)}")
+  override def serialize(
+      pair: (String, String),
+      gen: JsonGenerator,
+      serializers: SerializerProvider
+  ) = gen.writeFieldName(s"${pair(0)}|${pair(1)}")
 class StringPairKeyDeserializer extends KeyDeserializer:
   override def deserializeKey(plain: String, ctx: DeserializationContext): (String, String) =
     val parts = plain.split("|")

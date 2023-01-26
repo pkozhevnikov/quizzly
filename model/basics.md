@@ -119,7 +119,7 @@ Related links:
 Beginning from Exam Period start time till Exam Period end minus Trial Length, the Exam is
 available for Trials. A Testee follows a link provided by Exam Notification and starts her
 Trial. The Testee submits every solution during the Trial.  When the Testee has done with the
-Quiz, she *finalize*s the Trial. If the Testee doesn't finalize the Trial during Trial Length,
+Quiz, the trial *finalize*s automatically. If the trial hasn't finalized during Trial Length,
 the Trial is finalized automatically at Trial start time plus Trial Length.
 
 ### Practice

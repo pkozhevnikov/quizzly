@@ -62,10 +62,20 @@ class TrialEntitySpec
     "q1-1",
     "section 1 title",
     "section 1 intro",
-    List(Item("i1", "i1 intro", Statement("i1 def", None), List.empty, false, List.empty))
+    List(
+      Item("i1", "i1 intro", Statement("i1 def", None), List.empty, false, List.empty),
+      Item("i2", "i2 intro", Statement("i2 def", None), List.empty, false, List.empty)
+    )
   )
 
-  val quiz1 = Quiz("q1", "q1 title", "q1 intro", List(section1))
+  val section2 = Section(
+    "q1-2",
+    "section 2 title",
+    "section 2 intro",
+    List(Item("i21", "i21 intro", Statement("i21 def", None), List.empty, false, List.empty))
+  )
+
+  val quiz1 = Quiz("q1", "q1 title", "q1 intro", List(section1, section2))
 
   val quizRegistry: QuizRegistry =
     new:
@@ -87,16 +97,13 @@ class TrialEntitySpec
 
     "not started yet" should {
 
-      "reject any command except start" ignore {
+      "reject any command except start" in {
         val res1 = kit.runCommand(Submit(person1, "", List.empty, _))
         res1.hasNoEvents shouldBe true
         res1.reply shouldBe Bad(trialNotStarted.error())
-        val res2 = kit.runCommand(Finalize(person1, _))
-        res2.hasNoEvents shouldBe true
-        res2.reply shouldBe Bad(trialNotStarted.error())
       }
 
-      "reject start if exam rejected" ignore {
+      "reject start if exam rejected" in {
         putExam(
           "e2",
           Behaviors.receiveMessage[ExamEntity.Command] {
@@ -174,34 +181,33 @@ class TrialEntitySpec
 
     "started" should {
 
-      "reject start if trial is already started" ignore {
+      "reject start if trial is already started" in {
         start
         val result = kit.runCommand(Start(person1, "e1", _))
         result.hasNoEvents shouldBe true
         result.reply shouldBe Bad(trialAlreadyStarted.error())
       }
 
-      "reject any command if trial is finalized" ignore {
+      "reject any command if trial is finalized" in {
         start
         val nt = Instant.parse("2023-01-29T10:10:00Z")
         nowTime = nt
-        kit.runCommand(Finalize(person1, _))
-        val result = kit.runCommand(Finalize(person1, _))
-        result.hasNoEvents shouldBe true
-        result.reply shouldBe Bad(trialFinalized.error())
+        kit.runCommand(Submit(person1, "i1", List("1", "2"), _))
+        kit.runCommand(Submit(person1, "i2", List("2", "3"), _))
+        kit.runCommand(Submit(person1, "i21", List("1", "2"), _))
         val result2 = kit.runCommand(Submit(person1, "", List.empty, _))
         result2.hasNoEvents shouldBe true
         result2.reply shouldBe Bad(trialFinalized.error())
       }
 
-      "reject any command if submitter is not a testee of the trial" ignore {
+      "reject any command if submitter is not a testee of the trial" in {
         start
         val result = kit.runCommand(Submit(person2, "", List.empty, _))
         result.hasNoEvents shouldBe true
         result.reply shouldBe Bad(notTestee.error())
       }
 
-      "reject submit if item already submitted" ignore {
+      "reject submit if item already submitted" in {
         start
         kit.runCommand(Submit(person1, "i1", List("1", "2"), _))
         val result = kit.runCommand(Submit(person1, "i1", List("1", "2"), _))
@@ -209,17 +215,19 @@ class TrialEntitySpec
         result.reply shouldBe Bad(itemAlreadySubmitted.error())
       }
 
-      "reject submit if item not found" ignore {
+      "reject submit if item not found" in {
         start
-        val result = kit.runCommand(Submit(person1, "i2", List.empty, _))
+        val result = kit.runCommand(Submit(person1, "i3", List.empty, _))
         result.hasNoEvents shouldBe true
         result.reply shouldBe Bad(itemNotFound.error())
       }
 
-      "submit an item" ignore {
+      "submit items, switch section and finalize" in {
         start
+        val nt = Instant.parse("2023-01-29T10:10:00Z")
+        nowTime = nt
         val result = kit.runCommand(Submit(person1, "i1", List("1", "2"), _))
-        result.event shouldBe Submitted("i1", List("1", "2"))
+        result.events shouldBe Vector(Submitted("i1", List("1", "2")))
         result.state shouldBe
           Some(
             Trial(
@@ -233,17 +241,35 @@ class TrialEntitySpec
               Map(("q1-1", "i1") -> List("1", "2"))
             )
           )
-        result.reply shouldBe Good(Some(quiz1.sections(1).view))
-      }
+        result.reply shouldBe Good(SubmissionResult(None, false))
+        val result2 = kit.runCommand(Submit(person1, "i2", List("3", "4"), _))
+        result2.events shouldBe Vector(Submitted("i2", List("3", "4")), SectionSwitched("q1-2"))
+        result2.state shouldBe
+          Some(
+            Trial(
+              person1,
+              "e1",
+              quiz1,
+              55,
+              started,
+              None,
+              "q1-2",
+              Map(("q1-1", "i1") -> List("1", "2"), ("q1-1", "i2") -> List("3", "4"))
+            )
+          )
+        result2.reply shouldBe Good(SubmissionResult(Some(section2.view), false))
 
-      "finialize" ignore {
-        start
-        val nt = Instant.parse("2023-01-29T10:10:00Z")
-        nowTime = nt
-        val result = kit.runCommand(Finalize(person1, _))
-        result.reply shouldBe Resp.OK
-        result.event shouldBe Finalized(nt)
-        result.stateOfType[Option[Trial]].get.finalizedAt shouldBe Some(nt)
+        val result3 = kit.runCommand(Submit(person1, "i21", List("5", "6"), _))
+        result3.events shouldBe Vector(Submitted("i21", List("5", "6")), Finalized(nt))
+        val state = result3.stateOfType[Option[Trial]].get
+        state.finalizedAt shouldBe Some(nt)
+        state.solutions shouldBe
+          Map(
+            ("q1-1", "i1") -> List("1", "2"),
+            ("q1-1", "i2") -> List("3", "4"),
+            ("q1-2", "i21") -> List("5", "6")
+          )
+        result3.reply shouldBe Good(SubmissionResult(None, true))
       }
 
     }

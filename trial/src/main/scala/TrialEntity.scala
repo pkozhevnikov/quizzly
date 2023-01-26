@@ -100,6 +100,52 @@ object TrialEntity:
       case Some(trial) =>
         takeCommand(trial, command)
 
-  def takeCommand(state: Trial, command: Command): Effect[Event, Option[Trial]] = ???
+  def takeCommand(state: Trial, command: Command)(using
+      now: () => Instant
+  ): Effect[Event, Option[Trial]] =
+    command match
+      case c: Start =>
+        Effect.reply(c.replyTo)(Bad(trialAlreadyStarted.error()))
+      case Submit(testee, itemSC, answers, replyTo) =>
+        if testee != state.testee then
+          Effect.reply(replyTo)(Bad(notTestee.error()))
+        else if state.finalizedAt.isDefined then
+          Effect.reply(replyTo)(Bad(trialFinalized.error()))
+        else if !state.currentSection.items.exists(_.sc == itemSC) then
+          Effect.reply(replyTo)(Bad(itemNotFound.error()))
+        else if state.solutions.contains((state.currentSectionSC, itemSC)) then
+          Effect.reply(replyTo)(Bad(itemAlreadySubmitted.error()))
+        else
+          var events: List[Event] = List(Submitted(itemSC, answers))
+          val result =
+            if state.currentSection.items.size ==
+                state.solutions.filter(p => p(0)(0) == state.currentSectionSC).size + 1
+            then
+              state.nextSection match
+                case Some(section) =>
+                  events = events :+ SectionSwitched(section.sc)
+                  SubmissionResult(Some(section.view), false)
+                case None =>
+                  events = events :+ Finalized(now())
+                  SubmissionResult(None, true)
+            else
+              SubmissionResult(None, false)
+          Effect.persist(events).thenReply(replyTo)(_ => Good(result))
+      case Finalize =>
+        Effect.persist(Finalized(now()))
 
-  def takeEvent(state: Trial, event: Event): Option[Trial] = ???
+      case _ =>
+        Effect.none
+
+  def takeEvent(state: Trial, event: Event): Option[Trial] =
+    event match
+      case Submitted(itemSC, answers) =>
+        Some(
+          state.copy(solutions = state.solutions + ((state.currentSectionSC, itemSC) -> answers))
+        )
+      case SectionSwitched(sc) =>
+        Some(state.copy(currentSectionSC = sc))
+      case Finalized(at) =>
+        Some(state.copy(finalizedAt = Some(at)))
+      case _ =>
+        Some(state)
