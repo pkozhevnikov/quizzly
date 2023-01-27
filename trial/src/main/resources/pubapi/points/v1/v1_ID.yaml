@@ -1,12 +1,12 @@
-get:
+patch:
   tags:
   - v1
   produces:
   - application/json
-  summary: get exam attributes
+  summary: start trial
   description: |
-    Returns exam attributes
-  operationId: getexamattrs
+    Start a trial
+  operationId: starttrial
   parameters:
   -
     in: path
@@ -22,9 +22,9 @@ get:
 
   responses:
     200:
-      description: normal response
+      description: trial started
       schema: 
-        $ref: /pubapi/schemas/exam-info.yaml
+        $ref: /pubapi/schemas/section-view.yaml
     422:
       description: error
       schema: 
@@ -70,6 +70,38 @@ post:
       schema: 
         $ref: /pubapi/schemas/error.yaml
 
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: get exam attributes
+  description: |
+    Returns exam attributes
+  operationId: getexamattrs
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: exam ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: normal response
+      schema: 
+        $ref: /pubapi/schemas/exam-info.yaml
+    422:
+      description: error
+      schema: 
+        $ref: /pubapi/schemas/error.yaml
+
 
 definitions:
   exam-info.yaml:
@@ -80,3 +112,5 @@ definitions:
     $ref: /pubapi/schemas/error.yaml
   solution.yaml:
     $ref: /pubapi/schemas/solution.yaml
+  section-view.yaml:
+    $ref: /pubapi/schemas/section-view.yaml
