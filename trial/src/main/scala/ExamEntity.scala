@@ -18,6 +18,7 @@ object ExamEntity:
 
   case class Exam(
       quiz: QuizID,
+      period: ExamPeriod,
       availableWithin: TimeSpan,
       trialLength: Int,
       @JsonSerialize(keyUsing = classOf[PlainPersonSerializer])
@@ -42,6 +43,7 @@ object ExamEntity:
   case class TesteeRegistered(trial: TrialID, testee: Person) extends Event
   case object Unregister extends Command
   case object Unregistered extends Event
+  case class GetInfo(replyTo: ActorRef[Resp[ExamAttrs]]) extends CommandWithReply[ExamAttrs]
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("Exam")
   object Tags:
@@ -72,6 +74,9 @@ object ExamEntity:
 
       case Some(exam) =>
         command match
+          case GetInfo(replyTo) =>
+            Effect.reply(replyTo)(Good(ExamAttrs(id, exam.quiz, 
+              exam.period.start.toInstant, exam.period.end.toInstant, exam.trialLength)))
           case RegisterTestee(trial, testee, replyTo) =>
             if !exam.testees.exists(_(0) == testee) then
               Effect.reply(replyTo)(Bad(Trial.notTestee.error()))
@@ -109,6 +114,7 @@ object ExamEntity:
             Some(
               Exam(
                 quiz,
+                period,
                 (
                   period.start.toInstant,
                   period.end.toInstant.minus(trialLength, ChronoUnit.MINUTES)

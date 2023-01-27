@@ -77,6 +77,7 @@ class ExamEntitySpec
           Some(
             Exam(
               "q1",
+              period,
               (Instant.parse("2023-01-29T10:00:00Z"), Instant.parse("2023-01-30T09:05:00Z")),
               55,
               persons.map((_, None)).toMap
@@ -87,6 +88,14 @@ class ExamEntitySpec
     }
 
     "registered" should {
+
+      "return exam info" in {
+        kit.runCommand(Register("q1", period, 55, persons))
+        val result = kit.runCommand(GetInfo(_))
+        result.hasNoEvents shouldBe true
+        result.reply shouldBe Good(ExamAttrs("exam-1", "q1",
+          period.start.toInstant, period.end.toInstant, 55))
+      }
 
       "reject register testee if testee is not eligible" in {
         kit.runCommand(Register("q1", period, 55, persons))
@@ -136,6 +145,7 @@ class ExamEntitySpec
           Some(
             Exam(
               "q1",
+              period,
               (Instant.parse("2023-01-29T10:00:00Z"), Instant.parse("2023-01-30T09:05:00Z")),
               55,
               Map(person1 -> None, person2 -> None, person3 -> Some("t3"))
