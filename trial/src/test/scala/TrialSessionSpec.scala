@@ -191,3 +191,28 @@ class TrialSessionSpec
     }
 
   }
+
+  Feature("item submission") {
+    
+    Scenario("not submit if item not found") {
+      Given("a trial is started")
+      val res0 = patch("exam-1", pers2)
+      res0.status shouldBe StatusCodes.OK
+      When("a non-existent item is submitted")
+      val res = post("exam-1", pers2, Solution("notexist", List.empty))
+      Then("error returned")
+      res.status shouldBe StatusCodes.UnprocessableEntity
+      res.to[Error] shouldBe itemNotFound.error()
+    }
+
+    Scenario("first item submitted") {
+      Given("a trial is started")
+      patch("exam-1", pers3).status shouldBe StatusCodes.OK
+      When("first item submitted")
+      val res = post("exam-1", pers3, Solution("i1", List("0", "1")))
+      Then("submission result is returned")
+      res.status shouldBe StatusCodes.OK
+      res.to[SubmissionResult] shouldBe SubmissionResult(None, false)
+    }
+
+  }
