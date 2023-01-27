@@ -43,6 +43,7 @@ case class Solution(
 
 
 trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
+  given RootJsonFormat[StartTrialDetails] = jsonFormat5(StartTrialDetails.apply)
   given RootJsonFormat[ExamInfo] = jsonFormat7(ExamInfo.apply)
   given RootJsonFormat[Reason] = jsonFormat2(Reason.apply)
   given RootJsonFormat[Error] = jsonFormat2(Error.apply)
@@ -85,6 +86,7 @@ object HttpFrontend extends JsonFormats:
   val log = org.slf4j.LoggerFactory.getLogger("HttpFrontend")
 
   def apply(
+    quizRegistry: QuizRegistry,
       entities: EntityAware,
       authService: Auth,
       host: String = "localhost",
