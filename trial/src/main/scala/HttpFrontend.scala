@@ -28,19 +28,15 @@ import java.time.*
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.*
 
 case class ExamInfo(
-  quizId: QuizID,
-  quizTitle: String,
-  quizIntro: String,
-  id: ExamID,
-  start: Instant,
-  end: Instant,
-  trialLength: Int
+    quizId: QuizID,
+    quizTitle: String,
+    quizIntro: String,
+    id: ExamID,
+    start: Instant,
+    end: Instant,
+    trialLength: Int
 )
-case class Solution(
-  itemSC: SC,
-  answers: List[String]
-)
-
+case class Solution(itemSC: SC, answers: List[String])
 
 trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
   given RootJsonFormat[StartTrialDetails] = jsonFormat5(StartTrialDetails.apply)
@@ -86,7 +82,7 @@ object HttpFrontend extends JsonFormats:
   val log = org.slf4j.LoggerFactory.getLogger("HttpFrontend")
 
   def apply(
-    quizRegistry: QuizRegistry,
+      quizRegistry: QuizRegistry,
       entities: EntityAware,
       authService: Auth,
       host: String = "localhost",
@@ -117,11 +113,13 @@ object HttpFrontend extends JsonFormats:
           complete(StatusCodes.InternalServerError, ex.getMessage)
       }
 
-    def onTrial[R](id: TrialID)(cmd: ActorRef[Resp[R]] => Trial.Command)(using ToEntityMarshaller[R]) =
-      call[R, Trial.Command](entities.trial(id))(cmd)
+    def onTrial[R](id: TrialID)(cmd: ActorRef[Resp[R]] => Trial.Command)(using
+        ToEntityMarshaller[R]
+    ) = call[R, Trial.Command](entities.trial(id))(cmd)
 
-    def onExam[R](id: ExamID)(cmd: ActorRef[Resp[R]] => ExamEntity.Command)(using ToEntityMarshaller[R]) =
-      call[R, ExamEntity.Command](entities.exam(id))(cmd)
+    def onExam[R](id: ExamID)(cmd: ActorRef[Resp[R]] => ExamEntity.Command)(using
+        ToEntityMarshaller[R]
+    ) = call[R, ExamEntity.Command](entities.exam(id))(cmd)
 
     // format: off
     cors() {
@@ -129,7 +127,36 @@ object HttpFrontend extends JsonFormats:
       extractRequest { request =>
         auth(request) { person =>
           pathPrefix("v1") {
-            complete("trial module works")
+            path(Segment) { id =>
+              get {
+                onComplete[Resp[ExamInfo]](
+                  entities.exam(id).ask[Resp[ExamEntity.ExamAttrs]](ExamEntity.GetInfo(_)).flatMap {
+                    case Resp.Good(attrs) =>
+                      quizRegistry.get(attrs.quiz).map { quiz =>
+                        Resp.Good(ExamInfo(quiz.id, quiz.title, quiz.intro,
+                          attrs.id, attrs.start, attrs.end, attrs.trialLength))
+                      }
+                    case Resp.Bad(e) =>
+                      Future(Resp.Bad(e))
+                  }
+                ) {
+                  case Success(Resp.Good(r)) =>
+                    complete(r)
+                  case Success(Resp.Bad(e)) =>
+                    complete(StatusCodes.UnprocessableEntity, e)
+                  case Failure(ex) =>
+                    complete(StatusCodes.InternalServerError, ex.getMessage)
+                }
+              } ~
+              patch {
+                onTrial[StartTrialDetails](s"${person.id}-$id")(Trial.Start(person, id, _))
+              } ~
+              post {
+                entity(as[Solution]) { solution =>
+                  onTrial[SubmissionResult](id)(Trial.Submit(person, solution.itemSC, solution.answers, _))
+                }
+              }
+            }
           }
         }
       }

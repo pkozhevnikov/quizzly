@@ -93,8 +93,8 @@ class ExamEntitySpec
         kit.runCommand(Register("q1", period, 55, persons))
         val result = kit.runCommand(GetInfo(_))
         result.hasNoEvents shouldBe true
-        result.reply shouldBe Good(ExamAttrs("exam-1", "q1",
-          period.start.toInstant, period.end.toInstant, 55))
+        result.reply shouldBe
+          Good(ExamAttrs("exam-1", "q1", period.start.toInstant, period.end.toInstant, 55))
       }
 
       "reject register testee if testee is not eligible" in {

@@ -44,7 +44,11 @@ class TrialSessionSpec
   val httpPort = freePort(33035)
   val nodePort = freePort(44046)
 
-  val appSystem = ActorSystem(Behaviors.empty, "trialapp", TrialSessionSpec.config(nodePort, httpPort))
+  val appSystem = ActorSystem(
+    Behaviors.empty,
+    "trialapp",
+    TrialSessionSpec.config(nodePort, httpPort)
+  )
   val clnSystem = ActorSystem(
     Behaviors.empty,
     "trialcln",
@@ -75,18 +79,29 @@ class TrialSessionSpec
   val pers1 = Person("pers1", "pers1 name")
   val pers2 = Person("pers2", "pers2 name")
   val pers3 = Person("pers3", "pers3 name")
-  val all = Map(
-    pers1.id -> pers1,
-    pers2.id -> pers2,
-    pers3.id -> pers3
-  )
+  val all = Map(pers1.id -> pers1, pers2.id -> pers2, pers3.id -> pers3)
 
-  val item1 = ItemView("i1", "i1 intro", Statement("i1 def", None),
-    List(Statement("i1 h1", None), Statement("i1 h2", None)), false)
-  val item2 = ItemView("i2", "i2 intro", Statement("i2 def", None),
-    List(Statement("i2 h1", None), Statement("i2 h2", None)), true)
-  val item3 = ItemView("i3", "i3 intro", Statement("i3 def", None),
-    List(Statement("i3 h1", None), Statement("i3 h2", None)), false)
+  val item1 = ItemView(
+    "i1",
+    "i1 intro",
+    Statement("i1 def", None),
+    List(Statement("i1 h1", None), Statement("i1 h2", None)),
+    false
+  )
+  val item2 = ItemView(
+    "i2",
+    "i2 intro",
+    Statement("i2 def", None),
+    List(Statement("i2 h1", None), Statement("i2 h2", None)),
+    true
+  )
+  val item3 = ItemView(
+    "i3",
+    "i3 intro",
+    Statement("i3 def", None),
+    List(Statement("i3 h1", None), Statement("i3 h2", None)),
+    false
+  )
   val section1 = SectionView("section1 title", "section1 intro", List(item1, item2))
   val section2 = SectionView("section2 title", "section2 intro", List(item3))
 
@@ -99,10 +114,9 @@ class TrialSessionSpec
           case _ =>
             Future.failed(Exception())
 
-  //val getFact = Main(appSystem, auth)
+  // val getFact = Main(appSystem, auth)
 
-  override def beforeAll() =
-    super.beforeAll()
+  override def beforeAll() = super.beforeAll()
 
   override def afterAll() =
     super.afterAll()
@@ -120,10 +134,16 @@ class TrialSessionSpec
       val res = get("exam-1", pers1)
       Then("exam info is returned")
       res.status shouldBe StatusCodes.OK
-      res.to[ExamInfo] shouldBe ExamInfo(
-        "q1", "q1 title", "q1 intro",
-        "exam-1", Instant.parse("2023-01-28T10:00:00Z"), Instant.parse("2023-01-30T10:00:00Z"), 55
-      )
+      res.to[ExamInfo] shouldBe
+        ExamInfo(
+          "q1",
+          "q1 title",
+          "q1 intro",
+          "exam-1",
+          Instant.parse("2023-01-28T10:00:00Z"),
+          Instant.parse("2023-01-30T10:00:00Z"),
+          55
+        )
     }
 
     Scenario("error getting exam info") {
@@ -144,7 +164,7 @@ class TrialSessionSpec
   }
 
   Feature("starting trial") {
-    
+
     Scenario("not starting if exam not registered") {
       When("start trial of non-existant exam requested")
       val res = patch("exam-3", pers1)

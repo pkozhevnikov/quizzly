@@ -75,8 +75,17 @@ object ExamEntity:
       case Some(exam) =>
         command match
           case GetInfo(replyTo) =>
-            Effect.reply(replyTo)(Good(ExamAttrs(id, exam.quiz, 
-              exam.period.start.toInstant, exam.period.end.toInstant, exam.trialLength)))
+            Effect.reply(replyTo)(
+              Good(
+                ExamAttrs(
+                  id,
+                  exam.quiz,
+                  exam.period.start.toInstant,
+                  exam.period.end.toInstant,
+                  exam.trialLength
+                )
+              )
+            )
           case RegisterTestee(trial, testee, replyTo) =>
             if !exam.testees.exists(_(0) == testee) then
               Effect.reply(replyTo)(Bad(Trial.notTestee.error()))
