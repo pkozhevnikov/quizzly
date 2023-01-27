@@ -1,0 +1,10 @@
+type: object
+properties:
+  nextSection:
+    $ref: /pubapi/schemas/section-view.yaml
+  finalized:
+    type: boolean
+
+definitions:
+  section-view.yaml:
+    $ref: /pubapi/schemas/section-view.yaml

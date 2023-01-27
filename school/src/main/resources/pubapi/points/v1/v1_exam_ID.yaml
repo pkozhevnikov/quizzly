@@ -1,12 +1,10 @@
-post:
+delete:
   tags:
   - v1
-  consumes:
-  - application/json
-  summary: change trial length
+  summary: cancel exam
   description: |
-    Chandes trial length/
-  operationId: changetriallength
+    Cancels exam
+  operationId: cancelexam
   parameters:
   -
     in: path
@@ -15,12 +13,6 @@ post:
     description: exam ID
     type: string
   -
-    in: body
-    name: change-length
-    required: true
-    schema:
-      $ref: /pubapi/schemas/change-length.yaml
-  -
     in: header
     name: p
     required: true
@@ -28,7 +20,7 @@ post:
 
   responses:
     204:
-      description: trial length changed
+      description: exam cancelled
     422:
       description: error
 
@@ -64,71 +56,6 @@ get:
     422:
       description: error
 
-put:
-  tags:
-  - v1
-  consumes:
-  - application/json
-  summary: include testees
-  description: |
-    Includes testees
-  operationId: indludetestees
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: exam ID
-    type: string
-  -
-    in: body
-    name: testees
-    required: true
-    description: testees ID list
-    schema:
-      $ref: /pubapi/schemas/strings.yaml
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    200:
-      description: testees included, responds with included testees
-      schema: 
-        type: array
-        items:
-          $ref: /pubapi/schemas/person.yaml
-    422:
-      description: error
-
-delete:
-  tags:
-  - v1
-  summary: cancel exam
-  description: |
-    Cancels exam
-  operationId: cancelexam
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: exam ID
-    type: string
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    204:
-      description: exam cancelled
-    422:
-      description: error
-
 patch:
   tags:
   - v1
@@ -161,6 +88,79 @@ patch:
   responses:
     200:
       description: testees excluded, responds with excluded testees
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/person.yaml
+    422:
+      description: error
+
+post:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  summary: change trial length
+  description: |
+    Chandes trial length/
+  operationId: changetriallength
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: exam ID
+    type: string
+  -
+    in: body
+    name: change-length
+    required: true
+    schema:
+      $ref: /pubapi/schemas/change-length.yaml
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    204:
+      description: trial length changed
+    422:
+      description: error
+
+put:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  summary: include testees
+  description: |
+    Includes testees
+  operationId: indludetestees
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: exam ID
+    type: string
+  -
+    in: body
+    name: testees
+    required: true
+    description: testees ID list
+    schema:
+      $ref: /pubapi/schemas/strings.yaml
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: testees included, responds with included testees
       schema: 
         type: array
         items:

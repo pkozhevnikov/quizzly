@@ -1,0 +1,82 @@
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: get exam attributes
+  description: |
+    Returns exam attributes
+  operationId: getexamattrs
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: exam ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: normal response
+      schema: 
+        $ref: /pubapi/schemas/exam-info.yaml
+    422:
+      description: error
+      schema: 
+        $ref: /pubapi/schemas/error.yaml
+
+post:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  produces:
+  - application/json
+  summary: submit item solution
+  description: |
+    Submits item solution
+  operationId: submitsolution
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: trial ID
+    type: string
+  -
+    in: body
+    name: solution
+    required: true
+    schema:
+      $ref: /pubapi/schemas/solution.yaml
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: solution submitted
+      schema: 
+        $ref: /pubapi/schemas/submission-result.yaml
+    422:
+      description: error
+      schema: 
+        $ref: /pubapi/schemas/error.yaml
+
+
+definitions:
+  exam-info.yaml:
+    $ref: /pubapi/schemas/exam-info.yaml
+  submission-result.yaml:
+    $ref: /pubapi/schemas/submission-result.yaml
+  error.yaml:
+    $ref: /pubapi/schemas/error.yaml
+  solution.yaml:
+    $ref: /pubapi/schemas/solution.yaml

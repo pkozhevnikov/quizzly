@@ -1,0 +1,14 @@
+type: object
+properties:
+  title:
+    type: string
+  intro:
+    type: string
+  items:
+    type: array
+    items:
+      $ref: /pubapi/schemas/item-view.yaml
+
+definitions:
+  item-view.yaml:
+    $ref: /pubapi/schemas/item-view.yaml

@@ -47,7 +47,7 @@ final case class Item(
     intro,
     definition,
     if hintsVisible then
-      hints
+      hints.map(_(0))
     else
       List.empty
     ,
@@ -65,7 +65,7 @@ final case class ItemView(
     sc: SC,
     intro: String,
     definition: Statement,
-    hints: List[Hint],
+    hints: List[Statement],
     multiChoice: Boolean
 ) extends CborSerializable
 

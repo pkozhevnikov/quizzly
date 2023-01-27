@@ -1,0 +1,18 @@
+type: object
+properties:
+  sc:
+    type: string
+  intro:
+    type: string
+  definition:
+    $ref: /pubapi/schemas/statement.yaml
+  hints:
+    type: array
+    items:
+      $ref: /pubapi/schemas/statement.yaml
+  multiChoice:
+    type: boolean
+
+definitions:
+  statement.yaml:
+    $ref: /pubapi/schemas/statement.yaml

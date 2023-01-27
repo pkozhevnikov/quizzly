@@ -1,3 +1,27 @@
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: list exams
+  description: |
+    List all exams
+  operationId: listexams
+  parameters:
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: normal response
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/exam.yaml
+
 post:
   tags:
   - v1
@@ -29,30 +53,6 @@ post:
       description: error
       schema: 
         $ref: /pubapi/schemas/error.yaml
-
-get:
-  tags:
-  - v1
-  produces:
-  - application/json
-  summary: list exams
-  description: |
-    List all exams
-  operationId: listexams
-  parameters:
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    200:
-      description: normal response
-      schema: 
-        type: array
-        items:
-          $ref: /pubapi/schemas/exam.yaml
 
 
 definitions:

@@ -1,0 +1,19 @@
+type: object
+properties:
+  quizId:
+    type: string
+  quizTitle:
+    type: string
+  quizIntro:
+    type: string
+  id:
+    type: string
+  start:
+    type: string
+    format: date-time
+  end:
+    type: string
+    format: date-time
+  trialLength:
+    type: integer
+    format: int32

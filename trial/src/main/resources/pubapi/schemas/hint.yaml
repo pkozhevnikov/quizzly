@@ -1,0 +1,7 @@
+type: array
+items:
+  $ref: /pubapi/schemas/statement.yaml
+
+definitions:
+  statement.yaml:
+    $ref: /pubapi/schemas/statement.yaml

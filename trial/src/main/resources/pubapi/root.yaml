@@ -1,0 +1,19 @@
+swagger: 2.0
+info:
+  version: 1.0.0-SNAPSHOT
+  title: Quizzly::trial
+  description: |
+    Quizzly trial module public HTTP API
+host: ${http.host}:${http.port}
+basePath: /
+schemes:
+  - http
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+
+  /v1/{id}:
+    $ref: points/v1/v1_ID.yaml

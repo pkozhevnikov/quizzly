@@ -1,0 +1,6 @@
+baseResourcePath: /pubapi/schemas
+
+paths:
+
+  /v1/*:
+    post: /solution.yaml
