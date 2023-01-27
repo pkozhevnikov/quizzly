@@ -2,13 +2,13 @@ package quizzly.trial
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.testkit.typed.scaladsl.ActorTestKit
-import akka.persistence.testkit.scaladsl.{EventSourcedBehaviorTestKit as TestKit}
-import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit.*
+import akka.actor.testkit.typed.scaladsl.*
+import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit
 import akka.cluster.sharding.typed.scaladsl.EntityRef
 import akka.cluster.sharding.typed.testkit.scaladsl.TestEntityRef
 
 import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.duration.*
 
 import java.time.*
 
@@ -25,7 +25,9 @@ object TrialEntitySpec:
         }
       }
       """)
-    .withFallback(TestKit.config)
+    .withFallback(ManualTime.config)
+    .withFallback(EventSourcedBehaviorTestKit.config)
+    .resolve()
 
 class TrialEntitySpec
     extends wordspec.AnyWordSpec,
@@ -86,7 +88,9 @@ class TrialEntitySpec
           case _ =>
             Future.failed(java.util.NoSuchElementException(s"not found quiz [$id]"))
 
-  private val kit = TestKit[Command, Event, Option[Trial]](
+  val manualTime = ManualTime()(using testKit.system)
+
+  private val kit = EventSourcedBehaviorTestKit[Command, Event, Option[Trial]](
     testKit.system,
     TrialEntity(id, exams(_), quizRegistry)
   )
@@ -270,6 +274,23 @@ class TrialEntitySpec
             ("q1-2", "i21") -> List("5", "6")
           )
         result3.reply shouldBe Good(SubmissionResult(None, true))
+      }
+
+      "finalize if not fully submitted within trial length" in {
+        start
+        nowTime = Instant.parse("2023-01-29T10:00:00Z")
+        manualTime.timePasses(54.minutes)
+        val result1 = kit.runCommand(Submit(person1, "i1", List("1", "2"), _))
+        val state1 = result1.stateOfType[Option[Trial]].get
+        state1.finalizedAt shouldBe None
+        state1.solutions shouldBe Map(("q1-1", "i1") -> List("1", "2"))
+        result1.reply shouldBe Good(SubmissionResult(None, false))
+        manualTime.timePasses(2.minutes)
+        val result2 = kit.runCommand(Submit(person1, "i2", List("2", "3"), _))
+        val state2 = result2.stateOfType[Option[Trial]].get
+        state2.finalizedAt shouldBe Some(nowTime)
+        state2.solutions shouldBe Map(("q1-1", "i1") -> List("1", "2"))
+        result2.reply shouldBe Bad(trialFinalized.error())
       }
 
     }

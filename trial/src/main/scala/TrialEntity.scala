@@ -1,7 +1,7 @@
 package quizzly.trial
 
 import akka.actor.typed.{Behavior, ActorRef}
-import akka.actor.typed.scaladsl.{Behaviors, ActorContext}
+import akka.actor.typed.scaladsl.{Behaviors, ActorContext, TimerScheduler}
 import akka.cluster.sharding.typed.scaladsl.{EntityTypeKey, EntityRef}
 import akka.persistence.typed.PersistenceId
 import akka.persistence.typed.scaladsl.*
@@ -38,21 +38,23 @@ object TrialEntity:
       exams: ExamID => EntityRef[ExamEntity.Command],
       quizRegistry: QuizRegistry
   )(using now: () => Instant, ec: ExecutionContext) = Behaviors.setup[Command] { ctx =>
-    EventSourcedBehavior[Command, Event, Option[Trial]](
-      PersistenceId.of(EntityKey.name, id),
-      None,
-      startHandler(id, ctx, exams, quizRegistry, _, _),
-      (state, event) =>
-        state match
-          case None =>
-            event match
-              case Started(testee, exam, quiz, length, at, sectionSC) =>
-                Some(Trial(testee, exam, quiz, length, at, None, sectionSC, Map.empty))
-              case _ =>
-                throw IllegalStateException("trial not started yet")
-          case Some(trial) =>
-            takeEvent(trial, event)
-    ).withTagger(_ => Set(Tags.Single))
+    Behaviors.withTimers { timers =>
+      EventSourcedBehavior[Command, Event, Option[Trial]](
+        PersistenceId.of(EntityKey.name, id),
+        None,
+        startHandler(id, ctx, exams, quizRegistry, timers, _, _),
+        (state, event) =>
+          state match
+            case None =>
+              event match
+                case Started(testee, exam, quiz, length, at, sectionSC) =>
+                  Some(Trial(testee, exam, quiz, length, at, None, sectionSC, Map.empty))
+                case _ =>
+                  throw IllegalStateException("trial not started yet")
+            case Some(trial) =>
+              takeEvent(trial, event)
+      ).withTagger(_ => Set(Tags.Single))
+    }
   }
 
   def startHandler(
@@ -60,6 +62,7 @@ object TrialEntity:
       ctx: ActorContext[Command],
       exams: ExamID => EntityRef[ExamEntity.Command],
       quizRegistry: QuizRegistry,
+      timers: TimerScheduler[Command],
       state: Option[Trial],
       command: Command
   )(using now: () => Instant, ec: ExecutionContext): Effect[Event, Option[Trial]] =
@@ -90,6 +93,7 @@ object TrialEntity:
             Effect.none
           case InternalStart(attrs, quiz, testee, replyTo) =>
             val at = now()
+            timers.startSingleTimer(Finalize, attrs.trialLength.minutes)
             Effect
               .persist(Started(testee, attrs.id, quiz, attrs.trialLength, at, quiz.sections(0).sc))
               .thenReply(replyTo)(_ =>

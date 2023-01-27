@@ -50,6 +50,8 @@ final case class Item(
       hints
     else
       List.empty
+    ,
+    solutions.size > 1
   )
 
 final case class Section(sc: SC, title: String, intro: String, items: List[Item])
@@ -59,8 +61,13 @@ final case class Section(sc: SC, title: String, intro: String, items: List[Item]
 final case class Quiz(id: QuizID, title: String, intro: String, sections: List[Section])
     extends CborSerializable
 
-final case class ItemView(sc: SC, intro: String, definition: Statement, hints: List[Hint])
-    extends CborSerializable
+final case class ItemView(
+    sc: SC,
+    intro: String,
+    definition: Statement,
+    hints: List[Hint],
+    multiChoice: Boolean
+) extends CborSerializable
 
 final case class SectionView(title: String, intro: String, items: List[ItemView])
     extends CborSerializable
