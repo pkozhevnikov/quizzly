@@ -42,14 +42,14 @@ object Main:
     val getFact = sharding.entityRefFor(QuizFact.EntityKey, _)
     sharding.init(Entity(ExamTracker.EntityKey)(ctx => ExamTracker(examConfig, getExam)))
     sharding.init(
-      Entity(ExamEntity.EntityKey)(ctx =>
+      Entity(ExamEntity.EntityKey){ctx =>
         ExamEntity(
           ctx.entityId,
           getFact,
           () => sharding.entityRefFor(ExamTracker.EntityKey, ExamTracker.ID),
           examConfig
         )
-      )
+      }
     )
     sharding.init(Entity(QuizFact.EntityKey)(ctx => QuizFact(ctx.entityId, examConfig)))
     val examEventProvider = EventSourcedProvider

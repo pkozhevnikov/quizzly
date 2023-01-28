@@ -110,6 +110,7 @@ object HttpFrontend extends JsonFormats:
         case Success(Resp.Bad(e)) =>
           complete(StatusCodes.UnprocessableEntity, e)
         case Failure(ex) =>
+          log.error(ex.getMessage, ex)
           complete(StatusCodes.InternalServerError, ex.getMessage)
       }
 
@@ -145,6 +146,7 @@ object HttpFrontend extends JsonFormats:
                   case Success(Resp.Bad(e)) =>
                     complete(StatusCodes.UnprocessableEntity, e)
                   case Failure(ex) =>
+                    log.error(ex.getMessage, ex)
                     complete(StatusCodes.InternalServerError, ex.getMessage)
                 }
               } ~
