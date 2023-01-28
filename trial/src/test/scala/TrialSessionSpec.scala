@@ -57,7 +57,8 @@ class TrialSessionSpec
 
   given ActorSystem[?] = clnSystem
   given ExecutionContext = clnSystem.executionContext
-  given (() => Instant) = () => Instant.parse("2022-11-01T00:00:00Z")
+  var nowTime = Instant.parse("2022-11-01T00:00:00Z")
+  given (() => Instant) = () => nowTime
 
   val http = Http()(using clnSystem)
 
@@ -182,12 +183,14 @@ class TrialSessionSpec
     }
 
     Scenario("successful start") {
+      nowTime = Instant.parse("2023-01-29T15:00:00Z")
       When("start trial requested")
       val res = patch("exam-1", pers1)
       Then("trial started")
       res.status shouldBe StatusCodes.OK
       And("first quiz section returned")
-      res.to[SectionView] shouldBe section1
+      res.to[StartTrialDetails] shouldBe StartTrialDetails("pers1-exam-1", pers1,
+        nowTime, 55, section1)
     }
 
   }
@@ -199,7 +202,7 @@ class TrialSessionSpec
       val res0 = patch("exam-1", pers2)
       res0.status shouldBe StatusCodes.OK
       When("a non-existent item is submitted")
-      val res = post("exam-1", pers2, Solution("notexist", List.empty))
+      val res = post("pers2-exam-1", pers2, Solution("notexist", List.empty))
       Then("error returned")
       res.status shouldBe StatusCodes.UnprocessableEntity
       res.to[Error] shouldBe itemNotFound.error()
@@ -209,10 +212,31 @@ class TrialSessionSpec
       Given("a trial is started")
       patch("exam-1", pers3).status shouldBe StatusCodes.OK
       When("first item submitted")
-      val res = post("exam-1", pers3, Solution("i1", List("0", "1")))
+      val res = post("pers3-exam-1", pers3, Solution("i1", List("0", "1")))
       Then("submission result is returned")
       res.status shouldBe StatusCodes.OK
       res.to[SubmissionResult] shouldBe SubmissionResult(None, false)
+    }
+
+    Scenario("submit item switching section") {
+      Given("a trial is started")
+      And("first item submitted")
+      When("second item submitted")
+      val res = post("exam-1", pers3, Solution("i2", List("2", "3")))
+      Then("submission result is returned")
+      res.status shouldBe StatusCodes.OK
+      res.to[SubmissionResult] shouldBe SubmissionResult(Some(section2), false)
+    }
+
+    Scenario("submit item finalizing trial") {
+      Given("a trial is started")
+      And("first item submitted")
+      And("second item submitted")
+      When("third item submitted")
+      val res = post("pers3-exam-1", pers3, Solution("i3", List("4", "5")))
+      Then("submission result is returned")
+      res.status shouldBe StatusCodes.OK
+      res.to[SubmissionResult] shouldBe SubmissionResult(None, true)
     }
 
   }
