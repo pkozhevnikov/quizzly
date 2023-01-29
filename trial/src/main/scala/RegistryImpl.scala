@@ -44,8 +44,8 @@ class RegistryImpl(exams: String => RecipientRef[ExamEntity.Command])(using sys:
       )
       val mapper = JacksonObjectMapperProvider.get(sys).getOrCreate("trial", None)
       NamedDB(sys.name).localTx { implicit session =>
-        sql"insert into quiz (id,content) values (?,?)"
-          .bind(in.id, mapper.writeValueAsBytes(quiz))
+        sql"insert into quiz (id,title,content) values (?,?,?)"
+          .bind(in.id, in.title, mapper.writeValueAsBytes(quiz))
           .update
           .apply()
       }

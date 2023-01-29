@@ -124,6 +124,12 @@ class RegistryImplSpec extends wordspec.AnyWordSpec, BeforeAndAfterAll, matchers
             )
           )
         )
+
+        val title = DB.readOnly { implicit session =>
+          sql"select title from quiz where id='q1'".map(_.string("title")).single.apply()
+        }
+        title shouldBe defined
+        title.get shouldBe "q1 title"
     }
 
     "get failed if quiz not found" in {

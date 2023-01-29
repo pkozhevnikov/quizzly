@@ -27,6 +27,15 @@ import java.time.*
 
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.*
 
+case class ExamListed(
+  id: ExamID,
+  quizId: QuizID,
+  quizTitle: String,
+  start: Instant,
+  end: Instant,
+  trialLength: Int
+)
+
 case class ExamInfo(
     quizId: QuizID,
     quizTitle: String,
@@ -40,6 +49,7 @@ case class Solution(itemSC: SC, answers: List[String])
 
 trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
   given RootJsonFormat[StartTrialDetails] = jsonFormat5(StartTrialDetails.apply)
+  given RootJsonFormat[ExamListed] = jsonFormat6(ExamListed.apply)
   given RootJsonFormat[ExamInfo] = jsonFormat7(ExamInfo.apply)
   given RootJsonFormat[Reason] = jsonFormat2(Reason.apply)
   given RootJsonFormat[Error] = jsonFormat2(Error.apply)
@@ -76,6 +86,9 @@ trait EntityAware:
 
 trait Auth:
   def authenticate(request: HttpRequest): Future[Person]
+
+trait Read:
+  def examList()(using ExecutionContext): Future[List[ExamListed]]
 
 object HttpFrontend extends JsonFormats:
 
