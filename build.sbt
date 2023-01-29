@@ -44,7 +44,11 @@ val commonDependencies = Seq(
         .cross(CrossVersion.for3Use2_13),
   ("org.scalikejdbc" %% "scalikejdbc" % "3.5.0")
         .cross(CrossVersion.for3Use2_13),
-  ("ch.megard" %% "akka-http-cors" % "1.1.3"),
+  ("com.lightbend.akka.grpc" %% "akka-grpc-runtime" % "2.2.1").cross(CrossVersion.for3Use2_13),
+  ("com.thesamet.scalapb" %% "lenses" % "0.11.11").cross(CrossVersion.for3Use2_13),
+  ("org.scala-lang.modules" %% "scala-collection-compat" % "2.7.0").cross(CrossVersion.for3Use2_13),
+  ("com.thesamet.scalapb" %% "scalapb-runtime" % "0.11.11").cross(CrossVersion.for3Use2_13),
+  ("ch.megard" %% "akka-http-cors" % "1.1.3").cross(CrossVersion.for3Use2_13),
   "com.h2database" % "h2" % "2.1.212",
   "com.zaxxer" % "HikariCP" % "5.0.1",
   "com.github.pjfanning" %% "jackson-module-scala3-enum" % "2.13.+",
@@ -97,10 +101,13 @@ lazy val school = project
   )
 
 lazy val trial = project
-  .enablePlugins(PackPlugin)
+  .enablePlugins(PackPlugin, AkkaGrpcPlugin)
   .settings(
     name := "trial",
     packMain := Map("trial" -> "quizzly.trial.run"),
+    excludeDependencies ++= Seq(
+      "com.thesamet.scalapb" % "scalapb-runtime_3"
+    ),
     libraryDependencies ++= commonDependencies
   )
 
