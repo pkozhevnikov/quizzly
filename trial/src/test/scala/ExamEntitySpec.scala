@@ -55,8 +55,8 @@ class ExamEntitySpec
   "ExamEntity" when {
 
     val period = ExamPeriod(
-      ZonedDateTime.parse("2023-01-29T10:00:00Z"),
-      ZonedDateTime.parse("2023-01-30T10:00:00Z")
+      Instant.parse("2023-01-29T10:00:00Z"),
+      Instant.parse("2023-01-30T10:00:00Z")
     )
 
     "not registered yet" should {
@@ -93,8 +93,7 @@ class ExamEntitySpec
         kit.runCommand(Register("q1", period, 55, persons))
         val result = kit.runCommand(GetInfo(_))
         result.hasNoEvents shouldBe true
-        result.reply shouldBe
-          Good(ExamAttrs("exam-1", "q1", period.start.toInstant, period.end.toInstant, 55))
+        result.reply shouldBe Good(ExamAttrs("exam-1", "q1", period.start, period.end, 55))
       }
 
       "reject register testee if testee is not eligible" in {
@@ -106,11 +105,11 @@ class ExamEntitySpec
 
       "reject register testee if time over" in {
         kit.runCommand(Register("q1", period, 55, persons))
-        nowTime = period.end.toInstant
+        nowTime = period.end
         val result = kit.runCommand(RegisterTestee("t1", person1, _))
         result.hasNoEvents shouldBe true
         result.reply shouldBe Bad(Trial.examEnded.error())
-        nowTime = period.start.toInstant
+        nowTime = period.start
       }
 
       "reject register command" in {

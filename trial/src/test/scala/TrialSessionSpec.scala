@@ -132,8 +132,8 @@ class TrialSessionSpec
     super.beforeAll()
     (1 to 3).foreach { n =>
       val period = ExamPeriod(
-        ZonedDateTime.parse("2023-01-28T10:00:00Z"),
-        ZonedDateTime.parse("2023-01-30T10:00:00Z")
+        Instant.parse("2023-01-28T10:00:00Z"),
+        Instant.parse("2023-01-30T10:00:00Z")
       )
       val trialLength = 50
       val testees = Set(pers1, pers2, pers3, pers4, pers5)

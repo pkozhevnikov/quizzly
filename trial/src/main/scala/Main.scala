@@ -17,6 +17,7 @@ import scala.util.Failure
 import scala.util.Success
 
 import java.time.*
+import java.time.temporal.ChronoUnit
 
 type NowInstant = () => Instant
 
@@ -60,10 +61,7 @@ def run(fakeQuizCount: Int = 0) =
   val exam = Main(ActorSystem(Behaviors.empty, "Trial"), FakeAuth, quizreg)
   if fakeQuizCount > 0 then
     (1 to fakeQuizCount).foreach { n =>
-      val period = ExamPeriod(
-        ZonedDateTime.parse("2023-01-28T10:00:00Z"),
-        ZonedDateTime.parse("2023-01-30T10:00:00Z")
-      )
+      val period = ExamPeriod(Instant.now(), Instant.now().plus(2, ChronoUnit.DAYS))
       val trialLength = 50
       val testees = FakeAuth.all.values.toSet.take(8)
       exam(s"E-$n") ! ExamEntity.Register(s"q$n", period, trialLength, testees)

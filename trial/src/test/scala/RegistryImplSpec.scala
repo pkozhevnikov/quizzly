@@ -128,34 +128,35 @@ class RegistryImplSpec extends wordspec.AnyWordSpec, BeforeAndAfterAll, matchers
 
     "get failed if quiz not found" in {
       val registry = RegistryImpl(_ => testKit.createTestProbe[ExamEntity.Command]().ref)
-      val Some(Failure(ex)) = Await.ready(registry.get("xyz"), 1.second).value 
-      ex shouldBe a [NoSuchElementException]
+      val Some(Failure(ex)) = Await.ready(registry.get("xyz"), 1.second).value
+      ex shouldBe a[NoSuchElementException]
       ex.getMessage shouldBe "quiz [xyz] not found"
     }
 
     "register exam" in {
       val probe = testKit.createTestProbe[ExamEntity.Command]()
       var callId = ""
-      val exam = (id: String) => 
-        callId = id
-        probe.ref
+      val exam =
+        (id: String) =>
+          callId = id
+          probe.ref
       val registry = RegistryImpl(exam)
-      val req = grpc.RegisterExamRequest("e1", "q1", 45,
-        ZonedDateTime.parse("2023-01-28T10:00:00Z").toInstant.getEpochSecond, 
-        ZonedDateTime.parse("2023-01-30T10:00:00Z").toInstant.getEpochSecond,
-        Seq(
-          grpc.Person("p1", "p1 name"),
-          grpc.Person("p2", "p2 name")
-        )
+      val req = grpc.RegisterExamRequest(
+        "e1",
+        "q1",
+        45,
+        Instant.parse("2023-01-28T10:00:00Z").getEpochSecond,
+        Instant.parse("2023-01-30T10:00:00Z").getEpochSecond,
+        Seq(grpc.Person("p1", "p1 name"), grpc.Person("p2", "p2 name"))
       )
       Await.result(registry.registerExam(req), 1.second) shouldBe grpc.RegisterExamResponse.of()
       callId shouldBe "e1"
       val msg = ExamEntity.Register(
-        "q1", ExamPeriod(ZonedDateTime.parse("2023-01-28T10:00:00Z"), 
-          ZonedDateTime.parse("2023-01-30T10:00:00Z")), 45, Set(
-            Person("p1", "p1 name"),
-            Person("p2", "p2 name")
-          ))
+        "q1",
+        ExamPeriod(Instant.parse("2023-01-28T10:00:00Z"), Instant.parse("2023-01-30T10:00:00Z")),
+        45,
+        Set(Person("p1", "p1 name"), Person("p2", "p2 name"))
+      )
       probe.expectMessage(msg)
     }
 

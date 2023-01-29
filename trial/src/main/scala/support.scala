@@ -1,6 +1,6 @@
 package quizzly.trial
 
-import java.time.ZonedDateTime
+import java.time.Instant
 
 import com.fasterxml.jackson.core.*
 import com.fasterxml.jackson.databind.*
@@ -72,7 +72,7 @@ final case class ItemView(
 final case class SectionView(title: String, intro: String, items: List[ItemView])
     extends CborSerializable
 
-case class ExamPeriod(start: ZonedDateTime, end: ZonedDateTime) extends CborSerializable
+case class ExamPeriod(start: Instant, end: Instant) extends CborSerializable
 
 class PlainPersonSerializer extends JsonSerializer[Person]:
   override def serialize(person: Person, gen: JsonGenerator, serializers: SerializerProvider) = gen

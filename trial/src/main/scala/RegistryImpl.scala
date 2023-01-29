@@ -9,7 +9,8 @@ import java.time.*
 import scalikejdbc.*
 
 class RegistryImpl(exams: String => RecipientRef[ExamEntity.Command])(using sys: ActorSystem[?])
-    extends grpc.Registry, QuizRegistry:
+    extends grpc.Registry,
+      QuizRegistry:
 
   given ExecutionContext = sys.executionContext
   given toList[T]: Conversion[Seq[T], List[T]] = _.toList
@@ -51,27 +52,23 @@ class RegistryImpl(exams: String => RecipientRef[ExamEntity.Command])(using sys:
       grpc.RegisterQuizResponse.of()
     }
 
-  override def get(id: QuizID): Future[Quiz] =
-    Future {
-      val bytes = NamedDB(sys.name).readOnly { implicit session =>
-        sql"select content from quiz where id=?".bind(id).map(_.bytes("content")).single.apply()
-      }
-      bytes match 
-        case Some(bs) =>
-          val mapper = JacksonObjectMapperProvider.get(sys).getOrCreate("trial", None)
-          mapper.readValue(bs, classOf[Quiz])
-        case None =>
-          throw java.util.NoSuchElementException(s"quiz [$id] not found")
+  override def get(id: QuizID): Future[Quiz] = Future {
+    val bytes = NamedDB(sys.name).readOnly { implicit session =>
+      sql"select content from quiz where id=?".bind(id).map(_.bytes("content")).single.apply()
     }
-  
+    bytes match
+      case Some(bs) =>
+        val mapper = JacksonObjectMapperProvider.get(sys).getOrCreate("trial", None)
+        mapper.readValue(bs, classOf[Quiz])
+      case None =>
+        throw java.util.NoSuchElementException(s"quiz [$id] not found")
+  }
+
   override def registerExam(in: grpc.RegisterExamRequest): Future[grpc.RegisterExamResponse] =
     Future {
       val reg = ExamEntity.Register(
         in.quizId,
-        ExamPeriod(
-          ZonedDateTime.parse(Instant.ofEpochSecond(in.start).toString),
-          ZonedDateTime.parse(Instant.ofEpochSecond(in.end).toString)
-        ),
+        ExamPeriod(Instant.ofEpochSecond(in.start), Instant.ofEpochSecond(in.end)),
         in.trialLength,
         in.testees.map(p => Person(p.id, p.name)).toSet
       )

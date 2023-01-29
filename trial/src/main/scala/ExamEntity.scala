@@ -76,15 +76,7 @@ object ExamEntity:
         command match
           case GetInfo(replyTo) =>
             Effect.reply(replyTo)(
-              Good(
-                ExamAttrs(
-                  id,
-                  exam.quiz,
-                  exam.period.start.toInstant,
-                  exam.period.end.toInstant,
-                  exam.trialLength
-                )
-              )
+              Good(ExamAttrs(id, exam.quiz, exam.period.start, exam.period.end, exam.trialLength))
             )
           case RegisterTestee(trial, testee, replyTo) =>
             if !exam.testees.exists(_(0) == testee) then
@@ -124,10 +116,7 @@ object ExamEntity:
               Exam(
                 quiz,
                 period,
-                (
-                  period.start.toInstant,
-                  period.end.toInstant.minus(trialLength, ChronoUnit.MINUTES)
-                ),
+                (period.start, period.end.minus(trialLength, ChronoUnit.MINUTES)),
                 trialLength,
                 testees.map((_, None)).toMap
               )
