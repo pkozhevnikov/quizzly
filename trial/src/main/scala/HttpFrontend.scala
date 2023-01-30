@@ -28,12 +28,12 @@ import java.time.*
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.*
 
 case class ExamListed(
-  id: ExamID,
-  quizId: QuizID,
-  quizTitle: String,
-  start: Instant,
-  end: Instant,
-  trialLength: Int
+    id: ExamID,
+    quizId: QuizID,
+    quizTitle: String,
+    start: Instant,
+    end: Instant,
+    trialLength: Int
 )
 
 case class ExamInfo(

@@ -93,29 +93,42 @@ class ExamProjectionHandlerSpec
           () => ExamProjectionHandler()
         )
 
-      val registered = ExamEntity.Registered("q1", ExamPeriod(
-          Instant.parse("2023-01-28T10:00:00Z"), Instant.parse("2023-01-30T10:00:00Z")),
-          45, Set())
+      val registered = ExamEntity.Registered(
+        "q1",
+        ExamPeriod(Instant.parse("2023-01-28T10:00:00Z"), Instant.parse("2023-01-30T10:00:00Z")),
+        45,
+        Set()
+      )
 
-      case class Row(
-        id: String, quizId: String, start: Instant, end: Instant, trialLength: Int)
+      case class Row(id: String, quizId: String, start: Instant, end: Instant, trialLength: Int)
 
       "registered" in {
         val p = proj("e1", registered)
 
         projTestKit.run(p) {
           val row = NamedDB(testKit.system.name).readOnly { implicit session =>
-            sql"select * from exam where id='e1'".map { r =>
-              Row(r.string("id"), r.string("quiz_id"), 
-                r.zonedDateTime("start_at").withZoneSameInstant(ZoneId.of("Z")).toInstant,
-                r.zonedDateTime("end_at").withZoneSameInstant(ZoneId.of("Z")).toInstant,
-                r.int("trial_length")
-              )
-            }.single.apply()
+            sql"select * from exam where id='e1'"
+              .map { r =>
+                Row(
+                  r.string("id"),
+                  r.string("quiz_id"),
+                  r.zonedDateTime("start_at").withZoneSameInstant(ZoneId.of("Z")).toInstant,
+                  r.zonedDateTime("end_at").withZoneSameInstant(ZoneId.of("Z")).toInstant,
+                  r.int("trial_length")
+                )
+              }
+              .single
+              .apply()
           }
           row shouldBe defined
-          row.get shouldBe Row("e1", "q1", Instant.parse("2023-01-28T10:00:00Z"),
-            Instant.parse("2023-01-30T10:00:00Z"), 45)
+          row.get shouldBe
+            Row(
+              "e1",
+              "q1",
+              Instant.parse("2023-01-28T10:00:00Z"),
+              Instant.parse("2023-01-30T10:00:00Z"),
+              45
+            )
         }
       }
 

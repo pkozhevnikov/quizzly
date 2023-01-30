@@ -2,6 +2,7 @@
 create table quiz (
   id varchar primary key,
   title varchar,
+  intro text,
   content bytea
 );
 

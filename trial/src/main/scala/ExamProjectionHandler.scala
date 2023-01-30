@@ -9,11 +9,15 @@ import scala.concurrent.Future
 import eventsourced.EventEnvelope
 import jdbc.scaladsl.JdbcHandler
 
-class ExamProjectionHandler extends JdbcHandler[EventEnvelope[ExamEntity.Event], ScalikeJdbcSession]:
+class ExamProjectionHandler
+    extends JdbcHandler[EventEnvelope[ExamEntity.Event], ScalikeJdbcSession]:
 
   import ExamEntity.*
 
-  override final def process(session: ScalikeJdbcSession, envelope: EventEnvelope[ExamEntity.Event]) =
+  override final def process(
+      session: ScalikeJdbcSession,
+      envelope: EventEnvelope[ExamEntity.Event]
+  ) =
     val id = envelope.persistenceId.split("\\|")(1)
     given ScalikeJdbcSession = session
     given ExamID = id
@@ -23,13 +27,7 @@ class ExamProjectionHandler extends JdbcHandler[EventEnvelope[ExamEntity.Event],
       case c: Registered =>
         update { implicit session =>
           sql"insert into exam (id,quiz_id,start_at,end_at,trial_length) values (?,?,?,?,?)"
-            .bind(
-              id,
-              c.quiz,
-              c.period.start,
-              c.period.end,
-              c.trialLength
-            )
+            .bind(id, c.quiz, c.period.start, c.period.end, c.trialLength)
             .update
             .apply()
         }
