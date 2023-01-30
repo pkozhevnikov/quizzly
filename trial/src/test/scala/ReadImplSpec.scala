@@ -55,7 +55,7 @@ class ReadImplSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matchers.s
 
     NamedDB(testKit.system.name).localTx { implicit session =>
       val insq = "insert into quiz (id,title) values (?,?)"
-      val inse = "insert into exam (id,quiz_id,start,end,trial_length) values (?,?,?,?,?)"
+      val inse = "insert into exam (id,quiz_id,start_at,end_at,trial_length) values (?,?,?,?,?)"
       SQL(insq).bind("q1", "q1 title").update.apply()
       SQL(insq).bind("q2", "q2 title").update.apply()
       def insexam(e: ExamListed) = SQL(inse)
@@ -75,7 +75,7 @@ class ReadImplSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matchers.s
       ReadImpl(testKit.system.name)
         .examList()
         .map { list =>
-          list should contain inOrder (e1, e2)
+          list should contain inOrder (e2, e1)
         }
     }
   }

@@ -53,8 +53,6 @@ class ExamProjectionHandlerSpec
   given ActorSystem[?] = testKit.system
   given ExecutionContext = testKit.system.executionContext
 
-  def DB = NamedDB(testKit.system.name)
-
   override def beforeAll() =
     ScalikeJdbcSetup(testKit.system)
     DB.localTx { implicit session =>
@@ -63,6 +61,8 @@ class ExamProjectionHandlerSpec
     JdbcProjection.createTablesIfNotExists(() => ScalikeJdbcSession())
 
   override def afterAll() = testKit.shutdownTestKit()
+
+  def DB = NamedDB(testKit.system.name)
 
   var _seq = -1
   def seq() =
@@ -94,35 +94,38 @@ class ExamProjectionHandlerSpec
         )
 
       val registered = ExamEntity.Registered("q1", ExamPeriod(
-          Instant.parse("2023-01-28T10:00:00Z", Instant.parse("2023-01-30T10:00:00Z"),
-          45)))
+          Instant.parse("2023-01-28T10:00:00Z"), Instant.parse("2023-01-30T10:00:00Z")),
+          45, Set())
+
+      case class Row(
+        id: String, quizId: String, start: Instant, end: Instant, trialLength: Int)
 
       "registered" in {
         val p = proj("e1", registered)
 
         projTestKit.run(p) {
-          val row = DB.readOnly { implicit session =>
-            sql"select * from exam where id='e1'".single.apply()
+          val row = NamedDB(testKit.system.name).readOnly { implicit session =>
+            sql"select * from exam where id='e1'".map { r =>
+              Row(r.string("id"), r.string("quiz_id"), 
+                r.zonedDateTime("start_at").withZoneSameInstant(ZoneId.of("Z")).toInstant,
+                r.zonedDateTime("end_at").withZoneSameInstant(ZoneId.of("Z")).toInstant,
+                r.int("trial_length")
+              )
+            }.single.apply()
           }
           row shouldBe defined
-          val r = row.get
-          r.string("id") shouldBe "e1"
-          r.string("quiz_id") shouldBe "q1"
-          r.zonedDateTime("start_at").withZoneSameInstant(ZoneId.of("Z")).toInstant shouldBe 
-            Instant.parse("2023-01-28T10:00:00Z")
-          r.zonedDateTime("end_at").withZoneSameInstant(ZoneId.of("Z")).toInstant shouldBe 
-            Instant.parse("2023-01-30T10:00:00Z")
-          r.int("trial_length") shouldBe 45
+          row.get shouldBe Row("e1", "q1", Instant.parse("2023-01-28T10:00:00Z"),
+            Instant.parse("2023-01-30T10:00:00Z"), 45)
         }
       }
 
       "unregistered" in {
-        val p = proj("e1", registered, ExamEntity.Unregistered)
+        val p = proj("e2", registered, ExamEntity.Unregistered)
         projTestKit.run(p) {
-          val row = DB.readOnly { implicit session =>
-            sql"select * from exam where id='e1'".single.apply()
+          val row = NamedDB(testKit.system.name).readOnly { implicit session =>
+            sql"select * from exam where id='e2'".map(_.string("id")).single.apply()
           }
-          row shouldBe not defined
+          row shouldBe None
         }
       }
 
