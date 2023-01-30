@@ -21,15 +21,6 @@ import java.time.temporal.ChronoUnit
 
 type NowInstant = () => Instant
 
-class FakeQuizRegistry(list: Map[QuizID, Quiz]) extends QuizRegistry:
-  import ExecutionContext.Implicits.global
-  def get(id: QuizID) =
-    list.get(id) match
-      case Some(q) =>
-        Future(q)
-      case _ =>
-        Future.failed(java.util.NoSuchElementException(s"quiz $id not found"))
-
 @main
 def run(fakeQuizCount: Int = 0) =
   given NowInstant = () => Instant.now()
@@ -41,6 +32,7 @@ def run(fakeQuizCount: Int = 0) =
       .grpc
       .GrpcClientSettings
       .connectToServiceAt("localhost", grpcPort)(using system)
+      .withTls(false)
     val client = grpc.RegistryClient(settings)(using system)
     val item1 = grpc.Item(
       "i1",
@@ -57,14 +49,27 @@ def run(fakeQuizCount: Int = 0) =
     val item3 = grpc.Item("i3", "i3 intro", grpc.Statement("i3 def", None), Seq(), false, Seq(3, 4))
     val section1 = grpc.Section("s1", "s1 title", "s1 intro", Seq(item1, item2))
     val section2 = grpc.Section("s2", "s2 title", "s2 intro", Seq(item3))
+    given ExecutionContext = system.executionContext
     (1 to fakeQuizCount).foreach { n =>
       var quiz = grpc
         .RegisterQuizRequest(s"q$n", s"q$n title", s"q$n intro", Seq(section1, section2))
-      client.registerQuiz(quiz)
-      val period = ExamPeriod(Instant.now(), Instant.now().plus(2, ChronoUnit.DAYS))
-      val trialLength = 50
-      val testees = FakeAuth.all.values.toSet.take(8)
-      exam(s"E-$n") ! ExamEntity.Register(s"q$n", period, trialLength, testees)
+      client
+        .registerQuiz(quiz)
+        .flatMap { _ =>
+          val start = Instant.now().getEpochSecond
+          val end = Instant.now().plus(2, ChronoUnit.DAYS).getEpochSecond
+          val trialLength = 50
+          val testees = FakeAuth.all.values.toSet.take(8)
+          val exam = grpc.RegisterExamRequest(
+            s"E-$n",
+            s"q$n",
+            trialLength,
+            start,
+            end,
+            testees.map(p => grpc.Person(p.id, p.name)).toSeq
+          )
+          client.registerExam(exam)
+        }
     }
 
 object Main:
