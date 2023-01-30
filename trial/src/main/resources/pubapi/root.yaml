@@ -15,5 +15,7 @@ produces:
   - application/json
 paths:
 
+  /v1:
+    $ref: points/v1/v1.yaml
   /v1/{id}:
     $ref: points/v1/v1_ID.yaml

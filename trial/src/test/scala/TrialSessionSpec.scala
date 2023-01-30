@@ -18,13 +18,15 @@ import scala.concurrent.duration.*
 import java.time.*
 
 object TrialSessionSpec:
-  def config(nodePort: Int, httpPort: Int) =
+  def config(nodePort: Int, httpPort: Int, grpcPort: Int) =
     ConfigFactory
       .parseString(s"""
+    akka.http.server.preview.enable-http2 = on
     akka.cluster.seed-nodes = ["akka://trialapp@localhost:$nodePort"]
     akka.remote.artery.canonical.port = "$nodePort"
     jdbc-connection-settings.url = "jdbc:h2:mem:trialtest"
     frontend.http.port = $httpPort
+    registry.grpc.port = $grpcPort
     """)
       .withFallback(ConfigFactory.load("application.conf"))
       .resolve
@@ -43,11 +45,12 @@ class TrialSessionSpec
   def freePort(default: Int) = Using(new ServerSocket(0))(_.getLocalPort).getOrElse(default)
   val httpPort = freePort(33035)
   val nodePort = freePort(44046)
+  val grpcPort = freePort(44047)
 
   val appSystem = ActorSystem(
     Behaviors.empty,
     "trialapp",
-    TrialSessionSpec.config(nodePort, httpPort)
+    TrialSessionSpec.config(nodePort, httpPort, grpcPort)
   )
   val clnSystem = ActorSystem(
     Behaviors.empty,
@@ -65,7 +68,13 @@ class TrialSessionSpec
   extension (response: HttpResponse)
     def to[C](using FromResponseUnmarshaller[C]) = Await.result(Unmarshal(response).to[C], 1.second)
   extension (path: String)
-    def fullUrl = s"http://localhost:$httpPort/v1/$path"
+    def fullUrl =
+      val p =
+        if path.isEmpty then
+          ""
+        else
+          s"/$path"
+      s"http://localhost:$httpPort/v1$p"
 
   given ToEntityMarshaller[Set[String]] = sprayJsonMarshaller[Set[String]]
   def request(req: HttpRequest, as: Person) = Await
@@ -122,23 +131,13 @@ class TrialSessionSpec
       (s"q$n", Quiz(s"q$n", s"q$n title", s"q$n intro", List(section1, section2)))
     }
     .toMap
-  val quizreg: QuizRegistry =
-    new:
-      def get(id: QuizID) = Future(quizzes(id))
 
-  val getExam = Main(appSystem, auth, quizreg)
+  val getExam = Main(appSystem, auth)
+  val registryClient = grpc.RegistryClient(
+    akka.grpc.GrpcClientSettings.connectToServiceAt("localhost", grpcPort).withTls(false)
+  )
 
-  override def beforeAll() =
-    super.beforeAll()
-    (1 to 3).foreach { n =>
-      val period = ExamPeriod(
-        Instant.parse("2023-01-28T10:00:00Z"),
-        Instant.parse("2023-01-30T10:00:00Z")
-      )
-      val trialLength = 50
-      val testees = Set(pers1, pers2, pers3, pers4, pers5)
-      getExam(s"exam-$n") ! ExamEntity.Register(s"q$n", period, trialLength, testees)
-    }
+  override def beforeAll() = super.beforeAll()
 
   override def afterAll() =
     super.afterAll()
@@ -149,23 +148,89 @@ class TrialSessionSpec
 
   info("Testee tries a quiz")
 
+  Feature("registry functions") {
+    Scenario("quiz registration") {
+      Given("a quiz registration request")
+      val item1 = grpc.Item(
+        "i1",
+        "i2 intro",
+        grpc.Statement("i1 def", None),
+        Seq(
+          grpc.Hint(Seq(grpc.Statement("i1 h1 a1", None), grpc.Statement("i1 h1 a2", None))),
+          grpc.Hint(Seq(grpc.Statement("i1 h2 a1", None), grpc.Statement("i1 h2 a2", None)))
+        ),
+        true,
+        Seq(0, 1)
+      )
+      val item2 = grpc
+        .Item("i2", "i2 intro", grpc.Statement("i2 def", None), Seq(), false, Seq(1, 2))
+      val item3 = grpc
+        .Item("i3", "i3 intro", grpc.Statement("i3 def", None), Seq(), false, Seq(3, 4))
+      val section1 = grpc.Section("s1", "s1 title", "s1 intro", Seq(item1, item2))
+      val section2 = grpc.Section("s2", "s2 title", "s2 intro", Seq(item3))
+      val req = grpc.RegisterQuizRequest("q1", "q1 title", "q1 intro", Seq(section1, section2))
+      When("request is made")
+      val res = Await.result(registryClient.registerQuiz(req), 2.second)
+      Then("quiz is registered")
+      res shouldBe a[grpc.RegisterQuizResponse]
+    }
+    Scenario("exam registration") {
+      Given("an exam registration request")
+      val req = grpc.RegisterExamRequest(
+        "exam-1",
+        "q1",
+        50,
+        Instant.parse("2023-01-28T10:00:00Z").getEpochSecond,
+        Instant.parse("2023-01-30T10:00:00Z").getEpochSecond,
+        Set(pers1, pers2, pers3, pers4, pers5).map(p => grpc.Person(p.id, p.name)).toSeq
+      )
+      When("request is made")
+      val res = Await.result(registryClient.registerExam(req), 2.seconds)
+      Then("exam is registered")
+      res shouldBe a[grpc.RegisterExamResponse]
+    }
+  }
+
   Feature("getting exam info") {
 
     Scenario("exam info returned") {
       When("exam info is requested")
-      val res = get("exam-1", pers1)
       Then("exam info is returned")
-      res.status shouldBe StatusCodes.OK
-      res.to[ExamInfo] shouldBe
-        ExamInfo(
-          "q1",
-          "q1 title",
-          "q1 intro",
-          "exam-1",
-          Instant.parse("2023-01-28T10:00:00Z"),
-          Instant.parse("2023-01-30T10:00:00Z"),
-          50
-        )
+      eventually {
+        val res = get("exam-1", pers1)
+        res.status shouldBe StatusCodes.OK
+        res.to[ExamInfo] shouldBe
+          ExamInfo(
+            "q1",
+            "q1 title",
+            "q1 intro",
+            "exam-1",
+            Instant.parse("2023-01-28T10:00:00Z"),
+            Instant.parse("2023-01-30T10:00:00Z"),
+            50
+          )
+      }
+    }
+
+    Scenario("exam list returned") {
+      Given("registered exams")
+      When("exam list is requested")
+      Then("exam list is returned")
+      eventually {
+        val res = get("", pers1)
+        res.status shouldBe StatusCodes.OK
+        res.to[List[ExamListed]] shouldBe
+          List(
+            ExamListed(
+              "exam-1",
+              "q1",
+              "q1 title",
+              Instant.parse("2023-01-28T10:00:00Z"),
+              Instant.parse("2023-01-30T10:00:00Z"),
+              50
+            )
+          )
+      }
     }
 
     Scenario("error getting exam info") {

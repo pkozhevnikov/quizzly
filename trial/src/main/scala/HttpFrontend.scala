@@ -142,6 +142,17 @@ object HttpFrontend extends JsonFormats:
       extractRequest { request =>
         auth(request) { person =>
           pathPrefix("v1") {
+            pathEnd {
+              get {
+                onComplete(read.examList()) {
+                  case Success(list) =>
+                    complete(Source(list))
+                  case Failure(ex) =>
+                    log.error("could not get exam list", ex)
+                    complete(StatusCodes.InternalServerError, ex.getMessage)
+                }
+              }
+            } ~
             path(Segment) { id =>
               get {
                 onComplete(read.examInfo(id)) {

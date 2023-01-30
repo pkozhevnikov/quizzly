@@ -52,37 +52,48 @@ class HttpFrontendSpec
 
   given ToEntityMarshaller[Set[String]] = sprayJsonMarshaller[Set[String]]
 
-  def get(path: String, person: Person) = Get(s"/v1/$path") ~> addHeader("pl", person.id)
+  def url(p: String) =
+    if p.isEmpty then
+      "/v1"
+    else
+      s"/v1/$p"
+
+  def get(path: String, person: Person) = Get(url(path)) ~> addHeader("pl", person.id)
   def post[C](path: String, person: Person, content: C)(using ToEntityMarshaller[C]) =
-    Post(s"/v1/$path", content) ~> addHeader("pl", person.id)
-  def patch(path: String, person: Person) = Patch(s"/v1/$path") ~> addHeader("pl", person.id)
+    Post(url(path), content) ~> addHeader("pl", person.id)
+  def patch(path: String, person: Person) = Patch(url(path)) ~> addHeader("pl", person.id)
 
   val dateTime1 = ZonedDateTime.parse("2023-01-10T10:00:00Z")
 
   object quizreg extends QuizRegistry:
     def get(id: QuizID) = Future(quiz)
   object read extends Read:
-    def examList()(using ExecutionContext) = Future(List(
-      ExamListed("exam-1", "q1", "q1 title", 
+    def examList()(using ExecutionContext) = Future(
+      List(
+        ExamListed(
+          "exam-1",
+          "q1",
+          "q1 title",
           Instant.parse("2023-01-29T10:00:00Z"),
           Instant.parse("2023-01-30T10:00:00Z"),
           55
-        )))
-    def examInfo(id: ExamID)(using ExecutionContext) = Future{
+        )
+      )
+    )
+    def examInfo(id: ExamID)(using ExecutionContext) = Future {
       if id == "exam-1" then
         ExamInfo(
-              "q1",
-              "q1 title",
-              "q1 intro",
-              "exam-1",
-              Instant.parse("2023-01-29T10:00:00Z"),
-              Instant.parse("2023-01-30T10:00:00Z"),
-              55
-            )
+          "q1",
+          "q1 title",
+          "q1 intro",
+          "exam-1",
+          Instant.parse("2023-01-29T10:00:00Z"),
+          Instant.parse("2023-01-30T10:00:00Z"),
+          55
+        )
       else
         throw new java.util.NoSuchElementException()
     }
-
 
   val item1 = Item(
     "i1",
@@ -165,6 +176,30 @@ class HttpFrontendSpec
   import Resp.*
 
   import Trial.*
+
+  "<root>" when {
+
+    "GET" should {
+      "return exam list" in {
+        get("", pers1) ~> HttpFrontend(read, eaware, auth) ~>
+          check {
+            status shouldBe StatusCodes.OK
+            responseAs[List[ExamListed]] shouldBe
+              List(
+                ExamListed(
+                  "exam-1",
+                  "q1",
+                  "q1 title",
+                  Instant.parse("2023-01-29T10:00:00Z"),
+                  Instant.parse("2023-01-30T10:00:00Z"),
+                  55
+                )
+              )
+          }
+      }
+    }
+
+  }
 
   "{id}" when {
 

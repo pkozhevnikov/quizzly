@@ -1,0 +1,28 @@
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: get exam list
+  description: |
+    Returns list of exams
+  operationId: getexams
+  parameters:
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: normal response
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/exam-listed.yaml
+
+
+definitions:
+  exam-listed.yaml:
+    $ref: /pubapi/schemas/exam-listed.yaml

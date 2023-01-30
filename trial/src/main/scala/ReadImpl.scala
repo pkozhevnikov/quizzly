@@ -32,19 +32,21 @@ class ReadImpl(poolName: String) extends Read:
       sql"""select e.*,q.title,q.intro from exam e
               join quiz q on e.quiz_id=q.id
               where e.id=?
-              limit 1""".bind(id).map { rs =>
-                ExamInfo(
-                  rs.string("quiz_id"),
-                  rs.string("title"),
-                  rs.string("intro"),
-                  rs.string("id"),
-                  rs.zonedDateTime("start_at").withZoneSameInstant(ZoneId.of("Z")).toInstant,
-                  rs.zonedDateTime("end_at").withZoneSameInstant(ZoneId.of("Z")).toInstant,
-                  rs.int("trial_length")
-                )
-              }
-              .single
-              .apply()
+              limit 1"""
+        .bind(id)
+        .map { rs =>
+          ExamInfo(
+            rs.string("quiz_id"),
+            rs.string("title"),
+            rs.string("intro"),
+            rs.string("id"),
+            rs.zonedDateTime("start_at").withZoneSameInstant(ZoneId.of("Z")).toInstant,
+            rs.zonedDateTime("end_at").withZoneSameInstant(ZoneId.of("Z")).toInstant,
+            rs.int("trial_length")
+          )
+        }
+        .single
+        .apply()
     }
     res match
       case Some(info) =>
