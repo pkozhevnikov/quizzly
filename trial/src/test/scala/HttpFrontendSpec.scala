@@ -61,6 +61,28 @@ class HttpFrontendSpec
 
   object quizreg extends QuizRegistry:
     def get(id: QuizID) = Future(quiz)
+  object read extends Read:
+    def examList()(using ExecutionContext) = Future(List(
+      ExamListed("exam-1", "q1", "q1 title", 
+          Instant.parse("2023-01-29T10:00:00Z"),
+          Instant.parse("2023-01-30T10:00:00Z"),
+          55
+        )))
+    def examInfo(id: ExamID)(using ExecutionContext) = Future{
+      if id == "exam-1" then
+        ExamInfo(
+              "q1",
+              "q1 title",
+              "q1 intro",
+              "exam-1",
+              Instant.parse("2023-01-29T10:00:00Z"),
+              Instant.parse("2023-01-30T10:00:00Z"),
+              55
+            )
+      else
+        throw new java.util.NoSuchElementException()
+    }
+
 
   val item1 = Item(
     "i1",
@@ -123,19 +145,19 @@ class HttpFrontendSpec
       def exam(id: String) = TestEntityRef(ExamEntity.EntityKey, id, testKit.spawn(Behaviors.empty))
 
   def stdexam[R](expectedId: ExamID, resp: Resp[R]) = HttpFrontend(
-    quizreg,
+    read,
     exam(expectedId, resp),
     auth
   )
   def stdexam[R](expectedId: ExamID, beh: Behavior[ExamEntity.Command])(using NowInstant) =
-    HttpFrontend(quizreg, exam(expectedId, beh), auth)
+    HttpFrontend(read, exam(expectedId, beh), auth)
   def stdtrial[R](expectedId: TrialID, resp: Resp[R]) = HttpFrontend(
-    quizreg,
+    read,
     trial(expectedId, resp),
     auth
   )
   def stdtrial[R](expectedId: TrialID, beh: Behavior[Trial.Command]) = HttpFrontend(
-    quizreg,
+    read,
     trial(expectedId, beh),
     auth
   )
@@ -148,13 +170,13 @@ class HttpFrontendSpec
 
     "GET" should {
       "not authenticate" in {
-        get("exam-1", Person("notexist", "")) ~> HttpFrontend(quizreg, eaware, auth) ~>
+        get("exam-1", Person("notexist", "")) ~> HttpFrontend(read, eaware, auth) ~>
           check {
             status shouldBe StatusCodes.Unauthorized
           }
       }
-      "exam not found" in {
-        get("exam-2", pers1) ~> stdexam("exam-2", Bad(examNotFound.error())) ~>
+      "return error if exam not found" in {
+        get("exam-2", pers1) ~> HttpFrontend(read, eaware, auth) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe examNotFound.error()
@@ -170,8 +192,7 @@ class HttpFrontendSpec
           Instant.parse("2023-01-30T10:00:00Z"),
           55
         )
-        get("exam-1", pers1) ~>
-          stdexam("exam-1", Good(ExamEntity.ExamAttrs("exam-1", "q1", info.start, info.end, 55))) ~>
+        get("exam-1", pers1) ~> HttpFrontend(read, eaware, auth) ~>
           check {
             status shouldBe StatusCodes.OK
             responseAs[ExamInfo] shouldBe info

@@ -74,6 +74,7 @@ object Main:
   ): String => EntityRef[ExamEntity.Command] =
     given ActorSystem[?] = system
     given ExecutionContext = system.executionContext
+    ScalikeJdbcSetup(system)
     SchemaUtils.createIfNotExists()
     val sharding = ClusterSharding(system)
     val getExam = sharding.entityRefFor(ExamEntity.EntityKey, _)
@@ -89,7 +90,7 @@ object Main:
     val port = system.settings.config.getInt("frontend.http.port")
     Http()
       .newServerAt("0.0.0.0", port)
-      .bind(HttpFrontend(quizRegistry, entityAware, auth, host, port))
+      .bind(HttpFrontend(ReadImpl(system.name), entityAware, auth, host, port))
       .map(_.addToCoordinatedShutdown(3.seconds))
       .onComplete {
         case Success(binding) =>

@@ -96,7 +96,7 @@ object HttpFrontend extends JsonFormats:
   val log = org.slf4j.LoggerFactory.getLogger("HttpFrontend")
 
   def apply(
-      quizRegistry: QuizRegistry,
+      read: Read,
       entities: EntityAware,
       authService: Auth,
       host: String = "localhost",
@@ -144,24 +144,13 @@ object HttpFrontend extends JsonFormats:
           pathPrefix("v1") {
             path(Segment) { id =>
               get {
-                onComplete[Resp[ExamInfo]](
-                  entities.exam(id).ask[Resp[ExamEntity.ExamAttrs]](ExamEntity.GetInfo(_)).flatMap {
-                    case Resp.Good(attrs) =>
-                      quizRegistry.get(attrs.quiz).map { quiz =>
-                        Resp.Good(ExamInfo(quiz.id, quiz.title, quiz.intro,
-                          attrs.id, attrs.start, attrs.end, attrs.trialLength))
-                      }
-                    case Resp.Bad(e) =>
-                      Future(Resp.Bad(e))
-                  }
-                ) {
-                  case Success(Resp.Good(r)) =>
-                    complete(r)
-                  case Success(Resp.Bad(e)) =>
-                    complete(StatusCodes.UnprocessableEntity, e)
+                onComplete(read.examInfo(id)) {
+                  case Success(info) =>
+                    complete(info)
+                  case Failure(ex: java.util.NoSuchElementException) =>
+                    complete(StatusCodes.UnprocessableEntity, Trial.examNotFound.error())
                   case Failure(ex) =>
-                    log.error(ex.getMessage, ex)
-                    complete(StatusCodes.InternalServerError, ex.getMessage)
+                    complete(StatusCodes.UnprocessableEntity, Trial.processingError(ex).error())
                 }
               } ~
               patch {
