@@ -54,10 +54,10 @@ class ReadImplSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matchers.s
     ScalikeJdbcSetup(testKit.system)
 
     NamedDB(testKit.system.name).localTx { implicit session =>
-      val insq = "insert into quiz (id,title) values (?,?)"
+      val insq = "insert into quiz (id,title,intro) values (?,?,?)"
       val inse = "insert into exam (id,quiz_id,start_at,end_at,trial_length) values (?,?,?,?,?)"
-      SQL(insq).bind("q1", "q1 title").update.apply()
-      SQL(insq).bind("q2", "q2 title").update.apply()
+      SQL(insq).bind("q1", "q1 title", "q1 intro").update.apply()
+      SQL(insq).bind("q2", "q2 title", "q2 intro").update.apply()
       def insexam(e: ExamListed) = SQL(inse)
         .bind(e.id, e.quizId, e.start, e.end, e.trialLength)
         .update
@@ -78,4 +78,31 @@ class ReadImplSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matchers.s
           list should contain inOrder (e2, e1)
         }
     }
+
+    "return exam info" in {
+      ReadImpl(testKit.system.name)
+        .examInfo("e2")
+        .map { exam =>
+          exam shouldBe
+            ExamInfo(
+              "q2",
+              "q2 title",
+              "q2 intro",
+              "e2",
+              Instant.parse("2023-02-01T10:00:00Z"),
+              Instant.parse("2023-02-05T10:00:00Z"),
+              60
+            )
+        }
+    }
+
+    "exam info failed if exam not exists" in {
+      val exFut = recoverToExceptionIf[java.util.NoSuchElementException] {
+        ReadImpl(testKit.system.name).examInfo("x")
+      }
+      exFut.map { ex =>
+        ex.getMessage shouldBe "exam [x] not found"
+      }
+    }
+
   }

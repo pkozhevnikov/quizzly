@@ -127,7 +127,9 @@ class RegistryImplSpec extends wordspec.AnyWordSpec, BeforeAndAfterAll, matchers
 
       val row = DB.readOnly { implicit session =>
         sql"select title,intro from quiz where id='q1'"
-          .map(rs => (rs.string("title"), rs.string("intro"))).single.apply()
+          .map(rs => (rs.string("title"), rs.string("intro")))
+          .single
+          .apply()
       }
       row shouldBe defined
       row.get shouldBe ("q1 title", "q1 intro")

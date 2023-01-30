@@ -89,6 +89,7 @@ trait Auth:
 
 trait Read:
   def examList()(using ExecutionContext): Future[List[ExamListed]]
+  def examInfo(id: ExamID)(using ExecutionContext): Future[ExamInfo]
 
 object HttpFrontend extends JsonFormats:
 
