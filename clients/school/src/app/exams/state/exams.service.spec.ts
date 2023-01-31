@@ -62,7 +62,7 @@ describe('ExamsService', () => {
   it ("should create an exam", done => {
     quizzesQuery.getEntity.withArgs("q1").and.returnValue({
       id: "q1", title: "q1 title", obsolete: false, inUse: false, isPublished: false,
-        everPublished: false})
+        everPublished: false, recommendedTrialLength: 45})
     const createReq = {
       id: "newexam",
       quizId: "q1",

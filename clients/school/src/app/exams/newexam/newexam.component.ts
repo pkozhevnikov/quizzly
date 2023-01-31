@@ -33,8 +33,10 @@ export class NewexamComponent implements OnInit {
   ngOnInit(): void {
     this.route.params.subscribe(params => {
       const q = this.quizzesQuery.getEntity(params["quizId"])
-      if (q)
+      if (q) {
         this.quiz = q
+        this.trialLength.setValue(String(q.recommendedTrialLength))
+      }
     })
     this.personsState.init()
   }

@@ -5,6 +5,7 @@ export interface Quiz {
   inUse: boolean
   isPublished: boolean
   everPublished: boolean
+  recommendedTrialLength: number
 }
 
 export function createQuiz(params: Partial<Quiz>) {
@@ -15,6 +16,7 @@ export function createQuiz(params: Partial<Quiz>) {
     inUse: false,
     isPublished: false,
     everPublished: false,
+    recommendedTrialLength: 0,
     ...params
   } as Quiz
 }

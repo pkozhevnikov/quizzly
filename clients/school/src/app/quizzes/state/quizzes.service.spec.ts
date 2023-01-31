@@ -118,7 +118,8 @@ export const idle = {
   obsolete: false,
   inUse: false,
   isPublished: false,
-  everPublished: false
+  everPublished: false,
+  recommendedTrialLength: 45
 }
 
 export const idleobsolete = {
@@ -127,7 +128,8 @@ export const idleobsolete = {
   obsolete: true,
   inUse: false,
   isPublished: false,
-  everPublished: false
+  everPublished: false,
+  recommendedTrialLength: 45
 }
 
 export const used = {
@@ -136,7 +138,8 @@ export const used = {
   obsolete: false,
   inUse: true,
   isPublished: false,
-  everPublished: false
+  everPublished: false,
+  recommendedTrialLength: 45
 }
 
 export const nowpublished = {
@@ -145,7 +148,8 @@ export const nowpublished = {
   obsolete: false,
   inUse: false,
   isPublished: true,
-  everPublished: true
+  everPublished: true,
+  recommendedTrialLength: 45
 }
 
 export const everpublished = {
@@ -154,7 +158,8 @@ export const everpublished = {
   obsolete: false,
   inUse: false,
   isPublished: false,
-  everPublished: true
+  everPublished: true,
+  recommendedTrialLength: 45
 }
 
 export const testlist = [ idle, idleobsolete, used, nowpublished, everpublished ]

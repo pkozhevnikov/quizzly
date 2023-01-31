@@ -52,7 +52,8 @@ describe('NewexamComponent', () => {
     personsState.selectAll.withArgs("").and.returnValue(of(testpersons))
     personsState.init.and.stub()
     quizzesQuery.getEntity.withArgs("q1").and.returnValue({
-      id: "q1", title: "q1 title", obsolete: false, inUse: false, isPublished: false, everPublished: false
+      id: "q1", title: "q1 title", obsolete: false, inUse: false, 
+      isPublished: false, everPublished: false, recommendedTrialLength: 45
     })
     router = TestBed.inject(Router)
     spyOn(router, "navigate")
@@ -67,6 +68,8 @@ describe('NewexamComponent', () => {
     expect(quizzesQuery.getEntity).toHaveBeenCalledWith("q1")
     expect(node.querySelector(".quiz-id")).toHaveText("q1")
     expect(node.querySelector(".quiz-title")).toHaveText("q1 title")
+    const lengthBox: HTMLInputElement = node.querySelector(".trial-length")!
+    expect(lengthBox.value).toEqual("45")
   })
 
   it ("loads person list", () => {
