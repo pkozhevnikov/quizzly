@@ -8,6 +8,7 @@ option java_package = "quizzly.trial.grpc";
 service Registry {
   rpc RegisterQuiz (RegisterQuizRequest) returns (RegisterQuizResponse);
   rpc RegisterExam (RegisterExamRequest) returns (RegisterExamResponse);
+  rpc UnregisterExam (UnregisterExamRequest) returns (UnregisterExamResponse);
 }
 
 message RegisterQuizRequest {
@@ -60,5 +61,12 @@ message RegisterExamResponse {
 message Person {
   string id = 1;
   string name = 2;
+}
+
+message UnregisterExamRequest {
+  string id = 1;
+}
+
+message UnregisterExamResponse {
 }
 

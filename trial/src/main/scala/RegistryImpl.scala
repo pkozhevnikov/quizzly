@@ -75,3 +75,10 @@ class RegistryImpl(exams: String => RecipientRef[ExamEntity.Command])(using sys:
       exams(in.id) ! reg
       grpc.RegisterExamResponse.of()
     }
+
+  override def unregisterExam(in: grpc.UnregisterExamRequest): Future[grpc.UnregisterExamResponse] =
+    Future {
+      exams(in.id) ! ExamEntity.Unregister
+      grpc.UnregisterExamResponse.of()
+    }
+

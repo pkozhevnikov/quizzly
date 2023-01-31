@@ -169,4 +169,17 @@ class RegistryImplSpec extends wordspec.AnyWordSpec, BeforeAndAfterAll, matchers
       probe.expectMessage(msg)
     }
 
+    "unregister exam" in {
+      val probe = testKit.createTestProbe[ExamEntity.Command]()
+      var callId = ""
+      val exam = (id: String) => 
+        callId = id
+        probe.ref
+      val registry = RegistryImpl(exam)
+      Await.result(registry.unregisterExam(grpc.UnregisterExamRequest("xyz")), 1.second) shouldBe
+        grpc.UnregisterExamResponse.of()
+      callId shouldBe "xyz"
+      probe.expectMessage(ExamEntity.Unregister)
+    }
+
   }
