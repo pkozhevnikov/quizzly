@@ -20,18 +20,14 @@ message RegisterQuizResponse {}
 
 message RegisterTrialResultsRequest {
   string examId = 1;
-  Person testee = 2 [(scalapb.field).no_box = true];
-  int64 start = 3;
-  int64 end = 4;
-  repeated Solution solutions = 5;
+  string testeeId = 2;
+  string trialId = 3;
+  int64 start = 4;
+  int64 end = 5;
+  repeated Solution solutions = 6;
 }
 
 message RegisterTrialResultsResponse {}
-
-message Person {
-  string id = 1;
-  string name = 2;
-}
 
 message Solution {
   string sectionSc = 1;

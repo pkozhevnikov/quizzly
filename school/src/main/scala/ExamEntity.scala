@@ -182,16 +182,14 @@ object ExamEntity:
 
         case inprogress: InProgress =>
           cmd match
-            case Cancel(at, replyTo) =>
-              Effect
-                .persist(GoneCancelled(at))
-                .thenRun((_: Exam) =>
-                  tracker() ! ExamTracker.RegisterStateChange(id, Exam.State.Cancelled)
-                )
-                .thenReply(replyTo)(_ => Resp.OK)
             case Proceed =>
               facts(inprogress.quiz.id) ! QuizFact.StopUse(id)
               Effect.persist(GoneEnded)
+            case RegisterTrial(outcome) =>
+              if inprogress.testees.exists(_.id == outcome.testeeId) then
+                Effect.persist(TrialRegistered(outcome))
+              else
+                Effect.none
             case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(illegalState.error() + "InProgress"))
             case _ =>
@@ -274,22 +272,16 @@ object ExamEntity:
 
         case inprogress: InProgress =>
           evt match
-            case GoneCancelled(at) =>
-              Cancelled(
-                inprogress.quiz,
-                inprogress.trialLengthMinutes,
-                inprogress.period,
-                inprogress.testees,
-                inprogress.host,
-                at
-              )
+            case TrialRegistered(outcome) =>
+              inprogress.copy(trials = inprogress.trials + outcome)
             case GoneEnded =>
               Ended(
                 inprogress.quiz,
                 inprogress.trialLengthMinutes,
                 inprogress.period,
                 inprogress.testees,
-                inprogress.host
+                inprogress.host,
+                inprogress.trials
               )
             case _ =>
               inprogress

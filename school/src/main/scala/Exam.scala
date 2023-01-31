@@ -4,6 +4,14 @@ import java.time.*
 import akka.actor.typed.*
 
 final case class ExamPeriod(start: ZonedDateTime, end: ZonedDateTime) extends CborSerializable
+final case class Solution(sectionSc: SC, itemSc: SC, answers: List[String]) extends CborSerializable
+final case class TrialOutcome(
+    testeeId: PersonID,
+    trialId: TrialID,
+    start: Instant,
+    end: Instant,
+    solutions: List[Solution]
+) extends CborSerializable
 
 sealed trait Exam extends CborSerializable
 
@@ -105,8 +113,12 @@ object Exam:
       trialLengthMinutes: Int,
       period: ExamPeriod,
       testees: Set[Person],
-      host: Official
+      host: Official,
+      trials: Set[TrialOutcome] = Set.empty
   ) extends Exam
+
+  final case class RegisterTrial(outcome: TrialOutcome) extends Command
+  final case class TrialRegistered(outcome: TrialOutcome) extends Event
 
   case object GoneInProgress extends Event
 
@@ -116,7 +128,8 @@ object Exam:
       trialLengthMinutes: Int,
       period: ExamPeriod,
       testees: Set[Person],
-      host: Official
+      host: Official,
+      trials: Set[TrialOutcome]
   ) extends Exam
 
   final case class Cancel(at: Instant, replyTo: ActorRef[RespOK]) extends CommandWithReply[Nothing]

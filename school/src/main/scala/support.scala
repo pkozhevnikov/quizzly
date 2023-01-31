@@ -49,6 +49,8 @@ case class Student(id: PersonID, name: String) extends Person:
 
 type QuizID = String
 type ExamID = String
+type SC = String
+type TrialID = String
 
 final case class ExamConfig(
     preparationPeriodHours: Int,

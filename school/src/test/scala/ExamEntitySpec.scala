@@ -91,6 +91,8 @@ class ExamEntitySpec
   )
   val prepStart = ZonedDateTime.parse("2022-11-21T10:11:12Z")
 
+  val dummyOutcome = TrialOutcome("", "", Instant.now(), Instant.now(), List.empty)
+
   "Exam entity" when {
 
     "Blank" must {
@@ -108,8 +110,11 @@ class ExamEntitySpec
         result.hasNoEvents shouldBe true
         result.state shouldBe Blank()
         val result2 = examKit.runCommand(Awake)
-        result.hasNoEvents shouldBe true
-        result.state shouldBe Blank()
+        result2.hasNoEvents shouldBe true
+        result2.state shouldBe Blank()
+        val result3 = examKit.runCommand(RegisterTrial(dummyOutcome))
+        result3.hasNoEvents shouldBe true
+        result3.state shouldBe Blank()
       }
 
       "be created" in {
@@ -314,6 +319,12 @@ class ExamEntitySpec
         result.state shouldBe initial
       }
 
+      "reject register trial" in {
+        init
+        val result = examKit.runCommand(RegisterTrial(dummyOutcome))
+        result.hasNoEvents shouldBe true
+      }
+
       "be awaken and then go to upcoming" in {
         init
         nowTime = prepStart
@@ -374,6 +385,8 @@ class ExamEntitySpec
           ExcludeTestees(Set.empty, _),
           SetTrialLength(2, _)
         )
+        val result = examKit.runCommand(RegisterTrial(dummyOutcome))
+        result.hasNoEvents shouldBe true
       }
 
       "proceed to in progress" in {
@@ -413,35 +426,6 @@ class ExamEntitySpec
 
     "InProgress" must {
 
-      "be cancelled" in {
-        val initial = init
-        examKit.runCommand(Proceed)
-        val result0 = examKit.runCommand(Proceed)
-        result0.state shouldBe
-          InProgress(
-            initial.quiz,
-            initial.trialLengthMinutes,
-            initial.period,
-            initial.testees,
-            initial.host
-          )
-
-        val at = Instant.now()
-        tracker.receiveMessages(3)
-        val result = examKit.runCommand(Cancel(at, _))
-        result.reply shouldBe OK
-        result.state shouldBe
-          Cancelled(
-            initial.quiz,
-            initial.trialLengthMinutes,
-            initial.period,
-            initial.testees,
-            initial.host,
-            at
-          )
-        tracker.expectMessage(ExamTracker.RegisterStateChange("exam-1", State.Cancelled))
-      }
-
       "reject any other action" in {
         val initial = init
         examKit.runCommand(Proceed)
@@ -456,8 +440,38 @@ class ExamEntitySpec
           Create("", 1, period, Set.empty, official1, _),
           IncludeTestees(Set.empty, _),
           ExcludeTestees(Set.empty, _),
-          SetTrialLength(2, _)
+          SetTrialLength(2, _),
+          Cancel(Instant.now(), _)
         )
+      }
+
+      "register trial" in {
+        init
+        examKit.runCommand(IncludeTestees(Set(student1, student2), _))
+        examKit.runCommand(Proceed)
+        val state = examKit.runCommand(Proceed).stateOfType[InProgress]
+        val outcome = TrialOutcome(student1.id, "trial1", 
+          period.start.toInstant.plus(10, ChronoUnit.MINUTES),
+          period.start.toInstant.plus(20, ChronoUnit.MINUTES),
+          List(
+            Solution("sc1", "it1", List("1", "2")),
+            Solution("sc1", "it2", List("2", "3"))
+          )
+        )
+        
+        val result = examKit.runCommand(RegisterTrial(outcome))
+        result.event shouldBe TrialRegistered(outcome)
+        val newState = result.stateOfType[InProgress]
+        newState.trials should contain only outcome
+      }
+
+      "not register trial if testee is not included in exam" in {
+        init
+        examKit.runCommand(Proceed)
+        examKit.runCommand(Proceed)
+        val outcome = TrialOutcome("notexist", "t", Instant.now(), Instant.now(), List.empty)
+        val result = examKit.runCommand(RegisterTrial(outcome))
+        result.hasNoEvents shouldBe true
       }
 
       "proceed to ended" in {
@@ -480,7 +494,7 @@ class ExamEntitySpec
         val result = examKit.runCommand(Proceed)
         result.event shouldBe GoneEnded
         result.state shouldBe
-          Ended(qz, pending.trialLengthMinutes, pending.period, pending.testees, pending.host)
+          Ended(qz, pending.trialLengthMinutes, pending.period, pending.testees, pending.host, Set.empty)
         probe.expectMessageType[QuizFact.Use]
         probe.expectMessage(QuizFact.StopUse("exam-1"))
       }
@@ -508,6 +522,8 @@ class ExamEntitySpec
 
         val result = examKit.runCommand(Proceed)
         result.hasNoEvents shouldBe true
+        val result1 = examKit.runCommand(RegisterTrial(dummyOutcome))
+        result1.hasNoEvents shouldBe true
       }
     }
 
@@ -530,6 +546,8 @@ class ExamEntitySpec
 
         val result = examKit.runCommand(Proceed)
         result.hasNoEvents shouldBe true
+        val result2 = examKit.runCommand(RegisterTrial(dummyOutcome))
+        result2.hasNoEvents shouldBe true
       }
     }
 
