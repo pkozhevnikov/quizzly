@@ -55,7 +55,8 @@ case class QuizListed(
     obsolete: Boolean,
     inUse: Boolean,
     isPublished: Boolean,
-    everPublished: Boolean
+    everPublished: Boolean,
+    recommendedTrialLength: Int
 )
 
 case class ChangeLength(length: Int)
@@ -102,7 +103,7 @@ trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
   given RootJsonFormat[CreateExam] = jsonFormat6(CreateExam.apply)
   given RootJsonFormat[Exam.CreateExamDetails] = jsonFormat2(Exam.CreateExamDetails.apply)
   given RootJsonFormat[ExamView] = jsonFormat8(ExamView.apply)
-  given RootJsonFormat[QuizListed] = jsonFormat6(QuizListed.apply)
+  given RootJsonFormat[QuizListed] = jsonFormat7(QuizListed.apply)
   given RootJsonFormat[Set[Person]] =
     new:
       def write(s: Set[Person]) = JsArray(s.map(_.toJson).toList)

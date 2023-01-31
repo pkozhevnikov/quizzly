@@ -19,17 +19,18 @@ import org.scalatest.*
 import com.typesafe.config.*
 
 object ExamEntitySpec:
-  val config: Config = ConfigFactory
-    .parseString("""
+  val config: Config =
+    ConfigFactory
+      .parseString("""
       akka.actor {
         serialization-bindings {
           "quizzly.school.CborSerializable" = jackson-cbor
         }
       }
       """)
-    .withFallback(TestKit.config)
-    .withFallback(ManualTime.config)
-    .resolve
+      .withFallback(TestKit.config)
+      .withFallback(ManualTime.config)
+      .resolve
 
 class ExamEntitySpec
     extends wordspec.AnyWordSpec,
@@ -58,12 +59,7 @@ class ExamEntitySpec
 
   private val examKit = TestKit[Command, Event, Exam](
     testKit.system,
-    ExamEntity(
-      id,
-      factm(_),
-      () => tracker.ref,
-      config
-    )
+    ExamEntity(id, factm(_), () => tracker.ref, config)
   )
 
   val manualTime = ManualTime()(using testKit.system)
@@ -320,10 +316,12 @@ class ExamEntitySpec
 
       "be awaken and then go to upcoming" in {
         init
-        nowTime = prepStart.toInstant.minus(config.awakeExamBeforeProceedMinutes, ChronoUnit.MINUTES)
+        nowTime = prepStart
+          .toInstant
+          .minus(config.awakeExamBeforeProceedMinutes, ChronoUnit.MINUTES)
         val result1 = examKit.runCommand(Awake)
         result1.hasNoEvents shouldBe true
-        result1.state shouldBe an [Pending]
+        result1.state shouldBe an[Pending]
         manualTime.timePasses(config.awakeExamBeforeProceedMinutes.minutes)
         val result2 = examKit.runCommand(Create("", 1, period, Set.empty, official1, _))
         result2.hasNoEvents shouldBe true
@@ -398,10 +396,13 @@ class ExamEntitySpec
       "be awaken and then go to 'in progress'" in {
         init
         examKit.runCommand(Proceed)
-        nowTime = period.start.toInstant.minus(config.awakeExamBeforeProceedMinutes, ChronoUnit.MINUTES)
+        nowTime = period
+          .start
+          .toInstant
+          .minus(config.awakeExamBeforeProceedMinutes, ChronoUnit.MINUTES)
         val result1 = examKit.runCommand(Awake)
         result1.hasNoEvents shouldBe true
-        result1.state shouldBe an [Upcoming]
+        result1.state shouldBe an[Upcoming]
         manualTime.timePasses(config.awakeExamBeforeProceedMinutes.minutes)
         val result2 = examKit.runCommand(Create("", 1, period, Set.empty, official1, _))
         result2.hasNoEvents shouldBe true

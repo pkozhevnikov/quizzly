@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+import "scalapb/scalapb.proto";
+
+option java_multiple_files = true;
+option java_package = "quizzly.school.grpc";
+
+service SchoolRegistry {
+  rpc RegisterQuiz (RegisterQuizRequest) returns (RegisterQuizResponse);
+  rpc RegisterTrialResults (RegisterTrialResultsRequest) returns (RegisterTrialResultsResponse);
+}
+
+message RegisterQuizRequest {
+  string id = 1;
+  string title = 2;
+  int32 recommendedTrialLength = 3;
+}
+
+message RegisterQuizResponse {}
+
+message RegisterTrialResultsRequest {
+  string examId = 1;
+  Person testee = 2 [(scalapb.field).no_box = true];
+  int64 start = 3;
+  int64 end = 4;
+  repeated Solution solutions = 5;
+}
+
+message RegisterTrialResultsResponse {}
+
+message Person {
+  string id = 1;
+  string name = 2;
+}
+
+message Solution {
+  string sectionSc = 1;
+  string itemSc = 2;
+  repeated string answers = 3;
+}
+

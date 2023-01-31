@@ -32,10 +32,10 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
 
   val dt1 = ZonedDateTime.parse("2023-01-12T10:10:10Z")
 
-  val q1 = QuizListed("q1", "q1 title", true, false, false, false)
-  val q2 = QuizListed("q2", "q2 title", false, true, false, false)
-  val q3 = QuizListed("q3", "q3 title", false, false, true, false)
-  val q4 = QuizListed("q4", "q4 title", false, false, false, true)
+  val q1 = QuizListed("q1", "q1 title", true, false, false, false, 45)
+  val q2 = QuizListed("q2", "q2 title", false, true, false, false, 45)
+  val q3 = QuizListed("q3", "q3 title", false, false, true, false, 45)
+  val q4 = QuizListed("q4", "q4 title", false, false, false, true, 45)
 
   val e1 = ExamView(
     "e1",
@@ -68,14 +68,23 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
     ScalikeJdbcSetup(testKit.system)
 
     NamedDB(testKit.system.name).localTx { implicit session =>
-      val insquiz = """insert into quizfact (id,title,obsolete,in_use,is_published,ever_published)
-        values (?,?,?,?,?,?)"""
+      val insquiz = """insert into quizfact (
+          id,title,obsolete,in_use,is_published,ever_published,recommended_length)
+        values (?,?,?,?,?,?,?)"""
       val insexam = """insert into exam (id,quiz_id,quiz_title,host_id,host_name,start_at,end_at,
         state,cancelled_at,trial_length,prestart_at) values (?,?,?,?,?,?,?,?,?,?,?)"""
       val instste = """insert into testee (exam_id,testee_id,testee_name,testee_place)
         values (?,?,?,?)"""
       def insq(q: QuizListed) = SQL(insquiz)
-        .bind(q.id, q.title, q.obsolete, q.inUse, q.isPublished, q.everPublished)
+        .bind(
+          q.id,
+          q.title,
+          q.obsolete,
+          q.inUse,
+          q.isPublished,
+          q.everPublished,
+          q.recommendedTrialLength
+        )
         .update
         .apply()
       insq(q1)

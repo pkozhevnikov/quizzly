@@ -95,10 +95,13 @@ lazy val authorClient = (project in file("clients/author"))
   )
 
 lazy val school = project
-  .enablePlugins(PackPlugin)
+  .enablePlugins(PackPlugin, AkkaGrpcPlugin)
   .settings(
     name := "school",
     packMain := Map("school" -> "quizzly.school.run"),
+    excludeDependencies ++= Seq(
+      "com.thesamet.scalapb" % "scalapb-runtime_3"
+    ),
     libraryDependencies ++= commonDependencies
   )
 

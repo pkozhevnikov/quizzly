@@ -129,9 +129,9 @@ class ExamManagementSpec
 
   override def beforeAll() =
     super.beforeAll()
-    getFact("q1") ! QuizFact.Init("q1 title", false)
-    getFact("q2") ! QuizFact.Init("q2 title", false)
-    getFact("q3") ! QuizFact.Init("q3 title", false)
+    getFact("q1") ! QuizFact.Init("q1 title", false, 45)
+    getFact("q2") ! QuizFact.Init("q2 title", false, 45)
+    getFact("q3") ! QuizFact.Init("q3 title", false, 45)
 
   override def afterAll() =
     super.afterAll()
@@ -173,7 +173,7 @@ class ExamManagementSpec
         val list = res.to[List[QuizListed]]
         list.size shouldBe 3
         list.find(_.id == "q2").get shouldBe
-          QuizListed("q2", "q2 title", false, false, false, false)
+          QuizListed("q2", "q2 title", false, false, false, false, 45)
       }
     }
 

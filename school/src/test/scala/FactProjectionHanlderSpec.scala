@@ -85,7 +85,8 @@ class FactProjectionHandlerSpec
           obsolete: Boolean,
           inUse: Boolean,
           everPublished: Boolean,
-          isPublished: Boolean
+          isPublished: Boolean,
+          length: Int
       )
       val toQuizRow: WrappedResultSet => QuizRow =
         rs =>
@@ -95,7 +96,8 @@ class FactProjectionHandlerSpec
             rs.boolean("obsolete"),
             rs.boolean("in_use"),
             rs.boolean("ever_published"),
-            rs.boolean("is_published")
+            rs.boolean("is_published"),
+            rs.int("recommended_length")
           )
 
       def proj(id: QuizID, events: QuizFact.Event*) =
@@ -107,7 +109,7 @@ class FactProjectionHandlerSpec
           () => FactProjectionHandler()
         )
 
-      val inited = QuizFact.Inited("new quiz", false)
+      val inited = QuizFact.Inited("new quiz", false, 45)
 
       def getFact(id: String) = DB.readOnly { implicit session =>
         sql"select * from quizfact where id=?".bind(id).map(toQuizRow).single.apply()
@@ -116,42 +118,42 @@ class FactProjectionHandlerSpec
       "fact initialization" in {
         val projection = proj("q1", inited)
         projTestKit.run(projection) {
-          getFact("q1") shouldBe Some(QuizRow("q1", "new quiz", false, false, false, false))
+          getFact("q1") shouldBe Some(QuizRow("q1", "new quiz", false, false, false, false, 45))
         }
       }
 
       "got obsolete" in {
         val p = proj("q2", inited, QuizFact.GotObsolete)
         projTestKit.run(p) {
-          getFact("q2") shouldBe Some(QuizRow("q2", "new quiz", true, false, false, false))
+          getFact("q2") shouldBe Some(QuizRow("q2", "new quiz", true, false, false, false, 45))
         }
       }
 
       "published" in {
         val p = proj("q3", inited, QuizFact.Published)
         projTestKit.run(p) {
-          getFact("q3") shouldBe Some(QuizRow("q3", "new quiz", false, false, true, true))
+          getFact("q3") shouldBe Some(QuizRow("q3", "new quiz", false, false, true, true, 45))
         }
       }
 
       "unpublisjed" in {
         val p = proj("q4", inited, QuizFact.Published, QuizFact.Unpublished)
         projTestKit.run(p) {
-          getFact("q4") shouldBe Some(QuizRow("q4", "new quiz", false, false, true, false))
+          getFact("q4") shouldBe Some(QuizRow("q4", "new quiz", false, false, true, false, 45))
         }
       }
 
       "used" in {
         val p = proj("q5", inited, QuizFact.Used("any"))
         projTestKit.run(p) {
-          getFact("q5") shouldBe Some(QuizRow("q5", "new quiz", false, true, false, false))
+          getFact("q5") shouldBe Some(QuizRow("q5", "new quiz", false, true, false, false, 45))
         }
       }
 
       "stop usage" in {
         val p = proj("q6", inited, QuizFact.Used("any"), QuizFact.GotUnused)
         projTestKit.run(p) {
-          getFact("q6") shouldBe Some(QuizRow("q6", "new quiz", false, false, false, false))
+          getFact("q6") shouldBe Some(QuizRow("q6", "new quiz", false, false, false, false, 45))
         }
       }
 

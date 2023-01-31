@@ -29,7 +29,8 @@ class ScalikeRead(poolName: String) extends Read:
             rs.boolean("obsolete"),
             rs.boolean("in_use"),
             rs.boolean("is_published"),
-            rs.boolean("ever_published")
+            rs.boolean("ever_published"),
+            rs.int("recommended_length")
           )
         }
         .list

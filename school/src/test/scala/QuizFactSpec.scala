@@ -57,19 +57,19 @@ class QuizFactSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Befor
     }
 
     "be initialized" in {
-      val result = kit.runCommand(Init("quiz1", false))
-      result.event shouldBe Inited("quiz1", false)
-      result.state shouldBe Some(Fact("quiz1", false, false, false, Set.empty))
+      val result = kit.runCommand(Init("quiz1", false, 45))
+      result.event shouldBe Inited("quiz1", false, 45)
+      result.state shouldBe Some(Fact("quiz1", false, false, false, 45, Set.empty))
     }
 
     "ignore initialization if already initialized" in {
       init
-      val result = kit.runCommand(Init("quiz2", false))
+      val result = kit.runCommand(Init("quiz2", false, 45))
       result.hasNoEvents shouldBe true
-      result.state shouldBe Some(Fact("quiz1", false, false, false, Set.empty))
+      result.state shouldBe Some(Fact("quiz1", false, false, false, 45, Set.empty))
     }
 
-    def init = kit.runCommand(Init("quiz1", false))
+    def init = kit.runCommand(Init("quiz1", false, 45))
 
     "be used" in {
       init
@@ -98,7 +98,7 @@ class QuizFactSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Befor
       kit.runCommand(Unpublish(_))
       val result = kit.runCommand(Use("exam1", _))
       result.reply shouldBe Bad(wasPublished.error())
-      result.state shouldBe Some(Fact("quiz1", false, true, false, Set.empty))
+      result.state shouldBe Some(Fact("quiz1", false, true, false, 45, Set.empty))
     }
 
     "reject usage if is obsolete" in {
@@ -106,7 +106,7 @@ class QuizFactSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Befor
       kit.runCommand(SetObsolete)
       val result = kit.runCommand(Use("exam1", _))
       result.reply shouldBe Bad(isObsolete.error())
-      result.state shouldBe Some(Fact("quiz1", true, false, false, Set.empty))
+      result.state shouldBe Some(Fact("quiz1", true, false, false, 45, Set.empty))
     }
 
     "reject usage if not initialized" in {
@@ -119,7 +119,7 @@ class QuizFactSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Befor
       init
       val result = kit.runCommand(Publish(_))
       result.reply shouldBe Resp.OK
-      result.state shouldBe Some(Fact("quiz1", false, true, true, Set.empty))
+      result.state shouldBe Some(Fact("quiz1", false, true, true, 45, Set.empty))
     }
 
     "reject publication if already published" in {
@@ -127,7 +127,7 @@ class QuizFactSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Befor
       kit.runCommand(Publish(_))
       val result = kit.runCommand(Publish(_))
       result.reply shouldBe Bad(wasPublished.error())
-      result.state shouldBe Some(Fact("quiz1", false, true, true, Set.empty))
+      result.state shouldBe Some(Fact("quiz1", false, true, true, 45, Set.empty))
     }
 
     "reject publication if is in use" in {
@@ -135,7 +135,7 @@ class QuizFactSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Befor
       kit.runCommand(Use("exam1", _))
       val result = kit.runCommand(Publish(_))
       result.reply shouldBe Bad(isUsed.error())
-      result.state shouldBe Some(Fact("quiz1", false, false, false, Set("exam1")))
+      result.state shouldBe Some(Fact("quiz1", false, false, false, 45, Set("exam1")))
     }
 
     "be unpublished" in {
@@ -143,21 +143,21 @@ class QuizFactSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Befor
       kit.runCommand(Publish(_))
       val result = kit.runCommand(Unpublish(_))
       result.reply shouldBe Resp.OK
-      result.state shouldBe Some(Fact("quiz1", false, true, false, Set.empty))
+      result.state shouldBe Some(Fact("quiz1", false, true, false, 45, Set.empty))
     }
 
     "reject unpublication if not published" in {
       init
       val result = kit.runCommand(Unpublish(_))
       result.reply shouldBe Bad(isNotPublished.error())
-      result.state shouldBe Some(Fact("quiz1", false, false, false, Set.empty))
+      result.state shouldBe Some(Fact("quiz1", false, false, false, 45, Set.empty))
     }
 
     "be set obsolete" in {
       init
       val result = kit.runCommand(SetObsolete)
       result.event shouldBe GotObsolete
-      result.state shouldBe Some(Fact("quiz1", true, false, false, Set.empty))
+      result.state shouldBe Some(Fact("quiz1", true, false, false, 45, Set.empty))
     }
 
   }

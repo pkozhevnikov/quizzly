@@ -27,9 +27,8 @@ object ExamEntity:
       tracker: () => RecipientRef[ExamTracker.Command],
       config: ExamConfig
   )(using () => Instant, ExecutionContext): Behavior[Command] = Behaviors.setup { ctx =>
-    Behaviors.withTimers { timers => 
-      def scheduleProceeding(in: Long) = 
-        timers.startSingleTimer(Proceed, in.millis)
+    Behaviors.withTimers { timers =>
+      def scheduleProceeding(in: Long) = timers.startSingleTimer(Proceed, in.millis)
       EventSourcedBehavior[Command, Event, Exam](
         PersistenceId.of(EntityKey.name, id),
         Blank(),

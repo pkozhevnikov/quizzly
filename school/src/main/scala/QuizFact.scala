@@ -15,8 +15,8 @@ object QuizFact:
   sealed trait CommandWithReply[R] extends Command:
     val replyTo: ActorRef[Resp[R]]
 
-  final case class Init(title: String, obsolete: Boolean) extends Command
-  final case class Inited(title: String, obsolete: Boolean) extends Event
+  final case class Init(title: String, obsolete: Boolean, recommendedLength: Int) extends Command
+  final case class Inited(title: String, obsolete: Boolean, recommendedLength: Int) extends Event
 
   case object SetObsolete extends Command
   case object GotObsolete extends Event
@@ -37,7 +37,7 @@ object QuizFact:
   final case class Used(examID: ExamID) extends Event
   final case class StopUse(examID: ExamID) extends Command
   final case class UseStopped(examID: ExamID) extends Event
-  final case object GotUnused extends Event
+  case object GotUnused extends Event
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("QuizFact")
 
@@ -53,8 +53,8 @@ object QuizFact:
         state match
           case None =>
             command match
-              case Init(title, obsolete) =>
-                Effect.persist(Inited(title, obsolete))
+              case Init(title, obsolete, length) =>
+                Effect.persist(Inited(title, obsolete, length))
               case c: CommandWithReply[?] =>
                 Effect.reply(c.replyTo)(Resp.Bad(notFound.error()))
               case _ =>
@@ -66,8 +66,8 @@ object QuizFact:
         state match
           case None =>
             event match
-              case Inited(title, obsolete) =>
-                Some(Fact(title, obsolete, false, false, Set.empty))
+              case Inited(title, obsolete, length) =>
+                Some(Fact(title, obsolete, false, false, length, Set.empty))
               case _ =>
                 throw IllegalStateException(s"current state is $state should be None")
           case Some(fact) =>
@@ -81,6 +81,7 @@ object QuizFact:
       obsolete: Boolean,
       everPublished: Boolean,
       isPublished: Boolean,
+      recommendedLength: Int,
       usedBy: Set[ExamID]
   ) extends CborSerializable:
 

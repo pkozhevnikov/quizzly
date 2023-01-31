@@ -12,3 +12,6 @@ properties:
     type: boolean
   everPublished:
     type: boolean
+  recommendedTrialLength:
+    type: integer
+    format: int32

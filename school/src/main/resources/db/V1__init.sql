@@ -5,7 +5,8 @@ create table quizfact (
   obsolete boolean not null default false,
   in_use boolean not null default false,
   ever_published boolean not null default false,
-  is_published boolean not null default false
+  is_published boolean not null default false,
+  recommended_length int not null
 );
 
 create table exam (

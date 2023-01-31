@@ -25,7 +25,7 @@ def run(fakeQuizCount: Int = 0) =
   given NowInstant = () => Instant.now()
   val fact = Main(ActorSystem(Behaviors.empty, "ExamManagement"), FakeAuth)
   if fakeQuizCount > 0 then
-    (1 to fakeQuizCount).foreach(n => fact(s"Q-$n") ! QuizFact.Init(s"Q-$n title", false))
+    (1 to fakeQuizCount).foreach(n => fact(s"Q-$n") ! QuizFact.Init(s"Q-$n title", false, 45))
 
 object Main:
 
@@ -42,7 +42,7 @@ object Main:
     val getFact = sharding.entityRefFor(QuizFact.EntityKey, _)
     sharding.init(Entity(ExamTracker.EntityKey)(ctx => ExamTracker(examConfig, getExam)))
     sharding.init(
-      Entity(ExamEntity.EntityKey){ctx =>
+      Entity(ExamEntity.EntityKey) { ctx =>
         ExamEntity(
           ctx.entityId,
           getFact,

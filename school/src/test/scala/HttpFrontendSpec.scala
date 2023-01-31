@@ -106,9 +106,9 @@ class HttpFrontendSpec
     dateTime1.plusWeeks(1).minusDays(1)
   )
 
-  val quiz1 = QuizListed("q1", "q1 title", false, true, false, false)
-  val quiz2 = QuizListed("q2", "q2 title", false, true, false, false)
-  val quiz3 = QuizListed("q3", "q3 title", false, false, false, false)
+  val quiz1 = QuizListed("q1", "q1 title", false, true, false, false, 45)
+  val quiz2 = QuizListed("q2", "q2 title", false, true, false, false, 45)
+  val quiz3 = QuizListed("q3", "q3 title", false, false, false, false, 45)
 
   val quizList = List[QuizListed](quiz1, quiz2, quiz3)
 

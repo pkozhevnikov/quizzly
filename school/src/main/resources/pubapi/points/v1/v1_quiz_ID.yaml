@@ -1,29 +1,3 @@
-delete:
-  tags:
-  - v1
-  summary: unpublish from practicing
-  description: |
-    Removes a quiz from practicing
-  operationId: unpublishquiz
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: quiz ID
-    type: string
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    204:
-      description: quiz unpublished
-    422:
-      description: error
-
 patch:
   tags:
   - v1
@@ -47,6 +21,32 @@ patch:
   responses:
     204:
       description: quiz published
+    422:
+      description: error
+
+delete:
+  tags:
+  - v1
+  summary: unpublish from practicing
+  description: |
+    Removes a quiz from practicing
+  operationId: unpublishquiz
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: quiz ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    204:
+      description: quiz unpublished
     422:
       description: error
 

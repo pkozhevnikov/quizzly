@@ -19,10 +19,14 @@ class FactProjectionHandler extends JdbcHandler[EventEnvelope[QuizFact.Event], S
     given QuizID = id
     def update[Result](expr: DBSession => Result) = session.db.withinTx(expr(_))
     envelope.event match
-      case Inited(title, obsolete) =>
+      case Inited(title, obsolete, length) =>
         update { implicit session =>
-          sql"""insert into quizfact (id,title,obsolete,in_use,ever_published,is_published)
-            values (?,?,?,?,?,?)""".bind(id, title, obsolete, false, false, false).update.apply()
+          sql"""insert into quizfact (
+              id,title,obsolete,in_use,ever_published,is_published,recommended_length
+            ) values (?,?,?,?,?,?,?)"""
+            .bind(id, title, obsolete, false, false, false, length)
+            .update
+            .apply()
         }
       case GotObsolete =>
         update { implicit session =>
