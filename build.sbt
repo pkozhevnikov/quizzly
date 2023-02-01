@@ -12,8 +12,9 @@ val SlickVersion = "3.4.1"
 
 val commonDependencies = Seq(
   "ch.qos.logback" % "logback-classic" % "1.3.0-alpha16",
-  "org.scalatest" %% "scalatest" % "3.2.14" % Test,
-  "org.scalatest" %% "scalatest-featurespec" % "3.2.14" % Test,
+  "org.scalatest" %% "scalatest" % "3.2.15" % Test,
+  "org.scalatest" %% "scalatest-featurespec" % "3.2.15" % Test,
+  "org.scalatestplus" %% "mockito-4-6" % "3.2.15.0" % Test,
   ("com.typesafe.akka" %% "akka-stream" % AkkaVersion)
         .cross(CrossVersion.for3Use2_13),
   ("com.typesafe.akka" %% "akka-http" % AkkaHttpVersion)

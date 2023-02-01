@@ -9,7 +9,9 @@ import scala.concurrent.Future
 import eventsourced.EventEnvelope
 import jdbc.scaladsl.JdbcHandler
 
-class ExamProjectionHandler extends JdbcHandler[EventEnvelope[Exam.Event], ScalikeJdbcSession]:
+import quizzly.trial.{grpc => trial}
+
+class ExamProjectionHandler(trialRegistryClient: trial.Registry) extends JdbcHandler[EventEnvelope[Exam.Event], ScalikeJdbcSession]:
 
   import Exam.*
 
@@ -73,6 +75,23 @@ class ExamProjectionHandler extends JdbcHandler[EventEnvelope[Exam.Event], Scali
         updateState(State.Upcoming)
       case GoneInProgress =>
         updateState(State.InProgress)
+        session.db.withinTx { implicit session =>
+          val testees = sql"select testee_id,testee_name from testee where exam_id=?"
+            .bind(id).map(r => trial.Person(r.string("testee_id"), r.string("testee_name")))
+            .list.apply().toSeq
+          sql"select * from exam where id=?".bind(id)
+            .map(r => trial.RegisterExamRequest(
+              id, r.string("quiz_id"), r.int("trial_length"), 
+              r.timestamp("start_at").toInstant.getEpochSecond,
+              r.timestamp("end_at").toInstant.getEpochSecond,
+              testees
+            ))
+            .single
+            .apply()
+        } match 
+          case Some(req) =>
+            trialRegistryClient.registerExam(req)
+          case _ =>
       case GoneEnded =>
         updateState(State.Ended)
       case GoneCancelled(at) =>

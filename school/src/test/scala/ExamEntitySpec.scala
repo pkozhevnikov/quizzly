@@ -450,15 +450,14 @@ class ExamEntitySpec
         examKit.runCommand(IncludeTestees(Set(student1, student2), _))
         examKit.runCommand(Proceed)
         val state = examKit.runCommand(Proceed).stateOfType[InProgress]
-        val outcome = TrialOutcome(student1.id, "trial1", 
+        val outcome = TrialOutcome(
+          student1.id,
+          "trial1",
           period.start.toInstant.plus(10, ChronoUnit.MINUTES),
           period.start.toInstant.plus(20, ChronoUnit.MINUTES),
-          List(
-            Solution("sc1", "it1", List("1", "2")),
-            Solution("sc1", "it2", List("2", "3"))
-          )
+          List(Solution("sc1", "it1", List("1", "2")), Solution("sc1", "it2", List("2", "3")))
         )
-        
+
         val result = examKit.runCommand(RegisterTrial(outcome))
         result.event shouldBe TrialRegistered(outcome)
         val newState = result.stateOfType[InProgress]
@@ -494,7 +493,14 @@ class ExamEntitySpec
         val result = examKit.runCommand(Proceed)
         result.event shouldBe GoneEnded
         result.state shouldBe
-          Ended(qz, pending.trialLengthMinutes, pending.period, pending.testees, pending.host, Set.empty)
+          Ended(
+            qz,
+            pending.trialLengthMinutes,
+            pending.period,
+            pending.testees,
+            pending.host,
+            Set.empty
+          )
         probe.expectMessageType[QuizFact.Use]
         probe.expectMessage(QuizFact.StopUse("exam-1"))
       }

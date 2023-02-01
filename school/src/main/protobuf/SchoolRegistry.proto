@@ -5,6 +5,8 @@ import "scalapb/scalapb.proto";
 option java_multiple_files = true;
 option java_package = "quizzly.school.grpc";
 
+package quizzlyschool;
+
 service SchoolRegistry {
   rpc RegisterQuiz (RegisterQuizRequest) returns (RegisterQuizResponse);
   rpc RegisterTrialResults (RegisterTrialResultsRequest) returns (RegisterTrialResultsResponse);

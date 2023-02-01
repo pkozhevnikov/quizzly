@@ -18,13 +18,15 @@ import scala.concurrent.duration.*
 import java.time.*
 
 object ExamManagementSpec:
-  def config(nodePort: Int, httpPort: Int) =
+  def config(nodePort: Int, httpPort: Int, grpcPort: Int) =
     ConfigFactory
       .parseString(s"""
     akka.cluster.seed-nodes = ["akka://app@localhost:$nodePort"]
+    akka.http.server.preview.enable-http2 = on
     akka.remote.artery.canonical.port = "$nodePort"
     jdbc-connection-settings.url = "jdbc:h2:mem:app"
     frontend.http.port = $httpPort
+    registry.grpc.port = $grpcPort
     school {
       preparationPeriodHours = 24
       trialLengthMinutes = {
@@ -50,8 +52,9 @@ class ExamManagementSpec
   def freePort(default: Int) = Using(new ServerSocket(0))(_.getLocalPort).getOrElse(default)
   val httpPort = freePort(33032)
   val nodePort = freePort(44043)
+  val grpcPort = freePort(33033)
 
-  val appSystem = ActorSystem(Behaviors.empty, "app", ExamManagementSpec.config(nodePort, httpPort))
+  val appSystem = ActorSystem(Behaviors.empty, "app", ExamManagementSpec.config(nodePort, httpPort, grpcPort))
   val clnSystem = ActorSystem(
     Behaviors.empty,
     "cln",
@@ -126,6 +129,11 @@ class ExamManagementSpec
       def getPerson(id: PersonID) = Future(all.get(id))
 
   val getFact = Main(appSystem, auth)
+  val client = grpc.SchoolRegistryClient(akka
+    .grpc
+    .GrpcClientSettings
+    .connectToServiceAt("localhost", grpcPort)
+    .withTls(false))
 
   override def beforeAll() =
     super.beforeAll()
@@ -162,6 +170,22 @@ class ExamManagementSpec
 
   }
 
+  Feature("registry work") {
+    Scenario("quiz registration") {
+      When("register quiz requested")
+      val res = client.registerQuiz(grpc.RegisterQuizRequest("qx", "qx title", 40))
+      Await.result(res, 1.seconds) shouldBe a [grpc.RegisterQuizResponse]
+      Then("quiz is listed")
+      eventually {
+        val res = get("quiz", off1)
+        res.status shouldBe StatusCodes.OK
+        val listed = res.to[List[QuizListed]].find(_.id == "qx")
+        listed shouldBe defined
+        listed.get shouldBe QuizListed("qx", "qx title", false, false, false, false, 40)
+      }
+    }
+  }
+
   Feature("exams and quizzes listing") {
 
     Scenario("getting quiz list") {
@@ -171,9 +195,7 @@ class ExamManagementSpec
         val res = get("quiz", off1)
         res.status shouldBe StatusCodes.OK
         val list = res.to[List[QuizListed]]
-        list.size shouldBe 3
-        list.find(_.id == "q2").get shouldBe
-          QuizListed("q2", "q2 title", false, false, false, false, 45)
+        list should contain (QuizListed("q2", "q2 title", false, false, false, false, 45))
       }
     }
 

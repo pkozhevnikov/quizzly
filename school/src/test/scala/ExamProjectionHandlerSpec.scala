@@ -10,6 +10,8 @@ import akka.projection.testkit.scaladsl.ProjectionTestKit
 import akka.projection.testkit.scaladsl.TestSourceProvider
 import akka.stream.scaladsl.*
 import org.scalatest.*
+import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Mockito.*
 import scalikejdbc.*
 
 import scala.concurrent.ExecutionContext
@@ -46,6 +48,7 @@ object ExamProjectionHandlerSpec:
 class ExamProjectionHandlerSpec
     extends wordspec.AnyWordSpec,
       matchers.should.Matchers,
+      MockitoSugar,
       BeforeAndAfterAll:
 
   val testKit = ActorTestKit("examprojtest", ExamProjectionHandlerSpec.config)
@@ -127,13 +130,17 @@ class ExamProjectionHandlerSpec
       val toPerson: WrappedResultSet => Person =
         rs => Person.of(rs.string("testee_place"))(rs.string("testee_id"), rs.string("testee_name"))
 
+      import quizzly.trial.{grpc => trial}
+
+      val trialRegistryClient = mock[trial.Registry]
+
       def proj(id: ExamID, events: Exam.Event*) =
         val provider = TestSourceProvider(Source(events.map(nextEvent(id, _))), _.offset)
         JdbcProjection.exactlyOnce(
           ProjectionId("testlocal", Exam.Tags.Single),
           provider,
           () => ScalikeJdbcSession(),
-          () => ExamProjectionHandler()
+          () => ExamProjectionHandler(trialRegistryClient)
         )
 
       def getExam(id: String) = DB.readOnly { implicit session =>
@@ -211,9 +218,16 @@ class ExamProjectionHandlerSpec
       }
 
       "transit to in progress" in {
+        reset(trialRegistryClient)
         val p = proj("e1", created, GoneUpcoming, GoneInProgress)
         projTestKit.run(p) {
           getExam("e1") shouldBe Some(initExamRow.copy(state = "InProgress"))
+          verify(trialRegistryClient).registerExam(trial.RegisterExamRequest(
+            "e1", "q1", 45, 
+            Instant.parse("2023-01-05T10:00:00Z").getEpochSecond,
+            Instant.parse("2023-01-06T10:00:00Z").getEpochSecond,
+            Seq(trial.Person("stud1", "stud1 name"), trial.Person("stud2", "stud2 name"))
+          ))
         }
       }
 

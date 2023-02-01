@@ -23,9 +23,20 @@ type NowInstant = () => Instant
 @main
 def run(fakeQuizCount: Int = 0) =
   given NowInstant = () => Instant.now()
-  val fact = Main(ActorSystem(Behaviors.empty, "ExamManagement"), FakeAuth)
+  val system = ActorSystem(Behaviors.empty, "ExamManagement")
+  val fact = Main(system, FakeAuth)
+  val grpcPort = system.settings.config.getInt("registry.grpc.port")
   if fakeQuizCount > 0 then
-    (1 to fakeQuizCount).foreach(n => fact(s"Q-$n") ! QuizFact.Init(s"Q-$n title", false, 45))
+    val grpcPort = system.settings.config.getInt("registry.grpc.port")
+    val settings = akka
+      .grpc
+      .GrpcClientSettings
+      .connectToServiceAt("localhost", grpcPort)(using system)
+      .withTls(false)
+    val client = grpc.SchoolRegistryClient(settings)(using system)
+    (1 to fakeQuizCount).foreach { n =>
+      client.registerQuiz(grpc.RegisterQuizRequest(s"Q-$n", s"Q-$n title", 45))
+    }
 
 object Main:
 
@@ -58,11 +69,18 @@ object Main:
       .eventsByTag[QuizFact.Event](system, JdbcReadJournal.Identifier, QuizFact.Tags.Single)
 
     JdbcProjection.createTablesIfNotExists(() => ScalikeJdbcSession())
+    val trialRegistryClient: quizzly.trial.grpc.Registry = quizzly.trial.grpc.RegistryClient(
+      akka.grpc.GrpcClientSettings.connectToServiceAt(
+        system.settings.config.getString("trial.registry.grpc.host"),
+        system.settings.config.getInt("trial.registry.grpc.port")
+      )
+      .withTls(false)
+    )
     val examProjection = JdbcProjection.exactlyOnce(
       ProjectionId("ExamProjection", Exam.Tags.Single),
       examEventProvider,
       () => ScalikeJdbcSession(),
-      () => ExamProjectionHandler()
+      () => ExamProjectionHandler(trialRegistryClient)
     )
     val factProjection = JdbcProjection.exactlyOnce(
       ProjectionId("FactProjection", QuizFact.Tags.Single),
@@ -81,6 +99,7 @@ object Main:
         def fact(id: String) = getFact(id)
     val host = system.settings.config.getString("frontend.http.host")
     val port = system.settings.config.getInt("frontend.http.port")
+    val grpcPort = system.settings.config.getInt("registry.grpc.port")
     Http()
       .newServerAt("0.0.0.0", port)
       .bind(HttpFrontend(ScalikeRead(system.name), entityAware, auth, host, port))
@@ -96,6 +115,24 @@ object Main:
             )
         case Failure(ex) =>
           system.log.error("Failed to run exam management", ex)
+          system.terminate()
+      }
+    val grpcService = grpc.SchoolRegistryHandler(SchoolRegistryImpl(getFact, getExam))
+    Http()
+      .newServerAt("0.0.0.0", grpcPort)
+      .bind(grpcService)
+      .map(_.addToCoordinatedShutdown(3.seconds))
+      .onComplete {
+        case Success(binding) =>
+          system
+            .log
+            .debug(
+              "School registry is online at {}:{}",
+              binding.localAddress.getHostString,
+              binding.localAddress.getPort
+            )
+        case Failure(ex) =>
+          system.log.error("Failed to run registry service", ex)
           system.terminate()
       }
 
