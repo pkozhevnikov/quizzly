@@ -54,7 +54,11 @@ class ExamManagementSpec
   val nodePort = freePort(44043)
   val grpcPort = freePort(33033)
 
-  val appSystem = ActorSystem(Behaviors.empty, "app", ExamManagementSpec.config(nodePort, httpPort, grpcPort))
+  val appSystem = ActorSystem(
+    Behaviors.empty,
+    "app",
+    ExamManagementSpec.config(nodePort, httpPort, grpcPort)
+  )
   val clnSystem = ActorSystem(
     Behaviors.empty,
     "cln",
@@ -129,11 +133,9 @@ class ExamManagementSpec
       def getPerson(id: PersonID) = Future(all.get(id))
 
   val getFact = Main(appSystem, auth)
-  val client = grpc.SchoolRegistryClient(akka
-    .grpc
-    .GrpcClientSettings
-    .connectToServiceAt("localhost", grpcPort)
-    .withTls(false))
+  val client = grpc.SchoolRegistryClient(
+    akka.grpc.GrpcClientSettings.connectToServiceAt("localhost", grpcPort).withTls(false)
+  )
 
   override def beforeAll() =
     super.beforeAll()
@@ -174,7 +176,7 @@ class ExamManagementSpec
     Scenario("quiz registration") {
       When("register quiz requested")
       val res = client.registerQuiz(grpc.RegisterQuizRequest("qx", "qx title", 40))
-      Await.result(res, 1.seconds) shouldBe a [grpc.RegisterQuizResponse]
+      Await.result(res, 1.seconds) shouldBe a[grpc.RegisterQuizResponse]
       Then("quiz is listed")
       eventually {
         val res = get("quiz", off1)
@@ -195,7 +197,7 @@ class ExamManagementSpec
         val res = get("quiz", off1)
         res.status shouldBe StatusCodes.OK
         val list = res.to[List[QuizListed]]
-        list should contain (QuizListed("q2", "q2 title", false, false, false, false, 45))
+        list should contain(QuizListed("q2", "q2 title", false, false, false, false, 45))
       }
     }
 
