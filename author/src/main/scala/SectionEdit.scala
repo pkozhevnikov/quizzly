@@ -23,7 +23,7 @@ object SectionEdit:
   val notInitialized = Reason(2017, "section not initialized")
   val alreadyExists = Reason(2018, "section already exists")
 
-  final case class Own(owner: Author, replyTo: ActorRef[Resp[Section]]) 
+  final case class Own(owner: Author, replyTo: ActorRef[Resp[Section]])
       extends CommandWithOwnerReply[Section]
   val alreadyOwned = Reason(2014, "already owned")
   final case class Owned(owner: Author) extends Event

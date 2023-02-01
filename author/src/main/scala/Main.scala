@@ -10,6 +10,7 @@ import akka.projection.ProjectionBehavior
 import akka.projection.ProjectionId
 import akka.projection.eventsourced.scaladsl.EventSourcedProvider
 import akka.projection.jdbc.scaladsl.JdbcProjection
+import akka.grpc.GrpcClientSettings
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.*
@@ -30,8 +31,28 @@ object Main:
     val quizConfig = QuizConfig.fromConfig(system.settings.config.getConfig("author"))
     val getSection = sharding.entityRefFor(SectionEditEntity.EntityKey, _)
     val getQuiz = sharding.entityRefFor(QuizEntity.EntityKey, _)
-    sharding
-      .init(Entity(QuizEntity.EntityKey)(ctx => QuizEntity(ctx.entityId, getSection, quizConfig)))
+    val grpcConfig = system.settings.config.getConfig("registry")
+    val schoolRegistry = quizzly
+      .school
+      .grpc
+      .SchoolRegistryClient(
+        GrpcClientSettings
+          .connectToServiceAt(grpcConfig.getString("school.host"), grpcConfig.getInt("school.port"))
+          .withTls(false)
+      )
+    val trialRegistry = quizzly
+      .trial
+      .grpc
+      .RegistryClient(
+        GrpcClientSettings
+          .connectToServiceAt(grpcConfig.getString("trial.host"), grpcConfig.getInt("trial.port"))
+          .withTls(false)
+      )
+    sharding.init(
+      Entity(QuizEntity.EntityKey)(ctx =>
+        QuizEntity(ctx.entityId, getSection, schoolRegistry, trialRegistry, quizConfig)
+      )
+    )
     sharding.init(
       Entity(SectionEditEntity.EntityKey)(ctx =>
         SectionEditEntity(ctx.entityId, getQuiz, quizConfig)

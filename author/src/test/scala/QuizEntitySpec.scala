@@ -8,6 +8,8 @@ import akka.persistence.testkit.scaladsl.EventSourcedBehaviorTestKit as TestKit
 import com.typesafe.config.*
 import org.scalatest.*
 
+import org.mockito.Mockito.*
+
 import scala.concurrent.ExecutionContext
 
 import scaladsl.Behaviors
@@ -32,6 +34,8 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
 
   import Quiz.*
   import Resp.*
+  import quizzly.school.{grpc => school}
+  import quizzly.trial.{grpc => trial}
 
   private var sectionsm = scala.collection.mutable.Map.empty[SC, EntityRef[SectionEdit.Command]]
   private def putSection(id: SC, beh: Behavior[SectionEdit.Command]) =
@@ -39,11 +43,16 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
 
   given ExecutionContext = system.executionContext
 
+  val schoolRegistry = mock(classOf[school.SchoolRegistry])
+  val trialRegistry = mock(classOf[trial.Registry])
+
   private val kit = TestKit[Command, Event, Quiz](
     system,
     QuizEntity(
       id,
       sectionsm(_),
+      schoolRegistry,
+      trialRegistry,
       QuizConfig(
         minAuthors = 2,
         minInspectors = 2,
@@ -684,8 +693,23 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
           Set(author1, author2)
       }
 
+      def stdCreateSection = Behaviors.receiveMessage[SectionEdit.Command] {
+        case c: SectionEdit.Create =>
+          c.replyTo ! Resp.OK
+          Behaviors.stopped
+        case _ =>
+          Behaviors.stopped
+      }
+
       "resolve to release" in {
-        val composing = createComposing.stateOfType[Composing]
+        reset(schoolRegistry)
+        reset(trialRegistry)
+        createComposing
+
+        putSection("tq-1-1", stdCreateSection)
+        kit.runCommand(AddSection(section.title, author1, _))
+        val composing = kit.runCommand(SaveSection(section, _)).stateOfType[Composing]
+
         composing.signForReview
         val result1 = kit.runCommand(Resolve(inspector1, true, _))
         result1.reply shouldBe Resp.OK
@@ -707,9 +731,36 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
             composing.authors,
             composing.inspectors,
             composing.recommendedLength,
-            List.empty,
+            List(section),
             false
           )
+        verify(schoolRegistry).registerQuiz(
+          school.RegisterQuizRequest(composing.id, composing.title, composing.recommendedLength)
+        )
+
+        val expected = trial.RegisterQuizRequest(
+          "tq-1",
+          "test quiz",
+          "some intro",
+          Seq(
+            trial.Section(
+              "tq-1-1",
+              "section title",
+              "section intro",
+              Seq(
+                trial.Item(
+                  "33",
+                  "item33",
+                  trial.Statement("stmt33-1", Some("img33-1")),
+                  Seq(trial.Hint(Seq(trial.Statement("hint33-1", None)))),
+                  true,
+                  Seq(1)
+                )
+              )
+            )
+          )
+        )
+        verify(trialRegistry).registerQuiz(expected)
       }
 
       "resolve to composing" in {

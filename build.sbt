@@ -60,10 +60,13 @@ val commonDependencies = Seq(
 )
 
 lazy val author = project
-  .enablePlugins(PackPlugin)
+  .enablePlugins(PackPlugin, AkkaGrpcPlugin)
   .settings(
     name := "author",
     packMain := Map("author" -> "quizzly.author.run"),
+    excludeDependencies ++= Seq(
+      "com.thesamet.scalapb" % "scalapb-runtime_3"
+    ),
     libraryDependencies ++= commonDependencies
   )
 

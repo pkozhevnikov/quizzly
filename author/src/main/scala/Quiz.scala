@@ -151,7 +151,7 @@ object Quiz:
       extends CommandWithReply[SC]
   final case class SectionSaved(section: Section) extends Event
 
-  final case class OwnSection(sc: SC, owner: Author, replyTo: ActorRef[Resp[Section]]) 
+  final case class OwnSection(sc: SC, owner: Author, replyTo: ActorRef[Resp[Section]])
       extends CommandWithReply[Section]
   val sectionNotFound = Reason(2007, "section not found")
   final case class SectionOwned(sc: SC, owner: Author, replyTo: ActorRef[RespOK]) extends Event

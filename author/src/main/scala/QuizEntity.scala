@@ -21,16 +21,22 @@ object QuizEntity:
   val log = LoggerFactory.getLogger("QuizEntity")
 
   import Quiz.*
+  import quizzly.school.{grpc => school}
+  import quizzly.trial.{grpc => trial}
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("Quiz")
 
-  def apply(id: QuizID, sections: String => EntityRef[SectionEdit.Command], config: QuizConfig)(
-      using ExecutionContext
-  ): Behavior[Command] = Behaviors.setup { ctx =>
+  def apply(
+      id: QuizID,
+      sections: String => EntityRef[SectionEdit.Command],
+      schoolRegistry: school.SchoolRegistry,
+      trialRegistry: trial.Registry,
+      config: QuizConfig
+  )(using ExecutionContext): Behavior[Command] = Behaviors.setup { ctx =>
     EventSourcedBehavior[Command, Event, Quiz](
       PersistenceId(EntityKey.name, id),
       Blank(id),
-      commandHandler(ctx, sections, config),
+      commandHandler(ctx, sections, schoolRegistry, trialRegistry, config),
       eventHandler
     ).withTagger(_ => Set(Tags.Single))
   }
@@ -40,6 +46,8 @@ object QuizEntity:
   def commandHandler(
       ctx: ActorContext[Command],
       sections: String => EntityRef[SectionEdit.Command],
+      schoolRegistry: school.SchoolRegistry,
+      trialRegistry: trial.Registry,
       config: QuizConfig
   )(using ExecutionContext): (Quiz, Command) => Effect[Event, Quiz] =
     (state, cmd) =>
@@ -336,7 +344,16 @@ object QuizEntity:
                   events :+= GoneReleased
                 else if resolved.disapprovals.size == resolved.composing.inspectors.size then
                   events :+= GoneComposing
-                Effect.persist(events).thenReply(c.replyTo)(_ => Resp.OK)
+                Effect
+                  .persist(events)
+                  .thenRun { (s: Quiz) =>
+                    s match
+                      case released: Released =>
+                        sendToSchool(schoolRegistry, released)
+                        sendToTrial(trialRegistry, released)
+                      case _ =>
+                  }
+                  .thenReply(c.replyTo)(_ => Resp.OK)
             case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(onReview.error()))
 
@@ -375,6 +392,43 @@ object QuizEntity:
                 Effect.persist(GotObsolete).thenReply(c.replyTo)(_ => Resp.OK)
             case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(quizReleased.error()))
+
+  def sendToSchool(schoolRegistry: school.SchoolRegistry, quiz: Released) = schoolRegistry
+    .registerQuiz(school.RegisterQuizRequest(quiz.id, quiz.title, quiz.recommendedLength))
+
+  def sendToTrial(trialRegistry: trial.Registry, quiz: Released) =
+    val req = trial.RegisterQuizRequest(
+      quiz.id,
+      quiz.title,
+      quiz.intro,
+      quiz
+        .sections
+        .map { s =>
+          trial.Section(
+            s.sc,
+            s.title,
+            s.intro,
+            s.items
+              .map { i =>
+                trial.Item(
+                  i.sc,
+                  i.intro,
+                  trial.Statement(i.definition.text, i.definition.image),
+                  i.hints
+                    .map { alts =>
+                      trial.Hint(alts.map(a => trial.Statement(a.text, a.image)))
+                    }
+                    .toSeq,
+                  i.hintsVisible,
+                  i.solutions.toSeq
+                )
+              }
+              .toSeq
+          )
+        }
+        .toSeq
+    )
+    trialRegistry.registerQuiz(req)
 
   val eventHandler: (Quiz, Event) => Quiz =
     (state, evt) =>

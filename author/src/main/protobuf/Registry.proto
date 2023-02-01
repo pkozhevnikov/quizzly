@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+import "scalapb/scalapb.proto";
+
+option java_multiple_files = true;
+option java_package = "quizzly.trial.grpc";
+
+package quizzlytrial;
+
+service Registry {
+  rpc RegisterQuiz (RegisterQuizRequest) returns (RegisterQuizResponse);
+  rpc RegisterExam (RegisterExamRequest) returns (RegisterExamResponse);
+  rpc UnregisterExam (UnregisterExamRequest) returns (UnregisterExamResponse);
+}
+
+message RegisterQuizRequest {
+  string id = 1;
+  string title = 2;
+  string intro = 3;
+  repeated Section sections = 4;
+}
+
+message RegisterQuizResponse {
+}
+
+message Section {
+  string sc = 1;
+  string title = 2;
+  string intro = 3;
+  repeated Item items = 4;
+}
+
+message Item {
+  string sc = 1;
+  string intro = 2;
+  Statement definition = 3 [(scalapb.field).no_box = true];
+  repeated Hint hints = 4;
+  bool hintsVisible = 5;
+  repeated int32 solutions = 6;
+}
+
+message Statement {
+  string text = 1;
+  optional string image = 2;
+}
+
+message Hint {
+  repeated Statement alts = 1;
+}
+
+message RegisterExamRequest {
+  string id = 1;
+  string quizId = 2;
+  int32 trialLength = 3;
+  int64 start = 4;
+  int64 end = 5;
+  repeated Person testees = 6;
+}
+
+message RegisterExamResponse {
+}
+
+message Person {
+  string id = 1;
+  string name = 2;
+}
+
+message UnregisterExamRequest {
+  string id = 1;
+}
+
+message UnregisterExamResponse {
+}
+
