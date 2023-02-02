@@ -32,3 +32,9 @@ class SchoolRegistryImpl(
       )
     grpc.RegisterTrialResultsResponse.of()
   }
+
+  override def setQuizObsolete(in: grpc.SetObsoleteRequest): Future[grpc.SetObsoleteResponse] =
+    Future {
+      facts(in.quizId) ! QuizFact.SetObsolete
+      grpc.SetObsoleteResponse.of()
+    }

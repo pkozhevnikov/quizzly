@@ -953,11 +953,13 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
       }
 
       "set obsolete" in {
+        reset(schoolRegistry)
         val release = makeReleased
         release.stateOfType[Released].obsolete shouldBe false
         val result = kit.runCommand(SetObsolete(curator, _))
         result.reply shouldBe Resp.OK
         result.stateOfType[Released].obsolete shouldBe true
+        verify(schoolRegistry).setQuizObsolete(school.SetObsoleteRequest("tq-1"))
       }
 
       "reject set obsolete if already set" in {

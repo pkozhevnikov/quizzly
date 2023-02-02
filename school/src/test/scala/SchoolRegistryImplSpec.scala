@@ -85,4 +85,17 @@ class SchoolRegistryImplSpec
       )
     }
 
+    "set quiz obsolete" in {
+      var reqId = ""
+      val fact =
+        (id: String) =>
+          reqId = id
+          factProbe.ref
+      val registry = SchoolRegistryImpl(fact, _ => examProbe.ref)
+      val res = registry.setQuizObsolete(grpc.SetObsoleteRequest("q1"))
+      Await.result(res, 1.second) shouldBe grpc.SetObsoleteResponse.of()
+      reqId shouldBe "q1"
+      factProbe.expectMessage(QuizFact.SetObsolete)
+    }
+    
   }

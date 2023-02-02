@@ -10,6 +10,7 @@ package quizzlyschool;
 service SchoolRegistry {
   rpc RegisterQuiz (RegisterQuizRequest) returns (RegisterQuizResponse);
   rpc RegisterTrialResults (RegisterTrialResultsRequest) returns (RegisterTrialResultsResponse);
+  rpc SetQuizObsolete (SetObsoleteRequest) returns (SetObsoleteResponse);
 }
 
 message RegisterQuizRequest {
@@ -37,3 +38,8 @@ message Solution {
   repeated string answers = 3;
 }
 
+message SetObsoleteRequest {
+  string quizId = 1;
+}
+
+message SetObsoleteResponse {}

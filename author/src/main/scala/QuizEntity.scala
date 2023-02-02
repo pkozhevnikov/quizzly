@@ -389,7 +389,12 @@ object QuizEntity:
               if released.obsolete then
                 Effect.reply(c.replyTo)(Bad(alreadyObsolete.error()))
               else
-                Effect.persist(GotObsolete).thenReply(c.replyTo)(_ => Resp.OK)
+                Effect
+                  .persist(GotObsolete)
+                  .thenRun((s: Quiz) =>
+                    schoolRegistry.setQuizObsolete(school.SetObsoleteRequest(s.id))
+                  )
+                  .thenReply(c.replyTo)(_ => Resp.OK)
             case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(quizReleased.error()))
 

@@ -69,13 +69,19 @@ object Main:
       .eventsByTag[QuizFact.Event](system, JdbcReadJournal.Identifier, QuizFact.Tags.Single)
 
     JdbcProjection.createTablesIfNotExists(() => ScalikeJdbcSession())
-    val trialRegistryClient: quizzly.trial.grpc.Registry = quizzly.trial.grpc.RegistryClient(
-      akka.grpc.GrpcClientSettings.connectToServiceAt(
-        system.settings.config.getString("trial.registry.grpc.host"),
-        system.settings.config.getInt("trial.registry.grpc.port")
+    val trialRegistryClient: quizzly.trial.grpc.Registry = quizzly
+      .trial
+      .grpc
+      .RegistryClient(
+        akka
+          .grpc
+          .GrpcClientSettings
+          .connectToServiceAt(
+            system.settings.config.getString("trial.registry.grpc.host"),
+            system.settings.config.getInt("trial.registry.grpc.port")
+          )
+          .withTls(false)
       )
-      .withTls(false)
-    )
     val examProjection = JdbcProjection.exactlyOnce(
       ProjectionId("ExamProjection", Exam.Tags.Single),
       examEventProvider,
