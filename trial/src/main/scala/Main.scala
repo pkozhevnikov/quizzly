@@ -27,7 +27,7 @@ def run(fakeQuizCount: Int = 0) =
   val system = ActorSystem(Behaviors.empty, "Trial")
   val exam = Main(system, FakeAuth)
   if fakeQuizCount > 0 then
-    val grpcPort = system.settings.config.getInt("registry.grpc.port")
+    val grpcPort = system.settings.config.getInt("registry.trial.port")
     val settings = akka
       .grpc
       .GrpcClientSettings
@@ -108,7 +108,7 @@ object Main:
 
     val host = system.settings.config.getString("frontend.http.host")
     val port = system.settings.config.getInt("frontend.http.port")
-    val grpcPort = system.settings.config.getInt("registry.grpc.port")
+    val grpcPort = system.settings.config.getInt("registry.trial.port")
     Http()
       .newServerAt("0.0.0.0", port)
       .bind(HttpFrontend(ReadImpl(system.name), entityAware, auth, host, port))

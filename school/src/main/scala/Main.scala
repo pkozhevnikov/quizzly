@@ -25,9 +25,8 @@ def run(fakeQuizCount: Int = 0) =
   given NowInstant = () => Instant.now()
   val system = ActorSystem(Behaviors.empty, "ExamManagement")
   val fact = Main(system, FakeAuth)
-  val grpcPort = system.settings.config.getInt("registry.grpc.port")
   if fakeQuizCount > 0 then
-    val grpcPort = system.settings.config.getInt("registry.grpc.port")
+    val grpcPort = system.settings.config.getInt("registry.school.port")
     val settings = akka
       .grpc
       .GrpcClientSettings
@@ -77,8 +76,8 @@ object Main:
           .grpc
           .GrpcClientSettings
           .connectToServiceAt(
-            system.settings.config.getString("trial.registry.grpc.host"),
-            system.settings.config.getInt("trial.registry.grpc.port")
+            system.settings.config.getString("registry.trial.host"),
+            system.settings.config.getInt("registry.trial.port")
           )
           .withTls(false)
       )
@@ -105,7 +104,7 @@ object Main:
         def fact(id: String) = getFact(id)
     val host = system.settings.config.getString("frontend.http.host")
     val port = system.settings.config.getInt("frontend.http.port")
-    val grpcPort = system.settings.config.getInt("registry.grpc.port")
+    val grpcPort = system.settings.config.getInt("registry.school.port")
     Http()
       .newServerAt("0.0.0.0", port)
       .bind(HttpFrontend(ScalikeRead(system.name), entityAware, auth, host, port))

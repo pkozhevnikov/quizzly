@@ -26,7 +26,7 @@ object TrialSessionSpec:
     akka.remote.artery.canonical.port = "$nodePort"
     jdbc-connection-settings.url = "jdbc:h2:mem:trialtest"
     frontend.http.port = $httpPort
-    registry.grpc.port = $grpcPort
+    registry.trial.port = $grpcPort
     """)
       .withFallback(ConfigFactory.load("application.conf"))
       .resolve

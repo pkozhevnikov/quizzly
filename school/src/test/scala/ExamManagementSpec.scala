@@ -26,7 +26,7 @@ object ExamManagementSpec:
     akka.remote.artery.canonical.port = "$nodePort"
     jdbc-connection-settings.url = "jdbc:h2:mem:app"
     frontend.http.port = $httpPort
-    registry.grpc.port = $grpcPort
+    registry.school.port = $grpcPort
     school {
       preparationPeriodHours = 24
       trialLengthMinutes = {
