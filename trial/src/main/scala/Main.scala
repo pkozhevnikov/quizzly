@@ -10,6 +10,7 @@ import akka.projection.ProjectionBehavior
 import akka.projection.ProjectionId
 import akka.projection.eventsourced.scaladsl.EventSourcedProvider
 import akka.projection.jdbc.scaladsl.JdbcProjection
+import akka.grpc.GrpcClientSettings
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.*
@@ -86,8 +87,22 @@ object Main:
     val getTrial = sharding.entityRefFor(TrialEntity.EntityKey, _)
     val registry = RegistryImpl(getExam)
     sharding.init(Entity(ExamEntity.EntityKey)(ctx => ExamEntity(ctx.entityId)))
-    sharding
-      .init(Entity(TrialEntity.EntityKey)(ctx => TrialEntity(ctx.entityId, getExam, registry)))
+    val schoolRegistry = quizzly
+      .school
+      .grpc
+      .SchoolRegistryClient(
+        GrpcClientSettings
+          .connectToServiceAt(
+            system.settings.config.getString("registry.school.host"),
+            system.settings.config.getInt("registry.school.port")
+          )
+          .withTls(false)
+      )
+    sharding.init(
+      Entity(TrialEntity.EntityKey)(ctx =>
+        TrialEntity(ctx.entityId, getExam, registry, schoolRegistry)
+      )
+    )
     val entityAware: EntityAware =
       new:
         def exam(id: String) = getExam(id)

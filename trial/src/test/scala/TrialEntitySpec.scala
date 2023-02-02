@@ -13,6 +13,8 @@ import scala.concurrent.duration.*
 import java.time.*
 
 import org.scalatest.*
+import org.mockito.Mockito.*
+import org.mockito.ArgumentMatchers.*
 
 import com.typesafe.config.*
 
@@ -40,6 +42,7 @@ class TrialEntitySpec
   val id = "trial-1"
 
   import Trial.*
+  import quizzly.school.{grpc => school}
 
   given ExecutionContext = testKit.system.executionContext
 
@@ -90,9 +93,11 @@ class TrialEntitySpec
 
   val manualTime = ManualTime()(using testKit.system)
 
+  val schoolRegistry = mock(classOf[school.SchoolRegistry])
+
   private val kit = EventSourcedBehaviorTestKit[Command, Event, Option[Trial]](
     testKit.system,
-    TrialEntity(id, exams(_), quizRegistry)
+    TrialEntity(id, exams(_), quizRegistry, schoolRegistry)
   )
 
   import Resp.*
@@ -263,6 +268,8 @@ class TrialEntitySpec
           )
         result2.reply shouldBe Good(SubmissionResult(Some(section2.view), false))
 
+        reset(schoolRegistry)
+
         val result3 = kit.runCommand(Submit(person1, "i21", List("5", "6"), _))
         result3.events shouldBe Vector(Submitted("i21", List("5", "6")), Finalized(nt))
         val state = result3.stateOfType[Option[Trial]].get
@@ -274,9 +281,24 @@ class TrialEntitySpec
             ("q1-2", "i21") -> List("5", "6")
           )
         result3.reply shouldBe Good(SubmissionResult(None, true))
+        verify(schoolRegistry).registerTrialResults(
+          school.RegisterTrialResultsRequest(
+            "e1",
+            "pers1",
+            "trial-1",
+            started.getEpochSecond,
+            nt.getEpochSecond,
+            Seq(
+              school.Solution("q1-1", "i1", Seq("1", "2")),
+              school.Solution("q1-1", "i2", Seq("3", "4")),
+              school.Solution("q1-2", "i21", Seq("5", "6"))
+            )
+          )
+        )
       }
 
       "finalize if not fully submitted within trial length" in {
+        reset(schoolRegistry)
         start
         nowTime = Instant.parse("2023-01-29T10:00:00Z")
         manualTime.timePasses(54.minutes)
@@ -285,12 +307,24 @@ class TrialEntitySpec
         state1.finalizedAt shouldBe None
         state1.solutions shouldBe Map(("q1-1", "i1") -> List("1", "2"))
         result1.reply shouldBe Good(SubmissionResult(None, false))
+        verify(schoolRegistry, never()).registerTrialResults(any())
         manualTime.timePasses(2.minutes)
         val result2 = kit.runCommand(Submit(person1, "i2", List("2", "3"), _))
         val state2 = result2.stateOfType[Option[Trial]].get
         state2.finalizedAt shouldBe Some(nowTime)
         state2.solutions shouldBe Map(("q1-1", "i1") -> List("1", "2"))
         result2.reply shouldBe Bad(trialFinalized.error())
+
+        verify(schoolRegistry).registerTrialResults(
+          school.RegisterTrialResultsRequest(
+            "e1",
+            "pers1",
+            "trial-1",
+            started.getEpochSecond,
+            nowTime.getEpochSecond,
+            Seq(school.Solution("q1-1", "i1", Seq("1", "2")))
+          )
+        )
       }
 
     }

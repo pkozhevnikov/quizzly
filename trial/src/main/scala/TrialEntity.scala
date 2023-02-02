@@ -24,6 +24,7 @@ object TrialEntity:
 
   import Trial.*
   import Resp.*
+  import quizzly.school.{grpc => school}
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("Trial")
 
@@ -36,13 +37,14 @@ object TrialEntity:
   def apply(
       id: TrialID,
       exams: ExamID => EntityRef[ExamEntity.Command],
-      quizRegistry: QuizRegistry
+      quizRegistry: QuizRegistry,
+      schoolRegistry: school.SchoolRegistry
   )(using now: () => Instant, ec: ExecutionContext) = Behaviors.setup[Command] { ctx =>
     Behaviors.withTimers { timers =>
       EventSourcedBehavior[Command, Event, Option[Trial]](
         PersistenceId.of(EntityKey.name, id),
         None,
-        startHandler(id, ctx, exams, quizRegistry, timers, _, _),
+        startHandler(id, ctx, exams, quizRegistry, schoolRegistry, timers, _, _),
         (state, event) =>
           state match
             case None =>
@@ -58,10 +60,11 @@ object TrialEntity:
   }
 
   def startHandler(
-      id: ExamID,
+      id: TrialID,
       ctx: ActorContext[Command],
       exams: ExamID => EntityRef[ExamEntity.Command],
       quizRegistry: QuizRegistry,
+      schoolRegistry: school.SchoolRegistry,
       timers: TimerScheduler[Command],
       state: Option[Trial],
       command: Command
@@ -102,11 +105,14 @@ object TrialEntity:
           case c: CommandWithReply[?] =>
             Effect.reply(c.replyTo)(Bad(trialNotStarted.error()))
       case Some(trial) =>
-        takeCommand(trial, command)
+        takeCommand(id, trial, command, schoolRegistry)
 
-  def takeCommand(state: Trial, command: Command)(using
-      now: () => Instant
-  ): Effect[Event, Option[Trial]] =
+  def takeCommand(
+      id: TrialID,
+      state: Trial,
+      command: Command,
+      schoolRegistry: school.SchoolRegistry
+  )(using now: () => Instant): Effect[Event, Option[Trial]] =
     command match
       case c: Start =>
         Effect.reply(c.replyTo)(Bad(trialAlreadyStarted.error()))
@@ -134,12 +140,36 @@ object TrialEntity:
                   SubmissionResult(None, true)
             else
               SubmissionResult(None, false)
-          Effect.persist(events).thenReply(replyTo)(_ => Good(result))
+          Effect
+            .persist(events)
+            .thenRun(checkToSendOutcome(_, id, schoolRegistry))
+            .thenReply(replyTo)(_ => Good(result))
       case Finalize =>
-        Effect.persist(Finalized(now()))
+        Effect
+          .persist(Finalized(now()))
+          .thenRun(checkToSendOutcome(_, id, schoolRegistry))
 
       case _ =>
         Effect.none
+
+  private def checkToSendOutcome(
+      state: Option[Trial],
+      id: TrialID,
+      schoolRegistry: school.SchoolRegistry
+  ) =
+    state match
+      case Some(s) if s.finalizedAt.isDefined =>
+        schoolRegistry.registerTrialResults(
+          school.RegisterTrialResultsRequest(
+            s.exam,
+            s.testee.id,
+            id,
+            s.startedAt.getEpochSecond,
+            s.finalizedAt.get.getEpochSecond,
+            s.solutions.map((k, v) => school.Solution(k(0), k(1), v.toSeq)).toSeq
+          )
+        )
+      case _ =>
 
   def takeEvent(state: Trial, event: Event): Option[Trial] =
     event match

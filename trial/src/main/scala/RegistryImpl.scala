@@ -81,4 +81,3 @@ class RegistryImpl(exams: String => RecipientRef[ExamEntity.Command])(using sys:
       exams(in.id) ! ExamEntity.Unregister
       grpc.UnregisterExamResponse.of()
     }
-
