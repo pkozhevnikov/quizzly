@@ -15,8 +15,8 @@ object QuizFact:
   sealed trait CommandWithReply[R] extends Command:
     val replyTo: ActorRef[Resp[R]]
 
-  final case class Init(title: String, obsolete: Boolean, recommendedLength: Int) extends Command
-  final case class Inited(title: String, obsolete: Boolean, recommendedLength: Int) extends Event
+  final case class Init(quiz: FullQuiz) extends Command
+  final case class Inited(quiz: FullQuiz) extends Event
 
   case object SetObsolete extends Command
   case object GotObsolete extends Event
@@ -53,8 +53,8 @@ object QuizFact:
         state match
           case None =>
             command match
-              case Init(title, obsolete, length) =>
-                Effect.persist(Inited(title, obsolete, length))
+              case Init(quiz) =>
+                Effect.persist(Inited(quiz))
               case c: CommandWithReply[?] =>
                 Effect.reply(c.replyTo)(Resp.Bad(notFound.error()))
               case _ =>
@@ -66,8 +66,8 @@ object QuizFact:
         state match
           case None =>
             event match
-              case Inited(title, obsolete, length) =>
-                Some(Fact(title, obsolete, false, false, length, Set.empty))
+              case Inited(quiz) =>
+                Some(Fact(quiz, false, false, false, Set.empty))
               case _ =>
                 throw IllegalStateException(s"current state is $state should be None")
           case Some(fact) =>
@@ -77,11 +77,10 @@ object QuizFact:
   import Resp.*
 
   final case class Fact(
-      title: String,
+      quiz: FullQuiz,
       obsolete: Boolean,
       everPublished: Boolean,
       isPublished: Boolean,
-      recommendedLength: Int,
       usedBy: Set[ExamID]
   ) extends CborSerializable:
 
@@ -109,7 +108,7 @@ object QuizFact:
           else if everPublished then
             Effect.reply(replyTo)(Bad(wasPublished.error()))
           else
-            Effect.persist(Used(examID)).thenReply(replyTo)(_ => Good(Quiz(id, title)))
+            Effect.persist(Used(examID)).thenReply(replyTo)(_ => Good(Quiz(id, quiz.title)))
 
         case StopUse(examID) =>
           if usedBy(examID) then

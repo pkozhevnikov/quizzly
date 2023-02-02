@@ -16,7 +16,42 @@ service SchoolRegistry {
 message RegisterQuizRequest {
   string id = 1;
   string title = 2;
-  int32 recommendedTrialLength = 3;
+  string intro = 3;
+  int32 recommendedTrialLength = 4;
+  Person curator = 5 [(scalapb.field).no_box = true];
+  repeated Person authors = 6;
+  repeated Person inspectors = 7;
+  repeated Section sections = 8;
+}
+
+message Person {
+  string id = 1;
+  string name = 2;
+}
+
+message Item {
+  string sc = 1;
+  string intro = 2;
+  Statement definition = 3 [(scalapb.field).no_box = true];
+  repeated Hint hints = 4;
+  bool hintsVisible = 5;
+  repeated int32 solutions = 6;
+}
+
+message Statement {
+  string text = 1;
+  optional string image = 2;
+}
+
+message Hint {
+  repeated Statement alts = 1;
+}
+
+message Section {
+  string sc = 1;
+  string title = 2;
+  string intro = 3;
+  repeated Item items = 4;
 }
 
 message RegisterQuizResponse {}

@@ -34,7 +34,7 @@ def run(fakeQuizCount: Int = 0) =
       .withTls(false)
     val client = grpc.SchoolRegistryClient(settings)(using system)
     (1 to fakeQuizCount).foreach { n =>
-      client.registerQuiz(grpc.RegisterQuizRequest(s"Q-$n", s"Q-$n title", 45))
+      client.registerQuiz(genGrpcQuiz(n))
     }
 
 object Main:

@@ -109,7 +109,18 @@ class FactProjectionHandlerSpec
           () => FactProjectionHandler()
         )
 
-      val inited = QuizFact.Inited("new quiz", false, 45)
+      val full = FullQuiz(
+        "q1",
+        "new quiz",
+        "quiz1 intro",
+        45,
+        PersonRef("", ""),
+        Set.empty,
+        Set.empty,
+        List.empty
+      )
+
+      val inited = QuizFact.Inited(full)
 
       def getFact(id: String) = DB.readOnly { implicit session =>
         sql"select * from quizfact where id=?".bind(id).map(toQuizRow).single.apply()

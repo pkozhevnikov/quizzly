@@ -51,10 +51,12 @@ class SchoolRegistryImplSpec
           reqId = id
           factProbe.ref
       val registry = SchoolRegistryImpl(fact, _ => examProbe.ref)
-      val res = registry.registerQuiz(grpc.RegisterQuizRequest("q1", "q1 title", 45))
+      val req = genGrpcQuiz(1)
+      val full: FullQuiz = req
+      val res = registry.registerQuiz(req)
       Await.result(res, 1.second) shouldBe grpc.RegisterQuizResponse.of()
-      reqId shouldBe "q1"
-      factProbe.expectMessage(QuizFact.Init("q1 title", false, 45))
+      reqId shouldBe "Q-1"
+      factProbe.expectMessage(QuizFact.Init(full))
     }
 
     "register trial" in {
@@ -97,5 +99,5 @@ class SchoolRegistryImplSpec
       reqId shouldBe "q1"
       factProbe.expectMessage(QuizFact.SetObsolete)
     }
-    
+
   }

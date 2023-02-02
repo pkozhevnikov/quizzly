@@ -13,7 +13,7 @@ class SchoolRegistryImpl(
 
   override def registerQuiz(in: grpc.RegisterQuizRequest): Future[grpc.RegisterQuizResponse] =
     Future {
-      facts(in.id) ! QuizFact.Init(in.title, false, in.recommendedTrialLength)
+      facts(in.id) ! QuizFact.Init(in)
       grpc.RegisterQuizResponse.of()
     }
 

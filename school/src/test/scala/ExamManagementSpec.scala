@@ -139,9 +139,9 @@ class ExamManagementSpec
 
   override def beforeAll() =
     super.beforeAll()
-    getFact("q1") ! QuizFact.Init("q1 title", false, 45)
-    getFact("q2") ! QuizFact.Init("q2 title", false, 45)
-    getFact("q3") ! QuizFact.Init("q3 title", false, 45)
+    getFact("Q-1") ! QuizFact.Init(genGrpcQuiz(1))
+    getFact("Q-2") ! QuizFact.Init(genGrpcQuiz(2))
+    getFact("Q-3") ! QuizFact.Init(genGrpcQuiz(3))
 
   override def afterAll() =
     super.afterAll()
@@ -175,7 +175,9 @@ class ExamManagementSpec
   Feature("registry work") {
     Scenario("quiz registration") {
       When("register quiz requested")
-      val res = client.registerQuiz(grpc.RegisterQuizRequest("qx", "qx title", 40))
+      val res = client.registerQuiz(
+        genGrpcQuiz(1).copy(id = "qx", title = "qx title", recommendedTrialLength = 40)
+      )
       Await.result(res, 1.seconds) shouldBe a[grpc.RegisterQuizResponse]
       Then("quiz is listed")
       eventually {
@@ -197,7 +199,7 @@ class ExamManagementSpec
         val res = get("quiz", off1)
         res.status shouldBe StatusCodes.OK
         val list = res.to[List[QuizListed]]
-        list should contain(QuizListed("q2", "q2 title", false, false, false, false, 45))
+        list should contain(QuizListed("Q-2", "Q-2 title", false, false, false, false, 45))
       }
     }
 
@@ -205,7 +207,7 @@ class ExamManagementSpec
 
   val createExam = CreateExam(
     "e1",
-    "q1",
+    "Q-1",
     45,
     ZonedDateTime.parse("2023-01-10T10:00:00Z"),
     ZonedDateTime.parse("2023-01-10T15:00:00Z"),
@@ -229,7 +231,7 @@ class ExamManagementSpec
       details.host shouldBe off1
       And("quiz is marked inUse")
       eventually {
-        get("quiz", off1).to[List[QuizListed]].find(_.id == "q1").get.inUse shouldBe true
+        get("quiz", off1).to[List[QuizListed]].find(_.id == "Q-1").get.inUse shouldBe true
       }
     }
 
@@ -258,7 +260,7 @@ class ExamManagementSpec
         list.find(_.id == "e7").get shouldBe
           ExamView(
             "e7",
-            QuizRef("q1", "q1 title"),
+            QuizRef("Q-1", "Q-1 title"),
             ExamPeriod(
               ZonedDateTime.parse("2023-01-10T10:00:00Z"),
               ZonedDateTime.parse("2023-01-10T15:00:00Z")
@@ -350,7 +352,7 @@ class ExamManagementSpec
     Scenario("publishing quiz rejected") {
       Given("a used quiz")
       When("'publish quiz' request is done")
-      val res = patch("quiz/q1", off1)
+      val res = patch("quiz/Q-1", off1)
       Then("request is rejected")
       res.status shouldBe StatusCodes.UnprocessableEntity
       res.to[Error] shouldBe QuizFact.isUsed.error()
@@ -358,11 +360,11 @@ class ExamManagementSpec
     Scenario("publishing quiz succeeded") {
       Given("not used quiz")
       When("'publish quiz' request is done")
-      val res = patch("quiz/q3", off1)
+      val res = patch("quiz/Q-3", off1)
       Then("the quiz is published")
       res.status shouldBe StatusCodes.NoContent
       eventually {
-        val quiz = get("quiz", off1).to[List[QuizListed]].find(_.id == "q3").get
+        val quiz = get("quiz", off1).to[List[QuizListed]].find(_.id == "Q-3").get
         quiz.isPublished shouldBe true
         quiz.everPublished shouldBe true
       }
@@ -370,16 +372,16 @@ class ExamManagementSpec
     Scenario("unpublishing quiz") {
       Given("published quiz")
       eventually {
-        val quiz = get("quiz", off1).to[List[QuizListed]].find(_.id == "q3").get
+        val quiz = get("quiz", off1).to[List[QuizListed]].find(_.id == "Q-3").get
         quiz.isPublished shouldBe true
         quiz.everPublished shouldBe true
       }
       When("'unpublish quiz' request is done")
-      val res = delete("quiz/q3", off1)
+      val res = delete("quiz/Q-3", off1)
       Then("the quiz is unpublished")
       res.status shouldBe StatusCodes.NoContent
       eventually {
-        val quiz = get("quiz", off1).to[List[QuizListed]].find(_.id == "q3").get
+        val quiz = get("quiz", off1).to[List[QuizListed]].find(_.id == "Q-3").get
         quiz.isPublished shouldBe false
         quiz.everPublished shouldBe true
       }
