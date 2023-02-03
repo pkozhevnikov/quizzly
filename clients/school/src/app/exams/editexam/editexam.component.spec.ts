@@ -32,7 +32,7 @@ describe('EditexamComponent', () => {
         {provide: ComponentFixtureAutoDetect, useValue: true},
         {provide: PersonsState, useValue: jasmine.createSpyObj("PersonsState", ["selectAll", "init"])},
         {provide: ExamsService, useValue: jasmine.createSpyObj("ExamsService", 
-            ["changeTrialLength", "getTestees", "includeTestees", "excludeTestees"])},
+            ["changeTrialAttrs", "getTestees", "includeTestees", "excludeTestees"])},
         {provide: ExamsQuery, useValue: jasmine.createSpyObj("ExamsQuery", ["getEntity"])},
         {provide: ActivatedRoute, useValue: { params: of({id: "pending"}) } },
         {provide: DATE_PIPE_DEFAULT_TIMEZONE, useValue: "UTC"},
@@ -75,6 +75,8 @@ describe('EditexamComponent', () => {
     expect(node.querySelector(".state")).toHaveText("Pending")
     const trialLength: HTMLInputElement = node.querySelector(".trial-length")!
     expect(trialLength.value).toEqual("45")
+    const passingGrade: HTMLInputElement = node.querySelector(".passing-grade")!
+    expect(passingGrade.value).toEqual("60")
     const prestart = formatDate(examPending.prestartAt, "MMMM d, y, HH:mm", "en-US", "UTC")
     expect(node.querySelector(".prestart")).toHaveText(prestart)
     expect(node.querySelectorAll(".persons-src .person")).toHaveSize(6)
@@ -113,13 +115,16 @@ describe('EditexamComponent', () => {
     expect(node.querySelectorAll("person-selected")).toHaveSize(0)
   }))
 
-  it ("sends change trial length request", () => {
+  it ("sends change trial attrs request", () => {
     const lengthBox: HTMLInputElement = node.querySelector(".trial-length")!
     lengthBox.value = "72"
     lengthBox.dispatchEvent(new Event("input"))
-    const changeLengthButton: HTMLElement = node.querySelector(".change-length")!
-    changeLengthButton.click()
-    expect(examsService.changeTrialLength).toHaveBeenCalledWith("pending", 72)
+    const gradeBox: HTMLInputElement = node.querySelector(".passing-grade")!
+    gradeBox.value = "85"
+    gradeBox.dispatchEvent(new Event("input"))
+    const changeAttrsButton: HTMLElement = node.querySelector(".change-attrs")!
+    changeAttrsButton.click()
+    expect(examsService.changeTrialAttrs).toHaveBeenCalledWith("pending", 72, 85)
   })
 
 })

@@ -10,7 +10,9 @@
     <label>Host:</label><span class="host">{{ exam.host.name }}</span>
     <label>State:</label><span class="state">{{ exam.state }}</span>
     <label>Trial length, minutes</label><input class="trial-length" type="text" [formControl]="trialLength"/>
-    <button class="change-length" (click)="changeLength()">Change</button>
+    <label>Passing grade, percent</label><input class="passing-grade" type="text"
+      [formControl]="passingGrade"/>
+    <button class="change-attrs" (click)="changeAttrs()">Change</button>
   </div>
   <div class="half">
     <div>Testees:</div>

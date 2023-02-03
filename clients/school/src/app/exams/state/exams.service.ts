@@ -49,6 +49,7 @@ export class ExamsService extends HttpBasedService {
           host: d.host,
           state: "Pending",
           trialLength: createReq.trialLength,
+          passingGrade: createReq.passingGrade,
           prestartAt: d.preparationStart
         })
         this.quizzesStore.update(createReq.quizId, {inUse: true})
@@ -63,15 +64,15 @@ export class ExamsService extends HttpBasedService {
     }})
   }
 
-  changeTrialLength(id: string, length: number) {
+  changeTrialAttrs(id: string, length: number, passingGrade: number) {
     this.request(
       this.POST, 
       `exam/${id}`, 
       {204: _ => {
-        this.uiStore.info("Trial length changed")
-        this.examsStore.update(id, {trialLength: length})
+        this.uiStore.info("Trial attributes changed")
+        this.examsStore.update(id, {trialLength: length, passingGrade: passingGrade})
       }},
-      {length}
+      {length: length, passingGrade: passingGrade}
     )
   }
 

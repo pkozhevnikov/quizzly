@@ -8,6 +8,7 @@ export interface Exam {
   state: string
   cacelledAt?: Date
   trialLength: number
+  passingGrade: number
   prestartAt: Date
 }
 
@@ -17,6 +18,7 @@ export interface CreateExam {
   start: Date
   end: Date
   trialLength: number
+  passingGrade: number
   testees: string[]
 }
 

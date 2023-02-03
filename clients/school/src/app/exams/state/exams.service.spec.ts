@@ -69,6 +69,7 @@ describe('ExamsService', () => {
       start: new Date("2023-01-20T12:00:00Z"),
       end: new Date("2023-01-22T12:00:00Z"),
       trialLength: 75,
+      passingGrade: 80,
       testees: ["off2", "stud1", "stud2"]
     }
     const resp = examsService.create(createReq)
@@ -85,6 +86,7 @@ describe('ExamsService', () => {
       host: createDetails.host,
       state: "Pending",
       trialLength: 75,
+      passingGrade: 80,
       prestartAt: createDetails.preparationStart
     })
     expect(quizzesStore.update.calls.argsFor(0) as any[]).toEqual(["q1", {inUse: true}])
@@ -103,14 +105,14 @@ describe('ExamsService', () => {
     expect(examsUpdate.calls.argsFor(0) as any[]).toEqual(["upcoming", {state: "Cancelled"}])
   })
 
-  it ("should change trial length", () => {
+  it ("should change trial attrs", () => {
     examsUpdate.calls.reset()
-    examsService.changeTrialLength("pending", 180)
+    examsService.changeTrialAttrs("pending", 180, 90)
     const req = controller.expectOne("apiroot/exam/pending")
     expect(req.request.method).toEqual("POST")
-    expect(req.request.body).toEqual({length: 180})
+    expect(req.request.body).toEqual({length: 180, passingGrade: 90})
     req.flush("", {status: 204, statusText: ""})
-    expect(examsUpdate.calls.argsFor(0) as any[]).toEqual(["pending", {trialLength: 180}])
+    expect(examsUpdate.calls.argsFor(0) as any[]).toEqual(["pending", {trialLength: 180, passingGrade: 90}])
   })
 
   it ("should include testees", done => {
@@ -164,6 +166,7 @@ export const examPending = {
   host: {id: "off1", name: "off1 name", place: "Official"},
   state: "Pending",
   trialLength: 45,
+  passingGrade: 60,
   prestartAt: new Date("2023-01-09T10:00:00Z")
 }
 
@@ -174,6 +177,7 @@ export const examUpcoming = {
   host: {id: "off2", name: "off2 name", place: "Official"},
   state: "Upcoming",
   trialLength: 60,
+  passingGrade: 70,
   prestartAt: new Date("2023-01-13T12:30:00Z")
 }
 
@@ -184,6 +188,7 @@ export const examInProgress = {
   host: {id: "off3", name: "off3 name", place: "Official"},
   state: "InProgress",
   trialLength: 30,
+  passingGrade: 50,
   prestartAt: new Date("2023-01-10T09:20:00Z")
 }
 
@@ -194,6 +199,7 @@ export const examEnded = {
   host: {id: "off1", name: "off1 name", place: "Official"},
   state: "Ended",
   trialLength: 90,
+  passingGrade: 80,
   prestartAt: new Date("2023-01-07T09:00:00Z")
 }
 
@@ -205,6 +211,7 @@ export const examCancelled = {
   state: "Cancelled",
   cancelledAt: new Date("2023-01-06T10:11:12Z"),
   trialLength: 50,
+  passingGrade: 65,
   prestartAt: new Date("2023-01-04T15:00:00Z")
 }
 

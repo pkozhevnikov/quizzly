@@ -20,6 +20,7 @@ export class EditexamComponent implements OnInit {
   testeesToExclude: Person[] = []
   exam: Exam = createExam({})
   trialLength = new FormControl("")
+  passingGrade = new FormControl("")
 
   constructor(
     private examsQuery: ExamsQuery,
@@ -34,6 +35,7 @@ export class EditexamComponent implements OnInit {
       if (e) {
         this.exam = e
         this.trialLength.setValue(String(e.trialLength))
+        this.passingGrade.setValue(String(e.passingGrade))
         this.examsService.getTestees(e.id)
           .then(tl => this.testees = tl)
       }
@@ -41,8 +43,12 @@ export class EditexamComponent implements OnInit {
     this.personsState.init()
   }
 
-  changeLength() {
-    this.examsService.changeTrialLength(this.exam.id, Number(this.trialLength.value))
+  changeAttrs() {
+    this.examsService.changeTrialAttrs(
+      this.exam.id, 
+      Number(this.trialLength.value),
+      Number(this.passingGrade.value)
+    )
   }
 
   setTesteesToInclude(testees: Person[]) {

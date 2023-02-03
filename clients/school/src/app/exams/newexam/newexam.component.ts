@@ -21,6 +21,7 @@ export class NewexamComponent implements OnInit {
   quiz: Quiz = createQuiz({})
   examId = new FormControl("")
   trialLength = new FormControl("")
+  passingGrade = new FormControl("")
 
   constructor(
     private quizzesQuery: QuizzesQuery,
@@ -36,6 +37,7 @@ export class NewexamComponent implements OnInit {
       if (q) {
         this.quiz = q
         this.trialLength.setValue(String(q.recommendedTrialLength))
+        this.passingGrade.setValue("65") //TODO get default passing grade from server and put here
       }
     })
     this.personsState.init()
@@ -52,6 +54,7 @@ export class NewexamComponent implements OnInit {
       start: this.period.start.toDate(),
       end: this.period.end.toDate(),
       trialLength: Number(this.trialLength.value),
+      passingGrade: Number(this.passingGrade.value),
       testees: this.selectedPersons.map(p => p.id)
     }).then(_ => this.router.navigate(["/exam"]))
   }

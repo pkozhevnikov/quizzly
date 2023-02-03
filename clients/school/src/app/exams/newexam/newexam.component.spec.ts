@@ -120,6 +120,9 @@ describe('NewexamComponent', () => {
     const lengthBox: HTMLInputElement = node.querySelector(".trial-length")!
     lengthBox.value = "35"
     lengthBox.dispatchEvent(new Event("input"))
+    const gradeBox: HTMLInputElement = node.querySelector(".passing-grade")!
+    gradeBox.value = "65"
+    gradeBox.dispatchEvent(new Event("input"))
     const personsSrc: HTMLSelectElement = node.querySelector(".persons-src")!
     personsSrc.options[2].selected = true
     personsSrc.options[4].selected = true
@@ -137,7 +140,7 @@ describe('NewexamComponent', () => {
     createButton.click()
     expect(examsService.create).toHaveBeenCalledWith({id: "e-q1", quizId: "q1",
       start: new Date("2023-01-20T10:15:00Z"), end: new Date("2023-01-23T11:30:00Z"),
-      trialLength: 35, testees: ["off3", "stud2"]})
+      trialLength: 35, passingGrade: 65, testees: ["off3", "stud2"]})
     tick()
     expect(router.navigate).toHaveBeenCalledWith(["/exam"])
   }))
