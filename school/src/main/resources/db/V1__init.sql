@@ -16,6 +16,7 @@ create table exam (
   host_id varchar not null,
   host_name varchar not null,
   trial_length int not null,
+  passing_grade int not null,
   prestart_at timestamp not null,
   start_at timestamp not null,
   end_at timestamp not null,

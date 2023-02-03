@@ -63,72 +63,6 @@ delete:
     422:
       description: error
 
-get:
-  tags:
-  - v1
-  produces:
-  - application/json
-  summary: list testees
-  description: |
-    Lists testees of this exam
-  operationId: listtestees
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: exam ID
-    type: string
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    200:
-      description: normal response
-      schema: 
-        type: array
-        items:
-          $ref: /pubapi/schemas/person.yaml
-    422:
-      description: error
-
-post:
-  tags:
-  - v1
-  consumes:
-  - application/json
-  summary: change trial length
-  description: |
-    Chandes trial length/
-  operationId: changetriallength
-  parameters:
-  -
-    in: path
-    name: id
-    required: true
-    description: exam ID
-    type: string
-  -
-    in: body
-    name: change-length
-    required: true
-    schema:
-      $ref: /pubapi/schemas/change-length.yaml
-  -
-    in: header
-    name: p
-    required: true
-    type: string
-
-  responses:
-    204:
-      description: trial length changed
-    422:
-      description: error
-
 put:
   tags:
   - v1
@@ -168,11 +102,77 @@ put:
     422:
       description: error
 
+post:
+  tags:
+  - v1
+  consumes:
+  - application/json
+  summary: change trial attributes
+  description: |
+    Chandes trial attributes
+  operationId: changetrialattrs
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: exam ID
+    type: string
+  -
+    in: body
+    name: attrs
+    required: true
+    schema:
+      $ref: /pubapi/schemas/change-trial-attrs.yaml
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    204:
+      description: trial attributes changed
+    422:
+      description: error
+
+get:
+  tags:
+  - v1
+  produces:
+  - application/json
+  summary: list testees
+  description: |
+    Lists testees of this exam
+  operationId: listtestees
+  parameters:
+  -
+    in: path
+    name: id
+    required: true
+    description: exam ID
+    type: string
+  -
+    in: header
+    name: p
+    required: true
+    type: string
+
+  responses:
+    200:
+      description: normal response
+      schema: 
+        type: array
+        items:
+          $ref: /pubapi/schemas/person.yaml
+    422:
+      description: error
+
 
 definitions:
-  change-length.yaml:
-    $ref: /pubapi/schemas/change-length.yaml
   person.yaml:
     $ref: /pubapi/schemas/person.yaml
   strings.yaml:
     $ref: /pubapi/schemas/strings.yaml
+  change-trial-attrs.yaml:
+    $ref: /pubapi/schemas/change-trial-attrs.yaml

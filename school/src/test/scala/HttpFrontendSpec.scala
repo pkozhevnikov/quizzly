@@ -93,6 +93,7 @@ class HttpFrontendSpec
     "Upcoming",
     None,
     45,
+    60,
     dateTime1.minusDays(1)
   )
   val exam2 = ExamView(
@@ -103,6 +104,7 @@ class HttpFrontendSpec
     "Pending",
     None,
     60,
+    70,
     dateTime1.plusWeeks(1).minusDays(1)
   )
 
@@ -219,6 +221,7 @@ class HttpFrontendSpec
           "e1",
           "q1",
           45,
+          60,
           ZonedDateTime.parse("2023-01-01T10:10:00Z"),
           ZonedDateTime.parse("2023-01-02T10:10:00Z"),
           Set.empty
@@ -238,7 +241,7 @@ class HttpFrontendSpec
           case _ =>
             Behaviors.stopped
         }
-        val create = CreateExam("e1", "q1", 45, dateTime1, dateTime1, Set(off1.id, stud1.id))
+        val create = CreateExam("e1", "q1", 45, 60, dateTime1, dateTime1, Set(off1.id, stud1.id))
         post("exam", off1, create) ~> stdexam("e1", beh) ~>
           check {
             status shouldBe StatusCodes.OK
@@ -259,21 +262,21 @@ class HttpFrontendSpec
       }
     }
     "POST" should {
-      "change trial length" in {
+      "change trial attrs" in {
         val beh = Behaviors.receiveMessage[Exam.Command] {
-          case SetTrialLength(93, replyTo) =>
+          case SetTrialAttrs(93, 85, replyTo) =>
             replyTo ! Resp.OK
             Behaviors.stopped
           case _ =>
             Behaviors.stopped
         }
-        post("exam/e1", off1, ChangeLength(93)) ~> stdexam("e1", beh) ~>
+        post("exam/e1", off1, ChangeTrialAttrs(93, 85)) ~> stdexam("e1", beh) ~>
           check {
             status shouldBe StatusCodes.NoContent
           }
       }
       "respond with error" in {
-        post("exam/e1", off1, ChangeLength(93)) ~> stdexam("e1", Bad(badTrialLength.error())) ~>
+        post("exam/e1", off1, ChangeTrialAttrs(93, 85)) ~> stdexam("e1", Bad(badTrialLength.error())) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe badTrialLength.error()

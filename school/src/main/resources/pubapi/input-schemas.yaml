@@ -6,6 +6,6 @@ paths:
     post: /create-exam.yaml
   /v1/exam/*:
     patch: /strings.yaml
-    post: /change-length.yaml
     put: /strings.yaml
+    post: /change-trial-attrs.yaml
   /v1/quiz/*:

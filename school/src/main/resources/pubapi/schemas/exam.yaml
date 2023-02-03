@@ -47,3 +47,6 @@ properties:
   prestartAt:
     type: string
     format: date-time
+  passingGrade:
+    type: integer
+    format: int32

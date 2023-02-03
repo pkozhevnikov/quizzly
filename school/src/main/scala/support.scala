@@ -56,14 +56,16 @@ final case class ExamConfig(
     preparationPeriodHours: Int,
     trialLengthMinutesRange: (Int, Int),
     trackerCheckRateMinutes: Int = 5,
-    awakeExamBeforeProceedMinutes: Int = 3
-)
+    awakeExamBeforeProceedMinutes: Int = 3,
+    passingGrade: (Int, Int) = (50, 65)
+    )
 object ExamConfig:
   def fromConfig(econf: com.typesafe.config.Config) = ExamConfig(
     econf.getInt("preparationPeriodHours"),
     (econf.getInt("trialLengthMinutes.min"), econf.getInt("trialLengthMinutes.max")),
     econf.getInt("trackerCheckRateMinutes"),
-    econf.getInt("awakeExamBeforeProceedMinutes")
+    econf.getInt("awakeExamBeforeProceedMinutes"),
+    (econf.getInt("passingGrade.min"), econf.getInt("passingGrade.default"))
   )
 
 final case class Quiz(id: QuizID, title: String)

@@ -42,6 +42,7 @@ object Exam:
       period: ExamPeriod,
       testees: Set[Person],
       host: Official,
+      passingGrade: Int,
       replyTo: ActorRef[Resp[CreateExamDetails]]
   ) extends CommandWithReply[CreateExamDetails]
   final case class CreateExamDetails(preparationStart: ZonedDateTime, host: Official)
@@ -54,6 +55,7 @@ object Exam:
   val notOfficial = Reason(1006, "you are not an official")
   val examNotFound = Reason(1007, "exam not found")
   val illegalState = Reason(1008, "illegal state")
+  val badPassingGrade = Reason(1009, "bad passing grade")
   def unprocessed(msg: String) = Reason(5000, msg)
 
   final case class Pending(
@@ -62,7 +64,8 @@ object Exam:
       preparationStart: ZonedDateTime,
       period: ExamPeriod,
       testees: Set[Person],
-      host: Official
+      host: Official,
+      passingGrade: Int
   ) extends Exam
 
   final case class InternalCreate(
@@ -72,6 +75,7 @@ object Exam:
       period: ExamPeriod,
       testees: Set[Person],
       host: Official,
+      passingGrade: Int,
       replyTo: ActorRef[Resp[CreateExamDetails]]
   ) extends Command
   final case class Created(
@@ -80,7 +84,8 @@ object Exam:
       preparationStart: ZonedDateTime,
       period: ExamPeriod,
       testees: Set[Person],
-      host: Official
+      host: Official,
+      passingGrade: Int
   ) extends Event
 
   final case class IncludeTestees(include: Set[Person], replyTo: ActorRef[Resp[Set[Person]]])
@@ -91,9 +96,9 @@ object Exam:
       extends CommandWithReply[Set[Person]]
   final case class TesteesExcluded(exclude: Set[Person]) extends Event
 
-  final case class SetTrialLength(length: Int, replyTo: ActorRef[RespOK])
+  final case class SetTrialAttrs(length: Int, passingGrade: Int, replyTo: ActorRef[RespOK])
       extends CommandWithReply[Nothing]
-  final case class TrialLengthSet(length: Int) extends Event
+  final case class TrialAttrsSet(length: Int, passingGrade: Int) extends Event
 
   case object Awake extends Command
   case object Proceed extends Command
@@ -103,7 +108,8 @@ object Exam:
       trialLengthMinutes: Int,
       period: ExamPeriod,
       testees: Set[Person],
-      host: Official
+      host: Official,
+      passingGrade: Int
   ) extends Exam
 
   case object GoneUpcoming extends Event
@@ -114,6 +120,7 @@ object Exam:
       period: ExamPeriod,
       testees: Set[Person],
       host: Official,
+      passingGrade: Int,
       trials: Set[TrialOutcome] = Set.empty
   ) extends Exam
 
@@ -129,6 +136,7 @@ object Exam:
       period: ExamPeriod,
       testees: Set[Person],
       host: Official,
+      passingGrade: Int,
       trials: Set[TrialOutcome]
   ) extends Exam
 
@@ -140,5 +148,6 @@ object Exam:
       period: ExamPeriod,
       testees: Set[Person],
       host: Official,
+      passingGrade: Int,
       cancelledAt: Instant
   ) extends Exam

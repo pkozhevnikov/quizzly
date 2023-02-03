@@ -104,7 +104,7 @@ class ExamEntitySpec
           result.state shouldBe Blank()
         }
 
-        rejected(IncludeTestees(Set.empty, _), ExcludeTestees(Set.empty, _), SetTrialLength(1, _))
+        rejected(IncludeTestees(Set.empty, _), ExcludeTestees(Set.empty, _), SetTrialAttrs(1, 2, _))
 
         val result = examKit.runCommand(Proceed)
         result.hasNoEvents shouldBe true
@@ -131,10 +131,10 @@ class ExamEntitySpec
         )
         tracker.expectNoMessage()
         val result = examKit
-          .runCommand(Create(quiz.id, 60, period, Set(student1, student2, official3), official4, _))
+          .runCommand(Create(quiz.id, 60, period, Set(student1, student2, official3), official4, 70, _))
         result.reply shouldBe Good(CreateExamDetails(prepStart, official4))
         result.state shouldBe
-          Pending(quiz, 60, prepStart, period, Set(student1, student2, official3), official4)
+          Pending(quiz, 60, prepStart, period, Set(student1, student2, official3), official4, 70)
         tracker.expectMessage(ExamTracker.Register(prepStart, period.start, "exam-1"))
       }
 
@@ -150,7 +150,7 @@ class ExamEntitySpec
               Behaviors.stopped
           }
         )
-        val result = examKit.runCommand(Create(quizID, 60, period, Set.empty, official1, _))
+        val result = examKit.runCommand(Create(quizID, 60, period, Set.empty, official1, 70, _))
         result.reply shouldBe Bad(reason.error())
         result.state shouldBe Blank()
 
@@ -181,6 +181,7 @@ class ExamEntitySpec
             ),
             Set.empty,
             official1,
+            60,
             _
           )
         )
@@ -199,6 +200,7 @@ class ExamEntitySpec
             ),
             Set.empty,
             official1,
+            60,
             _
           )
         )
@@ -207,13 +209,18 @@ class ExamEntitySpec
       }
 
       "reject creation if trial length is not in range" in {
-        val result1 = examKit.runCommand(Create("q", 4, period, Set.empty, official1, _))
+        val result1 = examKit.runCommand(Create("q", 4, period, Set.empty, official1, 60, _))
         result1.reply shouldBe Bad(badTrialLength.error() + "5" + "180")
         result1.state shouldBe Blank()
 
-        val result2 = examKit.runCommand(Create("q", 181, period, Set.empty, official1, _))
+        val result2 = examKit.runCommand(Create("q", 181, period, Set.empty, official1, 60, _))
         result2.reply shouldBe Bad(badTrialLength.error() + "5" + "180")
         result2.state shouldBe Blank()
+      }
+
+      "reject creation if passing grade is not in range" in {
+        val result1 = examKit.runCommand(Create("q", 90, period, Set.empty, official1, 10, _))
+        result1.reply shouldBe Bad(badPassingGrade.error() + "50" + "100")
       }
 
     }
@@ -233,8 +240,8 @@ class ExamEntitySpec
     )
 
     def init =
-      val result = examKit.runCommand(Create(quiz.id, 60, period, Set.empty, official1, _))
-      val initial = Pending(quiz, 60, prepStart, period, Set.empty, official1)
+      val result = examKit.runCommand(Create(quiz.id, 60, period, Set.empty, official1, 70, _))
+      val initial = Pending(quiz, 60, prepStart, period, Set.empty, official1, 70)
       result.state shouldBe initial
       initial
 
@@ -255,11 +262,11 @@ class ExamEntitySpec
         result.state shouldBe initial.copy(testees = Set(student2))
       }
 
-      "set trial length" in {
+      "set trial attrs" in {
         val initial = init
-        val result = examKit.runCommand(SetTrialLength(90, _))
+        val result = examKit.runCommand(SetTrialAttrs(90, 85, _))
         result.reply shouldBe OK
-        result.state shouldBe initial.copy(trialLengthMinutes = 90)
+        result.state shouldBe initial.copy(trialLengthMinutes = 90, passingGrade = 85)
       }
 
       "proceed to upcoming" in {
@@ -273,7 +280,8 @@ class ExamEntitySpec
             initial.trialLengthMinutes,
             initial.period,
             initial.testees,
-            initial.host
+            initial.host,
+            initial.passingGrade
           )
         tracker.expectMessage(ExamTracker.RegisterStateChange(id, State.Upcoming))
       }
@@ -291,7 +299,7 @@ class ExamEntitySpec
             Behaviors.stopped
         }
         putFact(qz.id, Behaviors.monitor(probe.ref, mock))
-        val result0 = examKit.runCommand(Create(qz.id, 60, period, Set.empty, official1, _))
+        val result0 = examKit.runCommand(Create(qz.id, 60, period, Set.empty, official1, 70, _))
         val initial = result0.stateOfType[Pending]
         val at = Instant.now()
         tracker.expectMessageType[ExamTracker.Register]
@@ -304,6 +312,7 @@ class ExamEntitySpec
             initial.period,
             initial.testees,
             initial.host,
+            initial.passingGrade,
             at
           )
 
@@ -314,7 +323,7 @@ class ExamEntitySpec
 
       "reject creation" in {
         val initial = init
-        val result = examKit.runCommand(Create("", 1, period, Set.empty, official1, _))
+        val result = examKit.runCommand(Create("", 1, period, Set.empty, official1, 2, _))
         result.reply shouldBe Bad(illegalState.error() + "Pending")
         result.state shouldBe initial
       }
@@ -334,7 +343,7 @@ class ExamEntitySpec
         result1.hasNoEvents shouldBe true
         result1.state shouldBe an[Pending]
         manualTime.timePasses(config.awakeExamBeforeProceedMinutes.minutes)
-        val result2 = examKit.runCommand(Create("", 1, period, Set.empty, official1, _))
+        val result2 = examKit.runCommand(Create("", 1, period, Set.empty, official1, 2, _))
         result2.hasNoEvents shouldBe true
         result2.reply shouldBe Bad(illegalState.error() + "Upcoming")
       }
@@ -352,7 +361,8 @@ class ExamEntitySpec
             initial.trialLengthMinutes,
             initial.period,
             initial.testees,
-            initial.host
+            initial.host,
+            initial.passingGrade
           )
 
         val at = Instant.now()
@@ -366,6 +376,7 @@ class ExamEntitySpec
             initial.period,
             initial.testees,
             initial.host,
+            initial.passingGrade,
             at
           )
         tracker.expectMessage(ExamTracker.RegisterStateChange("exam-1", State.Cancelled))
@@ -380,10 +391,10 @@ class ExamEntitySpec
         }
 
         rejected(
-          Create("", 1, period, Set.empty, official1, _),
+          Create("", 1, period, Set.empty, official1, 2, _),
           IncludeTestees(Set.empty, _),
           ExcludeTestees(Set.empty, _),
-          SetTrialLength(2, _)
+          SetTrialAttrs(2, 3, _)
         )
         val result = examKit.runCommand(RegisterTrial(dummyOutcome))
         result.hasNoEvents shouldBe true
@@ -401,7 +412,8 @@ class ExamEntitySpec
             pending.trialLengthMinutes,
             pending.period,
             pending.testees,
-            pending.host
+            pending.host,
+            pending.passingGrade
           )
         tracker.expectMessage(ExamTracker.RegisterStateChange("exam-1", State.InProgress))
       }
@@ -417,7 +429,7 @@ class ExamEntitySpec
         result1.hasNoEvents shouldBe true
         result1.state shouldBe an[Upcoming]
         manualTime.timePasses(config.awakeExamBeforeProceedMinutes.minutes)
-        val result2 = examKit.runCommand(Create("", 1, period, Set.empty, official1, _))
+        val result2 = examKit.runCommand(Create("", 1, period, Set.empty, official1, 2, _))
         result2.hasNoEvents shouldBe true
         result2.reply shouldBe Bad(illegalState.error() + "InProgress")
       }
@@ -437,10 +449,10 @@ class ExamEntitySpec
         }
 
         rejected(
-          Create("", 1, period, Set.empty, official1, _),
+          Create("", 1, period, Set.empty, official1, 2, _),
           IncludeTestees(Set.empty, _),
           ExcludeTestees(Set.empty, _),
-          SetTrialLength(2, _),
+          SetTrialAttrs(2, 3, _),
           Cancel(Instant.now(), _)
         )
       }
@@ -486,7 +498,7 @@ class ExamEntitySpec
             Behaviors.stopped
         }
         putFact(qz.id, Behaviors.monitor(probe.ref, mock))
-        val result0 = examKit.runCommand(Create(qz.id, 60, period, Set.empty, official1, _))
+        val result0 = examKit.runCommand(Create(qz.id, 60, period, Set.empty, official1, 70, _))
         val pending = result0.stateOfType[Pending]
         examKit.runCommand(Proceed)
         examKit.runCommand(Proceed)
@@ -499,6 +511,7 @@ class ExamEntitySpec
             pending.period,
             pending.testees,
             pending.host,
+            pending.passingGrade,
             Set.empty
           )
         probe.expectMessageType[QuizFact.Use]
@@ -520,10 +533,10 @@ class ExamEntitySpec
         }
 
         rejected(
-          Create("", 1, period, Set.empty, official1, _),
+          Create("", 1, period, Set.empty, official1, 2, _),
           IncludeTestees(Set.empty, _),
           ExcludeTestees(Set.empty, _),
-          SetTrialLength(2, _)
+          SetTrialAttrs(2, 3, _)
         )
 
         val result = examKit.runCommand(Proceed)
@@ -544,10 +557,10 @@ class ExamEntitySpec
         }
 
         rejected(
-          Create("", 1, period, Set.empty, official1, _),
+          Create("", 1, period, Set.empty, official1, 2, _),
           IncludeTestees(Set.empty, _),
           ExcludeTestees(Set.empty, _),
-          SetTrialLength(2, _)
+          SetTrialAttrs(2, 3, _)
         )
 
         val result = examKit.runCommand(Proceed)

@@ -105,6 +105,7 @@ class ExamProjectionHandlerSpec
           hostId: String,
           hostName: String,
           trialLength: Int,
+          passingGrade: Int,
           prestartAt: ZonedDateTime,
           startAt: ZonedDateTime,
           endAt: ZonedDateTime,
@@ -121,6 +122,7 @@ class ExamProjectionHandlerSpec
             rs.string("host_id"),
             rs.string("host_name"),
             rs.int("trial_length"),
+            rs.int("passing_grade"),
             rs.zonedDateTime("prestart_at").withZoneSameInstant(ZoneId.of("Z")),
             rs.zonedDateTime("start_at").withZoneSameInstant(ZoneId.of("Z")),
             rs.zonedDateTime("end_at").withZoneSameInstant(ZoneId.of("Z")),
@@ -163,7 +165,8 @@ class ExamProjectionHandlerSpec
           ZonedDateTime.parse("2023-01-06T10:00:00Z")
         ),
         Set(student1, student2),
-        official1
+        official1,
+        60
       )
 
       val initExamRow = ExamRow(
@@ -173,6 +176,7 @@ class ExamProjectionHandlerSpec
         "off1",
         "off1 name",
         45,
+        60,
         ZonedDateTime.parse("2023-01-03T10:00:00Z"),
         ZonedDateTime.parse("2023-01-05T10:00:00Z"),
         ZonedDateTime.parse("2023-01-06T10:00:00Z"),
@@ -203,10 +207,10 @@ class ExamProjectionHandlerSpec
         }
       }
 
-      "trial length set" in {
-        val p = proj("e1", created, TrialLengthSet(73))
+      "trial attrs set" in {
+        val p = proj("e1", created, TrialAttrsSet(73, 83))
         projTestKit.run(p) {
-          getExam("e1") shouldBe Some(initExamRow.copy(trialLength = 73))
+          getExam("e1") shouldBe Some(initExamRow.copy(trialLength = 73, passingGrade = 83))
         }
       }
 
@@ -222,16 +226,12 @@ class ExamProjectionHandlerSpec
         val p = proj("e1", created, GoneUpcoming, GoneInProgress)
         projTestKit.run(p) {
           getExam("e1") shouldBe Some(initExamRow.copy(state = "InProgress"))
-          verify(trialRegistryClient).registerExam(
-            trial.RegisterExamRequest(
-              "e1",
-              "q1",
-              45,
-              Instant.parse("2023-01-05T10:00:00Z").getEpochSecond,
-              Instant.parse("2023-01-06T10:00:00Z").getEpochSecond,
-              Seq(trial.Person("stud1", "stud1 name"), trial.Person("stud2", "stud2 name"))
-            )
-          )
+          verify(trialRegistryClient).registerExam(trial.RegisterExamRequest(
+            "e1", "q1", 45, 
+            Instant.parse("2023-01-05T10:00:00Z").getEpochSecond,
+            Instant.parse("2023-01-06T10:00:00Z").getEpochSecond,
+            Seq(trial.Person("stud1", "stud1 name"), trial.Person("stud2", "stud2 name"))
+          ))
         }
       }
 

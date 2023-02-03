@@ -27,7 +27,7 @@ class ExamProjectionHandler(trialRegistryClient: trial.Registry)
         update { implicit session =>
           sql"delete from exam where id=?".bind(id).update.apply()
           sql"""insert into exam (id,quiz_id,quiz_title,host_id,host_name,trial_length,prestart_at,
-            start_at,end_at,state) values (?,?,?,?,?,?,?,?,?,?)"""
+            start_at,end_at,state,passing_grade) values (?,?,?,?,?,?,?,?,?,?,?)"""
             .bind(
               id,
               c.quiz.id,
@@ -38,7 +38,8 @@ class ExamProjectionHandler(trialRegistryClient: trial.Registry)
               c.preparationStart,
               c.period.start,
               c.period.end,
-              State.Pending.toString
+              State.Pending.toString,
+              c.passingGrade
             )
             .update
             .apply()
@@ -68,9 +69,10 @@ class ExamProjectionHandler(trialRegistryClient: trial.Registry)
               .apply()
           }
         }
-      case TrialLengthSet(length) =>
+      case TrialAttrsSet(length, grade) =>
         update { implicit session =>
-          sql"update exam set trial_length=? where id=?".bind(length, id).update.apply()
+          sql"update exam set trial_length=?,passing_grade=? where id=?"
+            .bind(length, grade, id).update.apply()
         }
       case GoneUpcoming =>
         updateState(State.Upcoming)

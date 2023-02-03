@@ -31,6 +31,7 @@ case class CreateExam(
     id: String,
     quizId: String,
     trialLength: Int,
+    passingGrade: Int,
     start: ZonedDateTime,
     end: ZonedDateTime,
     testees: Set[String]
@@ -46,6 +47,7 @@ case class ExamView(
     state: String,
     cancelledAt: Option[Instant],
     trialLength: Int,
+    passingGrade: Int,
     prestartAt: ZonedDateTime
 )
 
@@ -59,12 +61,12 @@ case class QuizListed(
     recommendedTrialLength: Int
 )
 
-case class ChangeLength(length: Int)
+case class ChangeTrialAttrs(length: Int, passingGrade: Int)
 
 trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
   given RootJsonFormat[Reason] = jsonFormat2(Reason.apply)
   given RootJsonFormat[Error] = jsonFormat2(Error.apply)
-  given RootJsonFormat[ChangeLength] = jsonFormat1(ChangeLength.apply)
+  given RootJsonFormat[ChangeTrialAttrs] = jsonFormat2(ChangeTrialAttrs.apply)
   given RootJsonFormat[Instant] =
     new:
       def write(i: Instant) = JsString(i.toString)
@@ -100,9 +102,9 @@ trait JsonFormats extends SprayJsonSupport, DefaultJsonProtocol:
   given RootJsonFormat[Official] = jsonFormat(Official.apply, "id", "name")
   given RootJsonFormat[Student] = jsonFormat(Student.apply, "id", "name")
   given RootJsonFormat[QuizRef] = jsonFormat2(QuizRef.apply)
-  given RootJsonFormat[CreateExam] = jsonFormat6(CreateExam.apply)
+  given RootJsonFormat[CreateExam] = jsonFormat7(CreateExam.apply)
   given RootJsonFormat[Exam.CreateExamDetails] = jsonFormat2(Exam.CreateExamDetails.apply)
-  given RootJsonFormat[ExamView] = jsonFormat8(ExamView.apply)
+  given RootJsonFormat[ExamView] = jsonFormat9(ExamView.apply)
   given RootJsonFormat[QuizListed] = jsonFormat7(QuizListed.apply)
   given RootJsonFormat[Set[Person]] =
     new:
@@ -219,6 +221,7 @@ object HttpFrontend extends JsonFormats:
                           ExamPeriod(ce.start, ce.end),
                           set,
                           person,
+                          ce.passingGrade,
                           _
                         )
                       )
@@ -238,8 +241,8 @@ object HttpFrontend extends JsonFormats:
                 }
               } ~
               post {
-                entity(as[ChangeLength]) { cl =>
-                  onExam[Nothing](id)(Exam.SetTrialLength(cl.length, _))
+                entity(as[ChangeTrialAttrs]) { cl =>
+                  onExam[Nothing](id)(Exam.SetTrialAttrs(cl.length, cl.passingGrade, _))
                 }
               } ~
               put {

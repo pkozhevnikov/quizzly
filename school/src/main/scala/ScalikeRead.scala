@@ -54,6 +54,7 @@ class ScalikeRead(poolName: String) extends Read:
             rs.zonedDateTimeOpt("cancelled_at")
               .map(_.withZoneSameInstant(ZoneId.of("Z")).toInstant),
             rs.int("trial_length"),
+            rs.int("passing_grade"),
             rs.zonedDateTime("prestart_at").withZoneSameInstant(ZoneId.of("Z"))
           )
         }

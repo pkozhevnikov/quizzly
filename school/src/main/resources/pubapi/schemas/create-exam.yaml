@@ -17,8 +17,12 @@ properties:
       type: string
   id:
     type: string
+  passingGrade:
+    type: integer
+    format: int32
 required:
 - trialLength
+- passingGrade
 - quizId
 - testees
 - start

@@ -209,6 +209,7 @@ class ExamManagementSpec
     "e1",
     "Q-1",
     45,
+    60,
     ZonedDateTime.parse("2023-01-10T10:00:00Z"),
     ZonedDateTime.parse("2023-01-10T15:00:00Z"),
     Set(off2.id, stud1.id, stud3.id)
@@ -269,6 +270,7 @@ class ExamManagementSpec
             "Pending",
             None,
             45,
+            60,
             ZonedDateTime.parse("2023-01-09T10:00:00Z")
           )
       }
@@ -318,17 +320,18 @@ class ExamManagementSpec
     }
   }
 
-  Feature("Modify Trial Length") {
-    Scenario("Trial Length is changed") {
+  Feature("Modify Trial Attrs") {
+    Scenario("Trial attrs are changed") {
       Given("existing Exam")
       post("exam", off1, createExam.copy(id = "e5"))
       When("'change trial length' request is performed")
-      val res = post("exam/e5", off1, ChangeLength(54))
-      Then("specified Trial Length is set on the Exam")
+      val res = post("exam/e5", off1, ChangeTrialAttrs(54, 75))
+      Then("specified Trial attrs are set on the Exam")
       res.status shouldBe StatusCodes.NoContent
       eventually {
         val ex = get("exam", off1).to[List[ExamView]].find(_.id == "e5").get
         ex.trialLength shouldBe 54
+        ex.passingGrade shouldBe 75
       }
     }
   }

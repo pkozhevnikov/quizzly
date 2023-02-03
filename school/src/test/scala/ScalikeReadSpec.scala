@@ -45,6 +45,7 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
     "Pending",
     None,
     45,
+    60,
     dt1.minusDays(1)
   )
   val e1testees = Set(Official("off2", "off2 name"), Student("stud1", "stud2 name"))
@@ -57,6 +58,7 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
     "Cancelled",
     Some(dt1.plusDays(2).toInstant),
     60,
+    70,
     dt1
   )
   val e2testees = Set(Official("off4", "off4 name"), Student("stud2", "stud2 name"))
@@ -72,7 +74,7 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
           id,title,obsolete,in_use,is_published,ever_published,recommended_length)
         values (?,?,?,?,?,?,?)"""
       val insexam = """insert into exam (id,quiz_id,quiz_title,host_id,host_name,start_at,end_at,
-        state,cancelled_at,trial_length,prestart_at) values (?,?,?,?,?,?,?,?,?,?,?)"""
+        state,cancelled_at,trial_length,passing_grade,prestart_at) values (?,?,?,?,?,?,?,?,?,?,?,?)"""
       val instste = """insert into testee (exam_id,testee_id,testee_name,testee_place)
         values (?,?,?,?)"""
       def insq(q: QuizListed) = SQL(insquiz)
@@ -103,6 +105,7 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
           e.state,
           e.cancelledAt,
           e.trialLength,
+          e.passingGrade,
           e.prestartAt
         )
         .update

@@ -1,0 +1,11 @@
+type: object
+properties:
+  length:
+    type: integer
+    format: int32
+  passingGrade:
+    type: integer
+    format: int32
+required:
+- passingGrade
+- length

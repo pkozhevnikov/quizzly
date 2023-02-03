@@ -74,6 +74,8 @@ object ExamEntity:
                       config.trialLengthMinutesRange(1).toString
                   )
                 )
+              else if c.passingGrade < config.passingGrade(0) || c.passingGrade > 100 then
+                Effect.reply(c.replyTo)(Bad(badPassingGrade.error() + config.passingGrade(0).toString + "100"))
               else
                 val extra = ctx.spawnAnonymous(
                   Behaviors.receiveMessage[Resp[Quiz]] {
@@ -86,6 +88,7 @@ object ExamEntity:
                           c.period,
                           c.testees,
                           c.host,
+                          c.passingGrade,
                           c.replyTo
                         )
                       Behaviors.stopped
@@ -109,7 +112,8 @@ object ExamEntity:
                     c.preparationStart,
                     c.period,
                     c.testees,
-                    c.host
+                    c.host,
+                    c.passingGrade
                   )
                 )
                 .thenRun((_: Exam) =>
@@ -137,8 +141,21 @@ object ExamEntity:
                 Effect.reply(replyTo)(Good(Set.empty[Person]))
               else
                 Effect.persist(TesteesExcluded(toremove)).thenReply(replyTo)(_ => Good(toremove))
-            case SetTrialLength(length, replyTo) =>
-              Effect.persist(TrialLengthSet(length)).thenReply(replyTo)(_ => Resp.OK)
+            case SetTrialAttrs(length, grade, replyTo) =>
+              if length < config.trialLengthMinutesRange(0) ||
+                length > config.trialLengthMinutesRange(1)
+              then
+                Effect.reply(replyTo)(
+                  Bad(
+                    badTrialLength.error() + config.trialLengthMinutesRange(0).toString +
+                      config.trialLengthMinutesRange(1).toString
+                  )
+                )
+              else if grade < config.passingGrade(0) || grade > 100 then
+                Effect.reply(replyTo)(Bad(badPassingGrade.error() + config.passingGrade(0).toString + "100"))
+              else
+                Effect.persist(TrialAttrsSet(length, grade))
+                  .thenReply(replyTo)(_ => Resp.OK)
             case Proceed =>
               Effect
                 .persist(GoneUpcoming)
@@ -218,7 +235,7 @@ object ExamEntity:
         case _: Blank =>
           evt match
             case c: Created =>
-              Pending(c.quiz, c.trialLengthMinutes, c.preparationStart, c.period, c.testees, c.host)
+              Pending(c.quiz, c.trialLengthMinutes, c.preparationStart, c.period, c.testees, c.host, c.passingGrade)
 
         case pending: Pending =>
           evt match
@@ -226,15 +243,16 @@ object ExamEntity:
               pending.copy(testees = pending.testees ++ include)
             case TesteesExcluded(exclude) =>
               pending.copy(testees = pending.testees -- exclude)
-            case TrialLengthSet(length) =>
-              pending.copy(trialLengthMinutes = length)
+            case TrialAttrsSet(length, grade) =>
+              pending.copy(trialLengthMinutes = length, passingGrade = grade)
             case GoneUpcoming =>
               Upcoming(
                 pending.quiz,
                 pending.trialLengthMinutes,
                 pending.period,
                 pending.testees,
-                pending.host
+                pending.host,
+                pending.passingGrade
               )
             case GoneCancelled(at) =>
               Cancelled(
@@ -243,6 +261,7 @@ object ExamEntity:
                 pending.period,
                 pending.testees,
                 pending.host,
+                pending.passingGrade,
                 at
               )
             case _ =>
@@ -257,6 +276,7 @@ object ExamEntity:
                 upcoming.period,
                 upcoming.testees,
                 upcoming.host,
+                upcoming.passingGrade,
                 at
               )
             case GoneInProgress =>
@@ -265,7 +285,8 @@ object ExamEntity:
                 upcoming.trialLengthMinutes,
                 upcoming.period,
                 upcoming.testees,
-                upcoming.host
+                upcoming.host,
+                upcoming.passingGrade
               )
             case _ =>
               upcoming
@@ -281,6 +302,7 @@ object ExamEntity:
                 inprogress.period,
                 inprogress.testees,
                 inprogress.host,
+                inprogress.passingGrade,
                 inprogress.trials
               )
             case _ =>

@@ -89,7 +89,8 @@ An Official creates an Exam. This Official is the **Host** of the Exam. Host spe
 Released not Obsolete Quiz and sets the **Exam Period** - a period Testees are eligible to take
 the Exam within. Quiz and Exam Period are set on Exam creation only. There is a configurable
 settings **Preparation Interval** - time interval before Exam starts - which is applied to the
-Exam automatically.
+Exam automatically. When creating an Exam, Official specifies passing grade in percent, which 
+has configurable minimal and default value.
 
 *States* of an Exam:
 
