@@ -276,7 +276,8 @@ class HttpFrontendSpec
           }
       }
       "respond with error" in {
-        post("exam/e1", off1, ChangeTrialAttrs(93, 85)) ~> stdexam("e1", Bad(badTrialLength.error())) ~>
+        post("exam/e1", off1, ChangeTrialAttrs(93, 85)) ~>
+          stdexam("e1", Bad(badTrialLength.error())) ~>
           check {
             status shouldBe StatusCodes.UnprocessableEntity
             responseAs[Error] shouldBe badTrialLength.error()

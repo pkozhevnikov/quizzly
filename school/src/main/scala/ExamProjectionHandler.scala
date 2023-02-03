@@ -72,7 +72,9 @@ class ExamProjectionHandler(trialRegistryClient: trial.Registry)
       case TrialAttrsSet(length, grade) =>
         update { implicit session =>
           sql"update exam set trial_length=?,passing_grade=? where id=?"
-            .bind(length, grade, id).update.apply()
+            .bind(length, grade, id)
+            .update
+            .apply()
         }
       case GoneUpcoming =>
         updateState(State.Upcoming)

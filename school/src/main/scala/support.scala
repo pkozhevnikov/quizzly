@@ -58,7 +58,7 @@ final case class ExamConfig(
     trackerCheckRateMinutes: Int = 5,
     awakeExamBeforeProceedMinutes: Int = 3,
     passingGrade: (Int, Int) = (50, 65)
-    )
+)
 object ExamConfig:
   def fromConfig(econf: com.typesafe.config.Config) = ExamConfig(
     econf.getInt("preparationPeriodHours"),
@@ -86,17 +86,18 @@ given Conversion[grpc.Item, Item] =
 given Conversion[grpc.Section, Section] =
   g => Section(g.sc, g.title, g.intro, g.items.map(gi => gi: Item).toList)
 given Conversion[grpc.Person, PersonRef] = g => PersonRef(g.id, g.name)
-given Conversion[grpc.RegisterQuizRequest, FullQuiz] = 
-  g => FullQuiz(
-    g.id,
-    g.title,
-    g.intro,
-    g.recommendedTrialLength,
-    g.curator,
-    g.authors.map(a => a: PersonRef).toSet,
-    g.inspectors.map(i => i: PersonRef).toSet,
-    g.sections.map(s => s: Section).toList
-  )
+given Conversion[grpc.RegisterQuizRequest, FullQuiz] =
+  g =>
+    FullQuiz(
+      g.id,
+      g.title,
+      g.intro,
+      g.recommendedTrialLength,
+      g.curator,
+      g.authors.map(a => a: PersonRef).toSet,
+      g.inspectors.map(i => i: PersonRef).toSet,
+      g.sections.map(s => s: Section).toList
+    )
 
 final case class FullQuiz(
     id: QuizID,

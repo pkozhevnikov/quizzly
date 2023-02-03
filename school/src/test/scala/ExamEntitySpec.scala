@@ -130,8 +130,9 @@ class ExamEntitySpec
           }
         )
         tracker.expectNoMessage()
-        val result = examKit
-          .runCommand(Create(quiz.id, 60, period, Set(student1, student2, official3), official4, 70, _))
+        val result = examKit.runCommand(
+          Create(quiz.id, 60, period, Set(student1, student2, official3), official4, 70, _)
+        )
         result.reply shouldBe Good(CreateExamDetails(prepStart, official4))
         result.state shouldBe
           Pending(quiz, 60, prepStart, period, Set(student1, student2, official3), official4, 70)

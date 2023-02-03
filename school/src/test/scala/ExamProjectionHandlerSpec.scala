@@ -226,12 +226,16 @@ class ExamProjectionHandlerSpec
         val p = proj("e1", created, GoneUpcoming, GoneInProgress)
         projTestKit.run(p) {
           getExam("e1") shouldBe Some(initExamRow.copy(state = "InProgress"))
-          verify(trialRegistryClient).registerExam(trial.RegisterExamRequest(
-            "e1", "q1", 45, 
-            Instant.parse("2023-01-05T10:00:00Z").getEpochSecond,
-            Instant.parse("2023-01-06T10:00:00Z").getEpochSecond,
-            Seq(trial.Person("stud1", "stud1 name"), trial.Person("stud2", "stud2 name"))
-          ))
+          verify(trialRegistryClient).registerExam(
+            trial.RegisterExamRequest(
+              "e1",
+              "q1",
+              45,
+              Instant.parse("2023-01-05T10:00:00Z").getEpochSecond,
+              Instant.parse("2023-01-06T10:00:00Z").getEpochSecond,
+              Seq(trial.Person("stud1", "stud1 name"), trial.Person("stud2", "stud2 name"))
+            )
+          )
         }
       }
 

@@ -75,7 +75,9 @@ object ExamEntity:
                   )
                 )
               else if c.passingGrade < config.passingGrade(0) || c.passingGrade > 100 then
-                Effect.reply(c.replyTo)(Bad(badPassingGrade.error() + config.passingGrade(0).toString + "100"))
+                Effect.reply(c.replyTo)(
+                  Bad(badPassingGrade.error() + config.passingGrade(0).toString + "100")
+                )
               else
                 val extra = ctx.spawnAnonymous(
                   Behaviors.receiveMessage[Resp[Quiz]] {
@@ -152,10 +154,11 @@ object ExamEntity:
                   )
                 )
               else if grade < config.passingGrade(0) || grade > 100 then
-                Effect.reply(replyTo)(Bad(badPassingGrade.error() + config.passingGrade(0).toString + "100"))
+                Effect.reply(replyTo)(
+                  Bad(badPassingGrade.error() + config.passingGrade(0).toString + "100")
+                )
               else
-                Effect.persist(TrialAttrsSet(length, grade))
-                  .thenReply(replyTo)(_ => Resp.OK)
+                Effect.persist(TrialAttrsSet(length, grade)).thenReply(replyTo)(_ => Resp.OK)
             case Proceed =>
               Effect
                 .persist(GoneUpcoming)
@@ -235,7 +238,15 @@ object ExamEntity:
         case _: Blank =>
           evt match
             case c: Created =>
-              Pending(c.quiz, c.trialLengthMinutes, c.preparationStart, c.period, c.testees, c.host, c.passingGrade)
+              Pending(
+                c.quiz,
+                c.trialLengthMinutes,
+                c.preparationStart,
+                c.period,
+                c.testees,
+                c.host,
+                c.passingGrade
+              )
 
         case pending: Pending =>
           evt match
