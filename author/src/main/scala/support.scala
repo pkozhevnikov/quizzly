@@ -43,3 +43,5 @@ object QuizConfig:
     qconf.getInt("minTitleLength"),
     qconf.getInt("inactivityMinutes")
   )
+
+given Conversion[Person, quizzly.school.grpc.Person] = g => quizzly.school.grpc.Person(g.id, g.name)

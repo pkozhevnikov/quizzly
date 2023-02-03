@@ -399,7 +399,42 @@ object QuizEntity:
               Effect.reply(c.replyTo)(Bad(quizReleased.error()))
 
   def sendToSchool(schoolRegistry: school.SchoolRegistry, quiz: Released) = schoolRegistry
-    .registerQuiz(school.RegisterQuizRequest(quiz.id, quiz.title, quiz.recommendedLength))
+    .registerQuiz(
+      school.RegisterQuizRequest(
+        quiz.id,
+        quiz.title,
+        quiz.intro,
+        quiz.recommendedLength,
+        quiz.curator,
+        quiz.authors.map(a => a: school.Person).toSeq,
+        quiz.inspectors.map(a => a: school.Person).toSeq,
+        quiz
+          .sections
+          .map { s =>
+            school.Section(
+              s.sc,
+              s.title,
+              s.intro,
+              s.items
+                .map { i =>
+                  school.Item(
+                    i.sc,
+                    i.intro,
+                    school.Statement(i.definition.text, i.definition.image),
+                    i.hints
+                      .map { alts =>
+                        school.Hint(alts.map(a => school.Statement(a.text, a.image)))
+                      }
+                      .toSeq,
+                    i.hintsVisible,
+                    i.solutions.toSeq
+                  )
+                }
+                .toSeq
+            )
+          }
+      )
+    )
 
   def sendToTrial(trialRegistry: trial.Registry, quiz: Released) =
     val req = trial.RegisterQuizRequest(

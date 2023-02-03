@@ -735,7 +735,40 @@ class QuizEntitySpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Bef
             false
           )
         verify(schoolRegistry).registerQuiz(
-          school.RegisterQuizRequest(composing.id, composing.title, composing.recommendedLength)
+          school.RegisterQuizRequest(
+            composing.id,
+            composing.title,
+            composing.intro,
+            composing.recommendedLength,
+            school.Person(composing.curator.id, composing.curator.name),
+            composing
+              .authors
+              .map { a =>
+                school.Person(a.id, a.name)
+              }
+              .toSeq,
+            composing.inspectors.map(i => school.Person(i.id, i.name)).toSeq,
+            Seq(
+              school.Section(
+                section.sc,
+                section.title,
+                section.intro,
+                section
+                  .items
+                  .map { i =>
+                    school.Item(
+                      i.sc,
+                      i.intro,
+                      school.Statement(i.definition.text, i.definition.image),
+                      i.hints
+                        .map(h => school.Hint(h.map(s => school.Statement(s.text, s.image)).toSeq)),
+                      i.hintsVisible,
+                      i.solutions.toSeq
+                    )
+                  }
+              )
+            )
+          )
         )
 
         val expected = trial.RegisterQuizRequest(
