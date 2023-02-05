@@ -75,7 +75,7 @@ class ScalikeReadSpec extends wordspec.AsyncWordSpec, BeforeAndAfterAll, matcher
         values (?,?,?,?,?,?,?)"""
       val insexam = """insert into exam (id,quiz_id,quiz_title,host_id,host_name,start_at,end_at,
         state,cancelled_at,trial_length,passing_grade,prestart_at) values (?,?,?,?,?,?,?,?,?,?,?,?)"""
-      val instste = """insert into testee (exam_id,testee_id,testee_name,testee_place)
+      val instste = """insert into trials (exam_id,testee_id,testee_name,testee_place)
         values (?,?,?,?)"""
       def insq(q: QuizListed) = SQL(insquiz)
         .bind(

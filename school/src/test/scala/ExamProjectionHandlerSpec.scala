@@ -149,7 +149,7 @@ class ExamProjectionHandlerSpec
         sql"select * from exam where id=?".bind(id).map(toExamRow).single.apply()
       }
       def getTestees(id: String) = DB.readOnly { implicit session =>
-        sql"select * from testee where exam_id=? order by testee_id"
+        sql"select * from trials where exam_id=? order by testee_id"
           .bind(id)
           .map(toPerson)
           .list
@@ -236,6 +236,35 @@ class ExamProjectionHandlerSpec
               Seq(trial.Person("stud1", "stud1 name"), trial.Person("stud2", "stud2 name"))
             )
           )
+        }
+      }
+
+      "trial registered" in {
+        val p = proj("e1", created, GoneUpcoming, GoneInProgress, TrialRegistered(GradedTrialOutcome(
+          testeeId = "stud1",
+          trialId = "trial1",
+          start = Instant.parse("2023-01-05T10:10:00Z"),
+          end = Instant.parse("2023-01-05T10:20:00Z"),
+          solutions = List.empty,
+          score = 77
+        )))
+        projTestKit.run(p) {
+          val Some((trialId, startAt, endAt, score)) = DB.readOnly { implicit session =>
+            sql"select * from trials where exam_id=? and testee_id=?"
+            .bind("e1", "stud1")
+            .map(rs => (
+              rs.string("trial_id"),
+              rs.timestamp("start_at").toInstant,
+              rs.timestamp("end_at").toInstant,
+              rs.int("score")
+            ))
+            .single
+            .apply
+          }
+          trialId shouldBe "trial1"
+          startAt shouldBe Instant.parse("2023-01-05T10:10:00Z")
+          endAt shouldBe Instant.parse("2023-01-05T10:20:00Z")
+          score shouldBe 77
         }
       }
 

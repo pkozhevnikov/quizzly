@@ -24,11 +24,15 @@ create table exam (
   cancelled_at timestamp
 );
 
-create table testee (
+create table trials (
   exam_id varchar not null,
   testee_id varchar not null,
   testee_name varchar not null,
   testee_place varchar not null,
+  start_at timestamp,
+  end_at timestamp,
+  trial_id varchar,
+  score int,
   constraint pk_testee primary key (exam_id,testee_id),
   constraint fk_testee_exam foreign key (exam_id) references exam(id) on delete cascade
 );

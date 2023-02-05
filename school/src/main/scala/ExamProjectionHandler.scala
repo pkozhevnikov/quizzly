@@ -45,7 +45,7 @@ class ExamProjectionHandler(trialRegistryClient: trial.Registry)
             .apply()
           c.testees
             .foreach { person =>
-              sql"insert into testee (exam_id,testee_id,testee_name,testee_place) values (?,?,?,?)"
+              sql"insert into trials (exam_id,testee_id,testee_name,testee_place) values (?,?,?,?)"
                 .bind(id, person.id, person.name, person.place)
                 .update
                 .apply()
@@ -54,7 +54,7 @@ class ExamProjectionHandler(trialRegistryClient: trial.Registry)
       case TesteesIncluded(testees) =>
         update { implicit session =>
           testees.foreach { person =>
-            sql"insert into testee (exam_id,testee_id,testee_name,testee_place) values (?,?,?,?)"
+            sql"insert into trials (exam_id,testee_id,testee_name,testee_place) values (?,?,?,?)"
               .bind(id, person.id, person.name, person.place)
               .update
               .apply()
@@ -63,7 +63,7 @@ class ExamProjectionHandler(trialRegistryClient: trial.Registry)
       case TesteesExcluded(testees) =>
         update { implicit session =>
           testees.foreach { person =>
-            sql"delete from testee where exam_id=? and testee_id=?"
+            sql"delete from trials where exam_id=? and testee_id=?"
               .bind(id, person.id)
               .update
               .apply()
@@ -84,7 +84,7 @@ class ExamProjectionHandler(trialRegistryClient: trial.Registry)
           .db
           .withinTx { implicit session =>
             val testees =
-              sql"select testee_id,testee_name from testee where exam_id=?"
+              sql"select testee_id,testee_name from trials where exam_id=?"
                 .bind(id)
                 .map(r => trial.Person(r.string("testee_id"), r.string("testee_name")))
                 .list
@@ -114,6 +114,20 @@ class ExamProjectionHandler(trialRegistryClient: trial.Registry)
         update { implicit session =>
           sql"update exam set state=?,cancelled_at=? where id=?"
             .bind(State.Cancelled.toString, at, id)
+            .update
+            .apply()
+        }
+      case TrialRegistered(outcome) =>
+        update { implicit session =>
+          sql"update trials set trial_id=?,start_at=?,end_at=?,score=? where exam_id=? and testee_id=?"
+            .bind(
+              outcome.trialId,
+              outcome.start,
+              outcome.end,
+              outcome.score,
+              id,
+              outcome.testeeId
+            )
             .update
             .apply()
         }

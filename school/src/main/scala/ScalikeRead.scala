@@ -65,7 +65,7 @@ class ScalikeRead(poolName: String) extends Read:
 
   def testees(id: ExamID)(using ExecutionContext) = Future {
     NamedDB(poolName).readOnly { implicit session =>
-      sql"select * from testee where exam_id=? order by testee_name"
+      sql"select * from trials where exam_id=? order by testee_name"
         .bind(id)
         .map(rs =>
           Person.of(rs.string("testee_place"))(rs.string("testee_id"), rs.string("testee_name"))
