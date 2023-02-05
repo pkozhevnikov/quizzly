@@ -39,6 +39,9 @@ object QuizFact:
   final case class UseStopped(examID: ExamID) extends Event
   case object GotUnused extends Event
 
+  final case class GradeTrial(solutions: List[Solution], replyTo: ActorRef[Resp[Int]])
+    extends CommandWithReply[Int]
+
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("QuizFact")
 
   object Tags:
@@ -109,6 +112,8 @@ object QuizFact:
             Effect.reply(replyTo)(Bad(wasPublished.error()))
           else
             Effect.persist(Used(examID)).thenReply(replyTo)(_ => Good(Quiz(id, quiz.title)))
+        case GradeTrial(solutions, replyTo) =>
+          Effect.reply(replyTo)(Good(DefaultGrader().grade(quiz.sections, solutions)))
 
         case StopUse(examID) =>
           if usedBy(examID) then

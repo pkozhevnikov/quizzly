@@ -17,7 +17,9 @@ class DefaultGrader extends Grader:
       sections: List[Section],
       trialDurationSeconds: Int,
       solutions: List[Solution]
-  ) =
+  ) = grade(sections, solutions)
+
+  def grade(sections: List[Section], solutions: List[Solution]) = 
     val allItems = sections.flatMap(section =>
       section
         .items
@@ -30,6 +32,7 @@ class DefaultGrader extends Grader:
         })
     )
     math.ceil(allItems.sum / allItems.length).toInt
+    
 
   val phr = "\\{\\{(\\d+)}}".r
 

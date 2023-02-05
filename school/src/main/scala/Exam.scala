@@ -5,13 +5,23 @@ import akka.actor.typed.*
 
 final case class ExamPeriod(start: ZonedDateTime, end: ZonedDateTime) extends CborSerializable
 final case class Solution(sectionSc: SC, itemSc: SC, answers: List[String]) extends CborSerializable
-final case class TrialOutcome(
+case class TrialOutcome(
     testeeId: PersonID,
     trialId: TrialID,
     start: Instant,
     end: Instant,
     solutions: List[Solution]
+) extends CborSerializable:
+  def withScore(score: Int) = GradedTrialOutcome(testeeId, trialId, start, end, solutions, score)
+final case class GradedTrialOutcome(
+    testeeId: PersonID,
+    trialId: TrialID,
+    start: Instant,
+    end: Instant,
+    solutions: List[Solution],
+    score: Int
 ) extends CborSerializable
+  
 
 sealed trait Exam extends CborSerializable
 
@@ -121,11 +131,12 @@ object Exam:
       testees: Set[Person],
       host: Official,
       passingGrade: Int,
-      trials: Set[TrialOutcome] = Set.empty
+      trials: Set[GradedTrialOutcome] = Set.empty
   ) extends Exam
 
   final case class RegisterTrial(outcome: TrialOutcome) extends Command
-  final case class TrialRegistered(outcome: TrialOutcome) extends Event
+  final case class InternalRegisterTrial(outcome: GradedTrialOutcome) extends Command
+  final case class TrialRegistered(outcome: GradedTrialOutcome) extends Event
 
   case object GoneInProgress extends Event
 
@@ -137,7 +148,7 @@ object Exam:
       testees: Set[Person],
       host: Official,
       passingGrade: Int,
-      trials: Set[TrialOutcome]
+      trials: Set[GradedTrialOutcome]
   ) extends Exam
 
   final case class Cancel(at: Instant, replyTo: ActorRef[RespOK]) extends CommandWithReply[Nothing]

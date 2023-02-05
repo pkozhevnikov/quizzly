@@ -235,6 +235,9 @@ class ExamEntitySpec
           Behaviors.same
         case QuizFact.StopUse(_) =>
           Behaviors.same
+        case QuizFact.GradeTrial(_, replyTo) =>
+          replyTo ! Good(50)
+          Behaviors.same
         case _ =>
           Behaviors.stopped
       }
@@ -472,9 +475,9 @@ class ExamEntitySpec
         )
 
         val result = examKit.runCommand(RegisterTrial(outcome))
-        result.event shouldBe TrialRegistered(outcome)
-        val newState = result.stateOfType[InProgress]
-        newState.trials should contain only outcome
+        val ns = examKit.getState()
+        ns shouldBe a [InProgress]
+        ns.asInstanceOf[InProgress].trials should contain only outcome.withScore(50)
       }
 
       "not register trial if testee is not included in exam" in {

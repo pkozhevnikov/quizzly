@@ -17,6 +17,8 @@ import java.time.*
 
 object ExamEntity:
 
+  val log = org.slf4j.LoggerFactory.getLogger("school.ExamEntity")
+
   import Exam.*
 
   val EntityKey: EntityTypeKey[Command] = EntityTypeKey("Exam")
@@ -207,9 +209,26 @@ object ExamEntity:
               Effect.persist(GoneEnded)
             case RegisterTrial(outcome) =>
               if inprogress.testees.exists(_.id == outcome.testeeId) then
-                Effect.persist(TrialRegistered(outcome))
+                val extra = Behaviors.receiveMessage[Resp[Int]] {
+                  case Good(score) =>
+                    //TODO justify score based on trial duration???
+                    ctx.self ! InternalRegisterTrial(outcome.withScore(score))
+                    Behaviors.stopped
+                  case Bad(e) =>
+                    log.error("could not grade trial: {}", e)
+                    Behaviors.stopped
+                  case x =>
+                    log.error("unexpected grade result: {}", x)
+                    Behaviors.stopped
+                }
+                facts(inprogress.quiz.id) ! QuizFact.GradeTrial(outcome.solutions, ctx.spawnAnonymous(extra))
               else
-                Effect.none
+                log.warn("attempts to register trial of not included testee: {}", outcome.testeeId)
+
+              Effect.none
+                
+            case InternalRegisterTrial(outcome) =>
+              Effect.persist(TrialRegistered(outcome))
             case c: CommandWithReply[?] =>
               Effect.reply(c.replyTo)(Bad(illegalState.error() + "InProgress"))
             case _ =>

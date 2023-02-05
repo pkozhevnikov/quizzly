@@ -171,4 +171,11 @@ class QuizFactSpec extends wordspec.AnyWordSpec, matchers.should.Matchers, Befor
       result.state shouldBe Some(Fact(full, true, false, false, Set.empty))
     }
 
+    "grade trial" in {
+      init
+      val result = kit.runCommand(GradeTrial(List.empty, _))
+      result.hasNoEvents shouldBe true
+      result.reply shouldBe Good(0)
+    }
+
   }
